@@ -77,5 +77,6 @@ public class Veiculo {
            ", status=" + status +
            '}';
 }
+        //comentario pra teste do gitigore, PODE EXCLUIR ELE
 
 }
