@@ -5,7 +5,7 @@
 package models;
 
 /**
- *
+ * Define os serviços que são realizados na oficina. 
  * @author camila_barbosa
  */
 public class Servico {
