@@ -29,5 +29,5 @@ public interface IObservavelOrdemServico {
     /**
      * Notifica todos os observadores registrados sobre uma mudança de estado.
      */
-    void notificarObservadores(); // SEM parâmetros
+    void notificarObservadores();
 }

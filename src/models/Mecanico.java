@@ -6,6 +6,7 @@ package models;
 
 import java.util.ArrayList;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class Mecanico extends Usuario {
     public Mecanico(String nome, String cpf, String endereco, String email, 
                    String telefone, String senha, String especialidade) {
         super(nome, cpf, endereco, email, telefone, senha);
-        this.especialidade = especialidade;
+        this.especialidade = Objects.requireNonNull(especialidade, "Especialidade não pode ser nula");
         this.disponivel = true;
         this.servicosQualificados = new ArrayList<>();
     }
@@ -76,29 +77,45 @@ public class Mecanico extends Usuario {
      * @return Irá retornar uma nova ordem de serviço 
      */
     public OrdemServico realizarDiagnostico(Veiculo veiculo, Cliente cliente) {
-        if (!this.disponivel) {
-            throw new IllegalStateException("Mecânico não está disponível para diagnóstico");
-        }
-
-        // Cria lista de serviços inicial com diagnóstico padrão
-        List<Servico> servicosIniciais = new ArrayList<>();
-        Servico diagnostico = new Servico("DIAG", "Diagnóstico Inicial", 50.0, 
-                                        "Diagnóstico", null);
-        servicosIniciais.add(diagnostico);
-
-        this.disponivel = false;
-        
-        return new OrdemServico(
-            gerarCodigoOS(),
-            new Date(),
-            veiculo,
-            cliente,
-            this,
-            StatusOrdem.EM_DIAGNOSTICO,
-            servicosIniciais
-        );
+    if (!this.disponivel) {
+        throw new IllegalStateException("Mecânico não está disponível para diagnóstico");
     }
 
+    //Cria lista de serviços inicial com diagnóstico padrão
+    List<Servico> servicosIniciais = new ArrayList<>();
+    Servico diagnostico = new Servico(
+        "DIAG", 
+        "Diagnóstico Inicial", 
+        50.0, 
+        "Diagnóstico", 
+        null  // Nenhuma peça associada ao diagnóstico
+    );
+    servicosIniciais.add(diagnostico);
+
+    //Calcula preço total inicial (apenas o diagnóstico)
+    double precoTotalInicial = servicosIniciais.stream()
+            .mapToDouble(Servico::getPreco)
+            .sum();
+
+    OrdemServico os = new OrdemServico(
+        gerarCodigoOS(),           
+        new Date(),                
+        precoTotalInicial,         
+        veiculo,                  
+        cliente,                   
+        this,                      
+        StatusOrdem.EM_DIAGNOSTICO,
+        servicosIniciais           
+    );
+
+    this.disponivel = false;
+    return os;
+}
+    /**
+     * Executa um serviço em uma ordem de serviço que já existe
+     * @param ordem Ordem de serviço a ser executada
+     * @param servico Serviço que será realizado
+     */
     public void executarServico(OrdemServico ordem, Servico servico) {
         if (!this.disponivel) {
             throw new IllegalStateException("Mecânico não disponível");
@@ -115,7 +132,10 @@ public class Mecanico extends Usuario {
         this.disponivel = false;
     }
 
-    // Método auxiliar privado
+    /**
+     * Gera um código único para cada os
+     * @return retorna código no formato "OS-{timestamp}-{3primeirosDigitosCPF}"
+     */
     private String gerarCodigoOS() {
         return "OS-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm")) + 
                "-" + this.getCpf().substring(0, 3);

@@ -24,6 +24,6 @@ public interface IObservadorOrdemServico {
      *
      * @param ordem O objeto OrdemServico que teve seu status alterado.
      */
-    void notificarStatusOrdem(OrdemServico aThis); // Este método não precisa do parâmetro Usuario, por simplicidade.
+    void notificarStatusOrdem(OrdemServico aThis);
 
 }

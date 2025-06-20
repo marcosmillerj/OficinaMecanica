@@ -16,11 +16,11 @@ import observers.IObservadorOrdemServico;
  */
 /**
  * Esta classe simula o painel visual do mecânico e atua como um Observer concreto
- * para a OrdemServico. Ela exibe apenas as Ordens de Serviço relevantes para o mecânico.
+ * para a OrdemServico.
  */
 public class PainelMecanico implements IObservadorOrdemServico {
 
-    // Simula a lista de Ordens de Serviço que o mecânico precisa ver/trabalhar
+    // simula a UI
     private List<OrdemServico> ordensParaTrabalho;
 
     /**
@@ -29,7 +29,7 @@ public class PainelMecanico implements IObservadorOrdemServico {
      */
     public PainelMecanico() {
         this.ordensParaTrabalho = new ArrayList<>();
-        System.out.println("[PainelMecanico] Inicializado e pronto para monitorar Ordens de Serviço.");
+        System.out.println("[LOG:PainelMecanico] Inicializado e pronto para monitorar Ordens de Serviço.");
     }
 
     /**
@@ -39,12 +39,10 @@ public class PainelMecanico implements IObservadorOrdemServico {
      * @param ordem O objeto OrdemServico que teve seu status alterado.
      */
     @Override
-    public void notificarStatusOrdem(OrdemServico ordem) { // REMOVIDO o parâmetro Usuario
-        System.out.println("\n[PainelMecanico] Notificação recebida para OS " + ordem.getCodigo() + " ---");
-        System.out.println("    Status: " + ordem.getStatus()); // Removido "Alterado por"
+    public void notificarStatusOrdem(OrdemServico ordem) {
+        System.out.println("\n[LOG:PainelMecanico] Notificação recebida para OS " + ordem.getCodigo() + " ---");
+        System.out.println("    Status: " + ordem.getStatus());
 
-        // Lógica para decidir se a OS é relevante para o painel do mecânico
-        // e como atualizá-la (adicionar, remover, ou atualizar existente)
         boolean isRelevanteParaMecanico = false;
         switch (ordem.getStatus()) {
             case EM_DIAGNOSTICO:
@@ -58,23 +56,17 @@ public class PainelMecanico implements IObservadorOrdemServico {
                 isRelevanteParaMecanico = false;
                 break;
         }
-
-        // Para atualizar corretamente a lista, precisamos encontrar a OS existente e substituir,
-        // ou remover se não for mais relevante.
-        // É importante que OrdemServico tenha um método equals() e hashCode() bem definidos,
-        // se você for depender de List.remove() ou List.contains() para objetos complexos.
-        // Por agora, vamos simular a remoção e adição.
-        
+        //
         // Remove a versão antiga da OS da lista (se existir, baseando-se no 'codigo')
         ordensParaTrabalho.removeIf(os -> Objects.equals(os.getCodigo(), ordem.getCodigo()));
 
         if (isRelevanteParaMecanico) {
             // Adiciona a versão atualizada da OS à lista do painel
             ordensParaTrabalho.add(ordem);
-            System.out.println("    [PainelMecanico] OS " + ordem.getCodigo() + " ADICIONADA/ATUALIZADA na lista de 'Carros em Trabalho' (" + ordem.getStatus() + ").");
+            System.out.println("    [LOG:PainelMecanico] OS " + ordem.getCodigo() + " ADICIONADA/ATUALIZADA na lista de 'Carros em Trabalho' (" + ordem.getStatus() + ").");
         } else {
             // Se a OS não é mais relevante, a linha 'removeIf' acima já a removeu.
-            System.out.println("    [PainelMecanico] OS " + ordem.getCodigo() + " REMOVIDA da lista de 'Carros em Trabalho' (Status: " + ordem.getStatus() + ").");
+            System.out.println("    [LOG:PainelMecanico] OS " + ordem.getCodigo() + " REMOVIDA da lista de 'Carros em Trabalho' (Status: " + ordem.getStatus() + ").");
         }
         exibirOrdensAtuais(); // Atualiza a exibição no console
     }
@@ -83,7 +75,9 @@ public class PainelMecanico implements IObservadorOrdemServico {
      * Método auxiliar para exibir o estado atual do painel do mecânico (simulação de UI).
      */
     public void exibirOrdensAtuais() {
-        System.out.println("    --- PAINEL MECÂNICO: Ordens Atuais ---");
+                System.out.println("    -------------------------------------");
+
+        System.out.println("    --- LISTA EXIBIDA NO NOSSO PAINEL MECÂNICO/UI: Ordens Atuais ---");
         if (ordensParaTrabalho.isEmpty()) {
             System.out.println("    Nenhuma ordem de serviço relevante no momento.");
         } else {
