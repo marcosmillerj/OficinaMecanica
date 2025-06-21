@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package oficinamecanica; // Seu pacote principal, que contém a classe Main/Principal
+package oficinamecanica;
 
 import java.util.Scanner;
 import models.Usuario;
