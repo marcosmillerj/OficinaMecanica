@@ -5,6 +5,8 @@
 
 package models;
 
+import models.enums.StatusOrdem;
+
 /**
  *Classe que representa veículo
  * @author camila_barbosa

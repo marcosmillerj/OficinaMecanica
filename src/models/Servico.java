@@ -4,6 +4,8 @@
  */
 package models;
 
+import java.util.Objects;
+
 /**
  *
  * @author camila_barbosa
@@ -17,10 +19,10 @@ public class Servico {
     private ItemEstoque peca; // Associação com ItemEstoque
 
     public Servico(String codigo, String descricao, Double preco, String categoria, ItemEstoque peca) {
-        this.codigo = codigo;
-        this.descricao = descricao;
+        this.codigo =  Objects.requireNonNull(codigo, "Código não pode ser nulo");
+        this.descricao = Objects.requireNonNull(descricao, "Descrição não pode ser nula");
         this.preco = preco;
-        this.categoria = categoria;
+        this.categoria = Objects.requireNonNull(categoria, "Categoria não pode ser nula");
         this.peca = peca;
     }
 
@@ -46,6 +48,10 @@ public class Servico {
     }
 
     public void setPreco(Double preco) {
+        Objects.requireNonNull(preco, "Preço não pode ser nulo");
+        if (preco < 0) {
+            throw new IllegalArgumentException("Preço não pode ser negativo");
+        }
         this.preco = preco;
     }
 

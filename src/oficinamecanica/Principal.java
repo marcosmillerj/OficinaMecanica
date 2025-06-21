@@ -12,7 +12,6 @@ import repository.UsuarioCRUD;
 import service.RegistroPontoService;
 import util.AuthService;
 import util.UserSession;
-import view.MenuUsuario;
 import view.ComponentePonto;
 import view.PainelPrincipal;
 
@@ -29,14 +28,9 @@ public class Principal {
     private static UsuarioCRUD usuarioCRUD = new UsuarioCRUD();
     private static PontoRepository pontoRepository = new PontoRepository();
     private static Scanner scanner = new Scanner(System.in);
-
+    
     public static void main(String[] args) {
         System.out.println("Iniciando Sistema de Gerenciamento da Oficina...");
-
-        // **Atenção:** Se esta é a primeira execução ou se você apagou os JSONs,
-        // insira temporariamente o bloco de adição de usuários de teste AQUI.
-        // Após a primeira execução e com os usuários salvos, REMOVA este bloco.
-
         AuthService authService = new AuthService(usuarioCRUD, scanner);
         
         // Tenta realizar o login do usuário
@@ -62,7 +56,4 @@ public class Principal {
         // Fecha o scanner no final da execução do programa
         scanner.close();
     }
-
-    // O método 'exibirPainelPorTipoUsuario()' ESTÁ REMOVIDO DESTA CLASSE.
-    // Toda a lógica de roteamento e exibição de painéis específicos foi movida para PainelPrincipal.
 }

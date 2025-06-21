@@ -7,9 +7,9 @@ package models;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import models.enums.StatusOrdem;
 import models.enums.TipoUsuario;
 
 /**
@@ -94,13 +94,13 @@ public class Mecanico extends Usuario {
     servicosIniciais.add(diagnostico);
 
     //Calcula preço total inicial (apenas o diagnóstico)
-    double precoTotalInicial = servicosIniciais.stream()
+    double precoTotalInicial = servicosIniciais.stream() //alterar para orçamento
             .mapToDouble(Servico::getPreco)
             .sum();
 
     OrdemServico os = new OrdemServico(
         gerarCodigoOS(),           
-        new Date(),                
+        LocalDateTime.now(),
         precoTotalInicial,         
         veiculo,                  
         cliente,                   

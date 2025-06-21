@@ -4,33 +4,33 @@
  */
 package models;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import models.enums.StatusOrdem;
 import observers.IObservavelOrdemServico;
 import observers.IObservadorOrdemServico; 
 
 /**
- *
- *
+ *Classe que representa uma Ordem de Serviço na oficina mecânica
+ *Implementa o padrão Observer para notificar sobre mudanças de status
  * @author barbo
  */
 public class OrdemServico implements IObservavelOrdemServico { 
-//
 
     private String codigo;
-    private Date data;
+    private LocalDateTime data;
     private Double precoTotal;
     private Veiculo veiculo;
     private Cliente cliente;
     private Mecanico mecanicoResponsavel;
     private StatusOrdem status;
     private final List<Servico> servicos;
-
     private final List<IObservadorOrdemServico> observadores;
-    //
-
-    public OrdemServico(String codigo, Date data, double precoTotal, Veiculo veiculo,
+    
+    //construtor
+    
+    public OrdemServico(String codigo, LocalDateTime data, double precoTotal, Veiculo veiculo,
             Cliente cliente, Mecanico mecanicoResponsavel, StatusOrdem status, List<Servico> servicos) {
         this.codigo = codigo;
         this.data = data;
@@ -79,11 +79,11 @@ public class OrdemServico implements IObservavelOrdemServico {
         this.codigo = codigo;
     }
 
-    public Date getData() {
+    public LocalDateTime getData() {
         return data;
     }
 
-    public void setData(Date data) {
+    public void setData(LocalDateTime data) {
         this.data = data;
     }
 
@@ -122,18 +122,19 @@ public class OrdemServico implements IObservavelOrdemServico {
     public StatusOrdem getStatus() {
         return status;
     }
-
+    /**
+     * Altera o status sem notificar observadores.
+     * (Para uso interno ou quanod notificações não são desejadas)
+     * @param status  novo status
+     */
     public void setStatus(StatusOrdem status) {
         this.status = status;
-        //
     }
     
     public List<Servico> getServicos() {
         //
         return new ArrayList<>(servicos);
     }
-
-    // --- MÉTODOS DE NEGÓCIO (ORIGINAIS) ---
 
     /**
      * Calcula o preço total somando os serviços
@@ -169,9 +170,7 @@ public class OrdemServico implements IObservavelOrdemServico {
     }
 
     /**
-     * Altera o status da ordem de serviço.
-     * //
-     *
+     * Altera o status da ordem de serviço e notifica os observadores.
      * @param novoStatus status para qual será atualizado
      */
     public void alterarStatus(StatusOrdem novoStatus) { 
