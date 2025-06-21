@@ -18,5 +18,15 @@
     "telefone": "999",
     "tipo": "GERENTE",
     "senha": "123"
+  },
+  {
+    "id": 5,
+    "nome": "userTeste",
+    "cpf": "12345678937",
+    "endereco": "paulass",
+    "email": "aaa",
+    "telefone": "23",
+    "tipo": "MECANICO",
+    "senha": "123"
   }
 ]

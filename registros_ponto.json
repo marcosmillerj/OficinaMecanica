@@ -44,6 +44,19 @@
         "second": 44,
         "nano": 549701764
       }
+    },
+    "dataHoraSaida": {
+      "date": {
+        "year": 2025,
+        "month": 6,
+        "day": 20
+      },
+      "time": {
+        "hour": 21,
+        "minute": 1,
+        "second": 8,
+        "nano": 408453313
+      }
     }
   }
 ]
