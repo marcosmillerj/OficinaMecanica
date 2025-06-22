@@ -10,6 +10,7 @@ import java.util.Scanner;
 import models.Usuario;
 import repository.UsuarioCRUD;
 import service.ClienteService;
+import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.RegistroPontoService;
 import service.UsuarioService;
@@ -29,13 +30,28 @@ public class PainelPrincipal {
     private ClienteService clienteService;
     private VeiculoService veiculoService;
     private UsuarioService usuarioService;
+    private ItemEstoqueService itemEstoqueService;
     private Scanner scanner;
 
     private CompPonto componentePonto;
+    // Futuramente: ComponenteOrdemServicoEspecializada componenteOSEspecializada;
 
+    /**
+     * Construtor do PainelPrincipal.
+     * Recebe todas as dependências necessárias para suas operações.
+     * @param usuarioCRUD O CRUD de usuários.
+     * @param pontoService O serviço de negócio para o registro de ponto.
+     * @param scanner O scanner para entrada do usuário.
+     * @param ordemServicoService O serviço de ordens de serviço.
+     * @param clienteService O serviço de clientes.
+     * @param veiculoService O serviço de veículos.
+     * @param usuarioService O serviço de usuários.
+     * @param itemEstoqueService O serviço de itens de estoque. // NOVO PARÂMETRO DOC
+     */
     public PainelPrincipal(UsuarioCRUD usuarioCRUD, RegistroPontoService pontoService, Scanner scanner,
                            OrdemServicoService ordemServicoService, ClienteService clienteService,
-                           VeiculoService veiculoService, UsuarioService usuarioService) {
+                           VeiculoService veiculoService, UsuarioService usuarioService,
+                           ItemEstoqueService itemEstoqueService) { // NOVO PARÂMETRO!
         this.usuarioCRUD = usuarioCRUD;
         this.pontoService = pontoService;
         this.scanner = scanner;
@@ -43,6 +59,7 @@ public class PainelPrincipal {
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.usuarioService = usuarioService;
+        this.itemEstoqueService = itemEstoqueService; // Inicializa ItemEstoqueService
         
         this.usuarioLogado = UserSession.getInstance().getLoggedInUser();
         this.componentePonto = new CompPonto(pontoService, scanner);
@@ -75,7 +92,7 @@ public class PainelPrincipal {
             System.out.println("---------------------------------------------");
 
             // 3. Exibir o Menu de Opções Específico para o Tipo de Usuário
-            exibirMenuOpcoesPorTipo(); // <-- AQUI SERÁ ATUALIZADO
+            exibirMenuOpcoesPorTipo();
 
             System.out.print("Escolha uma opção do menu principal ou '0' para sair: ");
             try {
@@ -101,7 +118,6 @@ public class PainelPrincipal {
         System.out.println("Nenhuma Ordem de Serviço exibida ainda (Lógica a ser implementada futuramente).");
     }
 
-    // --- MÉTODO AJUSTADO ---
     private void exibirMenuOpcoesPorTipo() {
         System.out.println("\n[MENU DE OPÇÕES]");
         switch (usuarioLogado.getTipo()) {
@@ -119,7 +135,7 @@ public class PainelPrincipal {
                 System.out.println("1. Gerenciar Usuários");
                 System.out.println("2. Gerenciar Estoque");
                 System.out.println("3. Acessar Relatórios Financeiros");
-                System.out.println("4. Gerenciar Ordens de Serviço"); // <-- ADICIONADO AQUI!
+                System.out.println("4. Gerenciar Ordens de Serviço");
                 break;
             default:
                 System.out.println("Nenhuma opção disponível para este tipo de usuário.");
@@ -127,7 +143,6 @@ public class PainelPrincipal {
         }
         System.out.println("0. Sair do Painel");
     }
-    // --- FIM DO MÉTODO AJUSTADO ---
 
     private void processarOpcaoMenu(int opcao) {
         if (opcao == 0) {
@@ -136,14 +151,17 @@ public class PainelPrincipal {
 
         switch (usuarioLogado.getTipo()) {
             case ATENDENTE:
+                // Chamaria o MenuAtendente real
                 System.out.println("Funcionalidade de Gerenciamento para Atendente ainda não implementada.");
                 break;
             case MECANICO:
+                // Chamaria o MenuMecanico real
                 System.out.println("Funcionalidade de Gerenciamento para Mecânico ainda não implementada.");
                 break;
             case GERENTE:
                 MenuGerente menuGerente = new MenuGerente(
-                    usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService
+                    usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
+                    itemEstoqueService // NOVO PARÂMETRO!
                 );
                 menuGerente.exibirMenu();
                 break;

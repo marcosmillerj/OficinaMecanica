@@ -1,0 +1,128 @@
+[
+  {
+    "id": 1,
+    "nome": "Óleo de Motor 5W30 (Litro)",
+    "quantidade": 50,
+    "precoUnitario": 35.50
+  },
+  {
+    "id": 2,
+    "nome": "Filtro de Óleo",
+    "quantidade": 120,
+    "precoUnitario": 22.90
+  },
+  {
+    "id": 3,
+    "nome": "Filtro de Ar",
+    "quantidade": 80,
+    "precoUnitario": 38.75
+  },
+  {
+    "id": 4,
+    "nome": "Vela de Ignição (Unidade)",
+    "quantidade": 200,
+    "precoUnitario": 15.00
+  },
+  {
+    "id": 5,
+    "nome": "Pastilha de Freio (Jogo)",
+    "quantidade": 40,
+    "precoUnitario": 120.00
+  },
+  {
+    "id": 6,
+    "nome": "Disco de Freio (Unidade)",
+    "quantidade": 30,
+    "precoUnitario": 85.50
+  },
+  {
+    "id": 7,
+    "nome": "Bateria 60Ah",
+    "quantidade": 15,
+    "precoUnitario": 350.00
+  },
+  {
+    "id": 8,
+    "nome": "Pneu Aro 15",
+    "quantidade": 25,
+    "precoUnitario": 450.00
+  },
+  {
+    "id": 9,
+    "nome": "Lâmpada Farol H4",
+    "quantidade": 75,
+    "precoUnitario": 18.20
+  },
+  {
+    "id": 10,
+    "nome": "Palheta Limpador Pára-brisa",
+    "quantidade": 60,
+    "precoUnitario": 45.00
+  },
+  {
+    "id": 11,
+    "nome": "Aditivo Radiador",
+    "quantidade": 35,
+    "precoUnitario": 28.00
+  },
+  {
+    "id": 12,
+    "nome": "Correia Dentada",
+    "quantidade": 20,
+    "precoUnitario": 95.00
+  },
+  {
+    "id": 13,
+    "nome": "Rolamento de Roda",
+    "quantidade": 55,
+    "precoUnitario": 60.00
+  },
+  {
+    "id": 14,
+    "nome": "Amortecedor Dianteiro",
+    "quantidade": 10,
+    "precoUnitario": 180.00
+  },
+  {
+    "id": 15,
+    "nome": "Kit Embreagem",
+    "quantidade": 8,
+    "precoUnitario": 550.00
+  },
+  {
+    "id": 16,
+    "nome": "Fluido de Freio DOT4",
+    "quantidade": 45,
+    "precoUnitario": 19.90
+  },
+  {
+    "id": 17,
+    "nome": "Bomba D\u0027água",
+    "quantidade": 12,
+    "precoUnitario": 210.00
+  },
+  {
+    "id": 18,
+    "nome": "Sensor de Velocidade",
+    "quantidade": 28,
+    "precoUnitario": 70.00
+  },
+  {
+    "id": 19,
+    "nome": "Filtro de Combustível",
+    "quantidade": 90,
+    "precoUnitario": 32.50
+  },
+  {
+    "id": 20,
+    "nome": "Radiador",
+    "quantidade": 5,
+    "precoUnitario": 480.00
+  },
+  {
+    "id": 21,
+    "nome": "cabo de vela uno mille(jogo)",
+    "quantidade": 10,
+    "precoUnitario": 75
+  }
+]

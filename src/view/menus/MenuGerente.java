@@ -8,9 +8,11 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 import repository.UsuarioCRUD;
 import service.ClienteService;
+import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
+import view.componentes.CompGerenciarEstoque;
 import view.componentes.CompGerenciarOS;
 import view.componentes.CompGerenciarUsuario;
 
@@ -24,6 +26,7 @@ public class MenuGerente {
     private OrdemServicoService ordemServicoService;
     private ClienteService clienteService;
     private VeiculoService veiculoService;
+    private ItemEstoqueService itemEstoqueService; // NOVO ATRIBUTO!
     private UsuarioCRUD usuarioCRUD; // MANTIDO: Atributo para compatibilidade com o construtor do CompGerenciarUsuario no case 1
     private Scanner scanner;
 
@@ -37,16 +40,18 @@ public class MenuGerente {
      * @param ordemServicoService O serviço de ordens de serviço.
      * @param clienteService O serviço de clientes.
      * @param veiculoService O serviço de veículos.
+     * @param itemEstoqueService O serviço de itens de estoque. // NOVO PARÂMETRO DOC
      */
-    public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService, // UsuarioCRUD é um parâmetro
+    public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
-                       VeiculoService veiculoService) {
-        this.usuarioCRUD = usuarioCRUD; // Inicializa o atributo usuarioCRUD
+                       VeiculoService veiculoService, ItemEstoqueService itemEstoqueService) { // NOVO PARÂMETRO!
+        this.usuarioCRUD = usuarioCRUD;
         this.scanner = scanner;
         this.usuarioService = usuarioService;
         this.ordemServicoService = ordemServicoService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
+        this.itemEstoqueService = itemEstoqueService; // Inicializa ItemEstoqueService
     }
 
     /**
@@ -57,9 +62,9 @@ public class MenuGerente {
         do {
             System.out.println("\n===== Menu do Gerente =====");
             System.out.println("1. Gerenciar Usuários");
-            System.out.println("2. Gerenciar Estoque (Ainda não implementado)");
+            System.out.println("2. Gerenciar Estoque"); // A opção 2 agora é funcional
             System.out.println("3. Acessar Relatórios Financeiros (Ainda não implementado)");
-            System.out.println("4. Gerenciar Ordens de Serviço"); // Opção para OS
+            System.out.println("4. Gerenciar Ordens de Serviço");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -85,18 +90,19 @@ public class MenuGerente {
         switch (opcao) {
             case 1:
                 System.out.println("\n--- Abrindo Gerenciamento de Usuários ---");
-                // *** SUA LINHA ESPECÍFICA MANTIDA AQUI ***
+                // SUA LINHA ESPECÍFICA MANTIDA AQUI
                 CompGerenciarUsuario compGerenciarUsuario = new CompGerenciarUsuario(this.usuarioCRUD, this.scanner);
                 compGerenciarUsuario.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 2:
-                System.out.println("Funcionalidade 'Gerenciar Estoque' ainda não implementada.");
-                // Futuramente: new CompGerenciarEstoque(estoqueService, scanner).exibirMenu();
+            case 2: // Gerenciar Estoque
+                System.out.println("\n--- Abrindo Gerenciamento de Estoque ---");
+                CompGerenciarEstoque compGerenciarEstoque = new CompGerenciarEstoque(this.itemEstoqueService, this.scanner); // CHAMANDO O COMPONENTE DE ESTOQUE!
+                compGerenciarEstoque.exibirMenu();
+                System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 3:
                 System.out.println("Funcionalidade 'Acessar Relatórios Financeiros' ainda não implementada.");
-                // Futuramente: new CompGerenciarRelatorios(relatorioService, scanner).exibirMenu();
                 break;
             case 4:
                 System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
