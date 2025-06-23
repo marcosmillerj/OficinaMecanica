@@ -19,7 +19,7 @@
     "idVeiculo": 1,
     "idCliente": 1,
     "idMecanicoResponsavel": 5,
-    "status": "EM_DIAGNOSTICO",
+    "status": "AGUARDANDO_PAGAMENTO",
     "servicos": [
       {
         "id": 1,

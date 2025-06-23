@@ -17,6 +17,7 @@ import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import util.UserSession;
+import view.componentes.CompOSEspecializada;
 
 /**
  *
@@ -50,10 +51,11 @@ public class PainelPrincipal {
      * @param itemEstoqueService O serviço de itens de estoque.
      * @param servicoService O serviço de serviços. // NOVO PARÂMETRO DOC
      */
+
     public PainelPrincipal(UsuarioCRUD usuarioCRUD, RegistroPontoService pontoService, Scanner scanner,
                            OrdemServicoService ordemServicoService, ClienteService clienteService,
                            VeiculoService veiculoService, UsuarioService usuarioService,
-                           ItemEstoqueService itemEstoqueService, ServicoService servicoService) { // NOVO PARÂMETRO!
+                           ItemEstoqueService itemEstoqueService, ServicoService servicoService) {
         this.usuarioCRUD = usuarioCRUD;
         this.pontoService = pontoService;
         this.scanner = scanner;
@@ -62,7 +64,7 @@ public class PainelPrincipal {
         this.veiculoService = veiculoService;
         this.usuarioService = usuarioService;
         this.itemEstoqueService = itemEstoqueService;
-        this.servicoService = servicoService; // Inicializa ServicoService
+        this.servicoService = servicoService; // Inicializa ServicoService AQUI
         
         this.usuarioLogado = UserSession.getInstance().getLoggedInUser();
         this.compPonto = new CompPonto(pontoService, scanner);
@@ -73,6 +75,10 @@ public class PainelPrincipal {
         }
     }
 
+    /**
+     * Inicia e exibe o loop principal do painel.
+     * Gerencia a interação com o usuário através dos componentes e menus específicos.
+     */
     public void exibirPainel() {
         int opcao;
         do {
@@ -91,7 +97,7 @@ public class PainelPrincipal {
             System.out.println("---------------------------------------------");
 
             // 2. Exibir a Lista de O.S. Especializadas
-            exibirOrdensDeServicoEspecializadas();
+            exibirMenuOSEspecializadas(); // <<< AGORA VAI CHAMAR O COMPONENTE REAL!
             System.out.println("---------------------------------------------");
 
             // 3. Exibir o Menu de Opções Específico para o Tipo de Usuário
@@ -116,10 +122,16 @@ public class PainelPrincipal {
         System.out.println("Saindo do Painel " + usuarioLogado.getTipo().getDescricao() + ". Até mais!");
     }
 
-    private void exibirOrdensDeServicoEspecializadas() {
-        System.out.println("\n[ORDENS DE SERVIÇO ATRIBUÍDAS / EM ABERTO]");
-        System.out.println("Nenhuma Ordem de Serviço exibida ainda (Lógica a ser implementada futuramente).");
+    // --- MÉTODO PARA EXIBIR O MENU DO COMPONENTE DE OS ESPECIALIZADA ---
+    private void exibirMenuOSEspecializadas() {
+        CompOSEspecializada compOSEspecializada = new CompOSEspecializada(
+            ordemServicoService, usuarioService, clienteService, veiculoService,
+            itemEstoqueService, servicoService, scanner 
+        );
+        compOSEspecializada.exibirMenu();
+        System.out.println("---------------------------------------------");
     }
+
 
     private void exibirMenuOpcoesPorTipo() {
         System.out.println("\n[MENU DE OPÇÕES]");
@@ -154,17 +166,19 @@ public class PainelPrincipal {
 
         switch (usuarioLogado.getTipo()) {
             case ATENDENTE:
+                // Aqui você chamaria o MenuAtendente real (futuramente)
                 System.out.println("Funcionalidade de Gerenciamento para Atendente ainda não implementada.");
                 break;
             case MECANICO:
+                // Se a opção 1 for para 'Registrar Diagnóstico', ou 2 para 'Executar Serviço'
+                // Aqui você chamaria os serviços para Mecânico.
                 System.out.println("Funcionalidade de Gerenciamento para Mecânico ainda não implementada.");
                 break;
             case GERENTE:
-                // AGORA PASSA itemEstoqueService E servicoService para o MenuGerente!
+                // Instancia o MenuGerente, passando TODAS as dependências que ele pode precisar
                 MenuGerente menuGerente = new MenuGerente(
                     usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
-                    itemEstoqueService, // JÁ EXISTIA
-                    servicoService      // <<< NOVO PARÂMETRO SENDO PASSADO AQUI!
+                    itemEstoqueService, servicoService // PASSANDO SERVICOSERVICE AQUI!
                 );
                 menuGerente.exibirMenu();
                 break;
