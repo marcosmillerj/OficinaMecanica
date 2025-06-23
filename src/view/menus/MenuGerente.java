@@ -10,6 +10,7 @@ import repository.UsuarioCRUD;
 import service.ClienteService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
+import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import view.componentes.CompGerenciarEstoque;
@@ -26,7 +27,8 @@ public class MenuGerente {
     private OrdemServicoService ordemServicoService;
     private ClienteService clienteService;
     private VeiculoService veiculoService;
-    private ItemEstoqueService itemEstoqueService; // NOVO ATRIBUTO!
+    private ItemEstoqueService itemEstoqueService; // ATRIBUTO JÁ EXISTENTE
+    private ServicoService servicoService;         // NOVO ATRIBUTO! (precisa ser adicionado)
     private UsuarioCRUD usuarioCRUD; // MANTIDO: Atributo para compatibilidade com o construtor do CompGerenciarUsuario no case 1
     private Scanner scanner;
 
@@ -34,24 +36,27 @@ public class MenuGerente {
      * Construtor do MenuGerente.
      * Recebe todas as dependências necessárias para suas operações.
      *
-     * @param usuarioCRUD O CRUD de usuários (necessário aqui para passar ao CompGerenciarUsuario).
+     * @param usuarioCRUD O CRUD de usuários.
      * @param scanner O scanner para entrada do usuário.
      * @param usuarioService O serviço de negócio para usuários.
      * @param ordemServicoService O serviço de ordens de serviço.
      * @param clienteService O serviço de clientes.
      * @param veiculoService O serviço de veículos.
-     * @param itemEstoqueService O serviço de itens de estoque. // NOVO PARÂMETRO DOC
+     * @param itemEstoqueService O serviço de itens de estoque.
+     * @param servicoService O serviço de serviços. // NOVO PARÂMETRO DOC!
      */
     public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
-                       VeiculoService veiculoService, ItemEstoqueService itemEstoqueService) { // NOVO PARÂMETRO!
+                       VeiculoService veiculoService, ItemEstoqueService itemEstoqueService, // JÁ EXISTENTE
+                       ServicoService servicoService) { // NOVO PARÂMETRO!
         this.usuarioCRUD = usuarioCRUD;
         this.scanner = scanner;
         this.usuarioService = usuarioService;
         this.ordemServicoService = ordemServicoService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
-        this.itemEstoqueService = itemEstoqueService; // Inicializa ItemEstoqueService
+        this.itemEstoqueService = itemEstoqueService;
+        this.servicoService = servicoService; // INICIALIZA O NOVO ATRIBUTO!
     }
 
     /**
@@ -62,7 +67,7 @@ public class MenuGerente {
         do {
             System.out.println("\n===== Menu do Gerente =====");
             System.out.println("1. Gerenciar Usuários");
-            System.out.println("2. Gerenciar Estoque"); // A opção 2 agora é funcional
+            System.out.println("2. Gerenciar Estoque");
             System.out.println("3. Acessar Relatórios Financeiros (Ainda não implementado)");
             System.out.println("4. Gerenciar Ordens de Serviço");
             System.out.println("0. Voltar ao Painel Principal");
@@ -70,7 +75,7 @@ public class MenuGerente {
 
             try {
                 opcao = scanner.nextInt();
-                scanner.nextLine(); // Consome a nova linha
+                scanner.nextLine();
             } catch (InputMismatchException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número.");
                 scanner.nextLine();
@@ -90,24 +95,27 @@ public class MenuGerente {
         switch (opcao) {
             case 1:
                 System.out.println("\n--- Abrindo Gerenciamento de Usuários ---");
-                // SUA LINHA ESPECÍFICA MANTIDA AQUI
                 CompGerenciarUsuario compGerenciarUsuario = new CompGerenciarUsuario(this.usuarioCRUD, this.scanner);
                 compGerenciarUsuario.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 2: // Gerenciar Estoque
                 System.out.println("\n--- Abrindo Gerenciamento de Estoque ---");
-                CompGerenciarEstoque compGerenciarEstoque = new CompGerenciarEstoque(this.itemEstoqueService, this.scanner); // CHAMANDO O COMPONENTE DE ESTOQUE!
+                CompGerenciarEstoque compGerenciarEstoque = new CompGerenciarEstoque(this.itemEstoqueService, this.scanner);
                 compGerenciarEstoque.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 3:
                 System.out.println("Funcionalidade 'Acessar Relatórios Financeiros' ainda não implementada.");
                 break;
-            case 4:
+            case 4: // Gerenciar Ordens de Serviço
                 System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
+                // *** AJUSTE AQUI: PASSAR ServicoService e ItemEstoqueService ***
                 CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
-                    this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService, this.scanner
+                    this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
+                    this.servicoService,       // NOVO PARÂMETRO!
+                    this.itemEstoqueService,   // NOVO PARÂMETRO!
+                    this.scanner
                 );
                 compGerenciarOS.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");

@@ -13,6 +13,7 @@ import service.ClienteService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.RegistroPontoService;
+import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import util.UserSession;
@@ -31,10 +32,10 @@ public class PainelPrincipal {
     private VeiculoService veiculoService;
     private UsuarioService usuarioService;
     private ItemEstoqueService itemEstoqueService;
+    private ServicoService servicoService; // NOVO ATRIBUTO!
     private Scanner scanner;
 
-    private CompPonto componentePonto;
-    // Futuramente: ComponenteOrdemServicoEspecializada componenteOSEspecializada;
+    private CompPonto compPonto;
 
     /**
      * Construtor do PainelPrincipal.
@@ -46,12 +47,13 @@ public class PainelPrincipal {
      * @param clienteService O serviço de clientes.
      * @param veiculoService O serviço de veículos.
      * @param usuarioService O serviço de usuários.
-     * @param itemEstoqueService O serviço de itens de estoque. // NOVO PARÂMETRO DOC
+     * @param itemEstoqueService O serviço de itens de estoque.
+     * @param servicoService O serviço de serviços. // NOVO PARÂMETRO DOC
      */
     public PainelPrincipal(UsuarioCRUD usuarioCRUD, RegistroPontoService pontoService, Scanner scanner,
                            OrdemServicoService ordemServicoService, ClienteService clienteService,
                            VeiculoService veiculoService, UsuarioService usuarioService,
-                           ItemEstoqueService itemEstoqueService) { // NOVO PARÂMETRO!
+                           ItemEstoqueService itemEstoqueService, ServicoService servicoService) { // NOVO PARÂMETRO!
         this.usuarioCRUD = usuarioCRUD;
         this.pontoService = pontoService;
         this.scanner = scanner;
@@ -59,10 +61,11 @@ public class PainelPrincipal {
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.usuarioService = usuarioService;
-        this.itemEstoqueService = itemEstoqueService; // Inicializa ItemEstoqueService
+        this.itemEstoqueService = itemEstoqueService;
+        this.servicoService = servicoService; // Inicializa ServicoService
         
         this.usuarioLogado = UserSession.getInstance().getLoggedInUser();
-        this.componentePonto = new CompPonto(pontoService, scanner);
+        this.compPonto = new CompPonto(pontoService, scanner);
         
         if (this.usuarioLogado == null) {
             System.err.println("Erro: Tentativa de exibir PainelPrincipal sem usuário logado. Encerrando.");
@@ -79,9 +82,9 @@ public class PainelPrincipal {
             System.out.println("---------------------------------------------");
 
             // 1. Exibir e Processar o Componente de Ponto
-            int opcaoPonto = componentePonto.exibirStatusEPedirAcao();
+            int opcaoPonto = compPonto.exibirStatusEPedirAcao();
             if (opcaoPonto == 8 || opcaoPonto == 9) {
-                componentePonto.processarAcaoPonto(opcaoPonto, usuarioLogado);
+                compPonto.processarAcaoPonto(opcaoPonto, usuarioLogado);
             } else if (opcaoPonto != -1) {
                 System.out.println("Opção de ponto não reconhecida. Prosseguindo para o menu principal...");
             }
@@ -151,17 +154,17 @@ public class PainelPrincipal {
 
         switch (usuarioLogado.getTipo()) {
             case ATENDENTE:
-                // Chamaria o MenuAtendente real
                 System.out.println("Funcionalidade de Gerenciamento para Atendente ainda não implementada.");
                 break;
             case MECANICO:
-                // Chamaria o MenuMecanico real
                 System.out.println("Funcionalidade de Gerenciamento para Mecânico ainda não implementada.");
                 break;
             case GERENTE:
+                // AGORA PASSA itemEstoqueService E servicoService para o MenuGerente!
                 MenuGerente menuGerente = new MenuGerente(
                     usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
-                    itemEstoqueService // NOVO PARÂMETRO!
+                    itemEstoqueService, // JÁ EXISTIA
+                    servicoService      // <<< NOVO PARÂMETRO SENDO PASSADO AQUI!
                 );
                 menuGerente.exibirMenu();
                 break;
@@ -170,5 +173,4 @@ public class PainelPrincipal {
                 break;
         }
     }
-    // Remova os métodos processarMenuAtendente e processarMenuMecanico se ainda estiverem aqui.
 }

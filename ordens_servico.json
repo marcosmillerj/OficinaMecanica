@@ -15,12 +15,22 @@
         "nano": 714765490
       }
     },
-    "precoTotal": 0,
+    "precoTotal": 123,
     "idVeiculo": 1,
     "idCliente": 1,
     "idMecanicoResponsavel": 5,
     "status": "EM_DIAGNOSTICO",
-    "servicos": [],
+    "servicos": [
+      {
+        "id": 1,
+        "codigo": "www",
+        "descricao": "nao entendi",
+        "preco": 123,
+        "setor": "ELETRICA",
+        "idItemEstoquePeca": 0,
+        "requerElevadorAlinhamento": false
+      }
+    ],
     "observadores": []
   }
 ]

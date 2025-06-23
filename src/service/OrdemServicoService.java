@@ -27,7 +27,8 @@ public class OrdemServicoService {
     private OrdemServicoRepository ordemServicoRepository; // Repositório de OS
     private UsuarioCRUD usuarioCRUD; // Para buscar mecânicos (ou seria UsuarioService)
     private ClienteService clienteService; // ATRIBUTO NOVO!
-    private VeiculoService veiculoService; // ATRIBUTO NOVO!
+    private VeiculoService veiculoService;
+    private ServicoService servicoService;// ATRIBUTO NOVO!
     // private ServicoService servicoService; // Futura dependência se tiver um service para Servico
 
     /**
@@ -40,12 +41,14 @@ public class OrdemServicoService {
      */
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                UsuarioCRUD usuarioCRUD,
-                               ClienteService clienteService,   // NOVO PARÂMETRO!
-                               VeiculoService veiculoService) { // NOVO PARÂMETRO!
+                               ClienteService clienteService,
+                               VeiculoService veiculoService,
+                               ServicoService servicoService) { // <<--- NOVO PARÂMETRO!
         this.ordemServicoRepository = ordemServicoRepository;
         this.usuarioCRUD = usuarioCRUD;
         this.clienteService = Objects.requireNonNull(clienteService, "ClienteService não pode ser nulo.");
         this.veiculoService = Objects.requireNonNull(veiculoService, "VeiculoService não pode ser nulo.");
+        this.servicoService = Objects.requireNonNull(servicoService, "ServicoService não pode ser nulo."); // <<--- INICIALIZA!
     }
 
     /**

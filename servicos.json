@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "codigo": "www",
+    "descricao": "teste de servico",
+    "preco": 232,
+    "setor": "DIAGNOSTICO",
+    "idItemEstoquePeca": 2,
+    "requerElevadorAlinhamento": false
+  }
+]

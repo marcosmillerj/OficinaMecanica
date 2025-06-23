@@ -6,138 +6,123 @@ package models;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import models.enums.SetorServico;
 
 /**
  *
  * @author camila_barbosa
  */
 public class Servico {
-
-    // NOVO: Adicionar ID único para Servico
     public static int proximoId = 1;
 
-    private int id; // ID único do serviço
+    private int id;
     private String codigo;
     private String descricao;
-    private BigDecimal preco; // ALTERADO: De Double para BigDecimal
-    private String categoria;
-    private int idItemEstoquePeca; // ALTERADO: De ItemEstoque para int (referência por ID)
+    private BigDecimal preco;
+    private SetorServico setor; // NOVO ATRIBUTO: O setor a que este serviço pertence
+    private int idItemEstoquePeca; // Referência por ID para ItemEstoque (se houver peça)
+    private boolean requerElevadorAlinhamento; // NOVO ATRIBUTO: Indica se este serviço requer um elevador de alinhamento
 
     /**
-     * Construtor para criar um novo Serviço.
+     * Construtor principal para criar um novo Serviço.
      * @param codigo O código único do serviço.
      * @param descricao A descrição detalhada do serviço.
      * @param preco O preço do serviço.
-     * @param categoria A categoria do serviço.
+     * @param setor O setor a que este serviço pertence.
      * @param idItemEstoquePeca O ID da peça de estoque associada a este serviço (0 se não houver peça).
+     * @param requerElevadorAlinhamento true se este serviço exigir um elevador de alinhamento, false caso contrário.
      */
-    public Servico(String codigo, String descricao, BigDecimal preco, String categoria, int idItemEstoquePeca) {
-        this.id = proximoId++; // Atribui ID único e incrementa
+    public Servico(String codigo, String descricao, BigDecimal preco, SetorServico setor, int idItemEstoquePeca, boolean requerElevadorAlinhamento) {
+        this.id = proximoId++;
         this.codigo = Objects.requireNonNull(codigo, "Código do serviço não pode ser nulo.");
         this.descricao = Objects.requireNonNull(descricao, "Descrição do serviço não pode ser nula.");
         setPreco(preco); // Usa o setter para validação de preço
-        this.categoria = Objects.requireNonNull(categoria, "Categoria do serviço não pode ser nula.");
-        this.idItemEstoquePeca = idItemEstoquePeca; // Guarda o ID da peça
+        this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo."); // Valida setor
+        this.idItemEstoquePeca = idItemEstoquePeca;
+        this.requerElevadorAlinhamento = requerElevadorAlinhamento; // Inicializa o novo atributo
     }
 
     /**
-     * Construtor para Servico sem peça associada.
+     * Construtor para Serviço sem peça associada e que não requer elevador de alinhamento (padrão).
      * @param codigo O código único do serviço.
      * @param descricao A descrição detalhada do serviço.
      * @param preco O preço do serviço.
-     * @param categoria A categoria do serviço.
+     * @param setor O setor a que este serviço pertence.
      */
-    public Servico(String codigo, String descricao, BigDecimal preco, String categoria) {
-        // Chama o construtor principal com idItemEstoquePeca = 0 (ou outro valor padrão para "sem peça")
-        this(codigo, descricao, preco, categoria, 0); 
+    public Servico(String codigo, String descricao, BigDecimal preco, SetorServico setor) {
+        this(codigo, descricao, preco, setor, 0, false); // Chama o construtor completo com defaults
     }
-
-    // NOVO: Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON)
-    public Servico(int id, String codigo, String descricao, BigDecimal preco, String categoria, int idItemEstoquePeca) {
+    
+    /**
+     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
+     * @param id ID do serviço.
+     * @param codigo Código do serviço.
+     * @param descricao Descrição do serviço.
+     * @param preco Preço do serviço.
+     * @param setor Setor do serviço.
+     * @param idItemEstoquePeca ID da peça de estoque associada.
+     * @param requerElevadorAlinhamento Indica se o serviço requer elevador de alinhamento.
+     */
+    public Servico(int id, String codigo, String descricao, BigDecimal preco, SetorServico setor, int idItemEstoquePeca, boolean requerElevadorAlinhamento) {
         this.id = id;
         this.codigo = codigo;
         this.descricao = descricao;
         this.preco = preco;
-        this.categoria = categoria;
+        this.setor = setor;
         this.idItemEstoquePeca = idItemEstoquePeca;
+        this.requerElevadorAlinhamento = requerElevadorAlinhamento;
     }
 
     // --- Getters e Setters ---
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
 
-    public String getCodigo() {
-        return codigo;
-    }
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = Objects.requireNonNull(codigo, "Código do serviço não pode ser nulo."); }
 
-    public void setCodigo(String codigo) {
-        this.codigo = Objects.requireNonNull(codigo, "Código do serviço não pode ser nulo.");
-    }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = Objects.requireNonNull(descricao, "Descrição do serviço não pode ser nula."); }
 
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) { // Renomeado para setDescricao para consistência
-        this.descricao = Objects.requireNonNull(descricao, "Descrição do serviço não pode ser nula.");
-    }
-
-    public BigDecimal getPreco() { // ALTERADO: Retorna BigDecimal
-        return preco;
-    }
-
-    public void setPreco(BigDecimal preco) { // ALTERADO: Recebe BigDecimal
+    public BigDecimal getPreco() { return preco; }
+    public void setPreco(BigDecimal preco) {
         Objects.requireNonNull(preco, "Preço do serviço não pode ser nulo.");
-        if (preco.compareTo(BigDecimal.ZERO) < 0) { // Comparação com BigDecimal.ZERO
+        if (preco.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Preço do serviço não pode ser negativo.");
         }
         this.preco = preco;
     }
 
-    public String getCategoria() {
-        return categoria;
-    }
+    public SetorServico getSetor() { return setor; } // Getter para o Setor
+    public void setSetor(SetorServico setor) { this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo."); } // Setter para o Setor
 
-    public void setCategoria(String categoria) {
-        this.categoria = Objects.requireNonNull(categoria, "Categoria do serviço não pode ser nula.");
-    }
+    public int getIdItemEstoquePeca() { return idItemEstoquePeca; }
+    public void setIdItemEstoquePeca(int idItemEstoquePeca) { this.idItemEstoquePeca = idItemEstoquePeca; }
 
-    // Getter para o ID da peça de estoque
-    public int getIdItemEstoquePeca() {
-        return idItemEstoquePeca;
-    }
-
-    // Setter para o ID da peça de estoque
-    public void setIdItemEstoquePeca(int idItemEstoquePeca) {
-        this.idItemEstoquePeca = idItemEstoquePeca;
-    }
+    public boolean requerElevadorAlinhamento() { return requerElevadorAlinhamento; } // Getter para o novo atributo
+    public void setRequerElevadorAlinhamento(boolean requerElevadorAlinhamento) { this.requerElevadorAlinhamento = requerElevadorAlinhamento; } // Setter para o novo atributo
 
     @Override
     public String toString() {
-        // Usar format() para BigDecimal, e exibir a referência da peça por ID
-        return String.format("Serviço [Código: %s | Descrição: %s | Preço: R$ %.2f | Categoria: %s %s]",
+        return String.format("Serviço [ID: %d | Código: %s | Descrição: %s | Preço: R$ %.2f | Setor: %s %s %s]",
+                id,
                 codigo,
                 descricao,
-                preco, // BigDecimal já tem seu próprio toString ou pode ser formatado
-                categoria,
-                (idItemEstoquePeca != 0) ? "| Peça ID: " + idItemEstoquePeca : "" // Exibe ID da peça
+                preco,
+                setor.getDescricao(), // Usando a descrição do SetorServico
+                (idItemEstoquePeca != 0) ? "| Peça ID: " + idItemEstoquePeca : "",
+                requerElevadorAlinhamento ? "| REQUER ALINHAMENTO" : "" // Indica se requer elevador de alinhamento
         );
     }
     
-    // É uma boa prática sobrescrever equals e hashCode se você for usar objetos Servico
-    // em coleções que dependem da igualdade (ex: removerServico de uma List).
-    // Usaremos o ID para identificar unicidade.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Servico servico = (Servico) o;
-        return id == servico.id; // Serviços são iguais se tiverem o mesmo ID
+        return id == servico.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id); // Hash code baseado no ID
+        return Objects.hash(id);
     }
 }
