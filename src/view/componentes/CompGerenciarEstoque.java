@@ -72,12 +72,15 @@ public class CompGerenciarEstoque {
 
     private void adicionarItem() {
         System.out.println("\n--- Adicionar Novo Item ao Estoque ---");
+        System.out.print("Código do Item (Ex: VELA-001): "); // NOVO: Solicitar o código
+        String codigo = scanner.nextLine();
         System.out.print("Nome do Item: "); String nome = scanner.nextLine();
         System.out.print("Quantidade Inicial: "); int quantidade = lerInteiroValido();
         System.out.print("Preço Unitário (Ex: 12.50): "); BigDecimal precoUnitario = lerBigDecimalValido();
 
         try {
-            ItemEstoque novoItem = itemEstoqueService.adicionarItem(nome, quantidade, precoUnitario);
+            // AGORA PASSA O CÓDIGO!
+            ItemEstoque novoItem = itemEstoqueService.adicionarItem(codigo, nome, quantidade, precoUnitario);
             System.out.println("Item '" + novoItem.getNome() + "' adicionado com sucesso ao estoque!");
         } catch (IllegalStateException | IllegalArgumentException e) {
             System.err.println("Erro ao adicionar item: " + e.getMessage());
@@ -104,22 +107,28 @@ public class CompGerenciarEstoque {
             return;
         }
         ItemEstoque itemExistente = itemOpt.get();
-        System.out.println("Item encontrado: " + itemExistente.getNome());
+        System.out.println("Item encontrado: " + itemExistente.getNome() + " (Código: " + itemExistente.getCodigo() + ")"); // Exibir código
+
         System.out.println("Deixe em branco para manter o valor atual.");
+
+        System.out.print("Novo Código (" + itemExistente.getCodigo() + "): "); // NOVO: Pedir novo código
+        String novoCodigo = scanner.nextLine();
+        if (novoCodigo.isEmpty()) { novoCodigo = itemExistente.getCodigo(); }
 
         System.out.print("Novo Nome (" + itemExistente.getNome() + "): "); String novoNome = scanner.nextLine();
         if (novoNome.isEmpty()) { novoNome = itemExistente.getNome(); }
 
         System.out.print("Nova Quantidade (" + itemExistente.getQuantidade() + "): ");
         String qtdStr = scanner.nextLine();
-        int novaQuantidade = qtdStr.isEmpty() ? itemExistente.getQuantidade() : Integer.parseInt(qtdStr); // Converte String para int
+        int novaQuantidade = qtdStr.isEmpty() ? itemExistente.getQuantidade() : Integer.parseInt(qtdStr);
 
         System.out.print("Novo Preço Unitário (" + itemExistente.getPrecoUnitario() + "): ");
         String precoStr = scanner.nextLine();
-        BigDecimal novoPreco = precoStr.isEmpty() ? itemExistente.getPrecoUnitario() : new BigDecimal(precoStr); // Converte String para BigDecimal
+        BigDecimal novoPreco = precoStr.isEmpty() ? itemExistente.getPrecoUnitario() : new BigDecimal(precoStr);
 
         try {
-            boolean sucesso = itemEstoqueService.atualizarItem(id, novoNome, novaQuantidade, novoPreco);
+            // AGORA PASSA O NOVO CÓDIGO!
+            boolean sucesso = itemEstoqueService.atualizarItem(id, novoCodigo, novoNome, novaQuantidade, novoPreco);
             if (sucesso) { System.out.println("Item atualizado com sucesso!"); }
             else { System.out.println("Falha ao atualizar item."); }
         } catch (IllegalStateException | IllegalArgumentException e) {
@@ -173,11 +182,11 @@ public class CompGerenciarEstoque {
         while (true) {
             try {
                 int valor = scanner.nextInt();
-                scanner.nextLine(); // Consumir nova linha
+                scanner.nextLine();
                 return valor;
             } catch (InputMismatchException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número inteiro.");
-                scanner.nextLine(); // Limpar buffer
+                scanner.nextLine();
             }
         }
     }

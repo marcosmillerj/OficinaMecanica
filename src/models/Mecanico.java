@@ -23,54 +23,28 @@ public class Mecanico extends Usuario {
     private boolean disponivel;
     private List<Servico> servicosQualificados; // Lista de serviços para os quais o mecânico é qualificado
 
-    /**
-     * Construtor da classe Mecanico.
-     * @param nome Nome completo do mecânico.
-     * @param cpf CPF do mecânico (11 dígitos).
-     * @param endereco Endereço completo.
-     * @param email Email válido.
-     * @param telefone Telefone para contato.
-     * @param tipo O tipo de usuário (deve ser TipoUsuario.MECANICO).
-     * @param senha Senha de acesso ao sistema.
-     * @param especialidade Área de especialização do mecânico (ex: "Motor", "Freios").
-     */
     public Mecanico(String nome, String cpf, String endereco, String email,
                     String telefone, TipoUsuario tipo, String senha, String especialidade) {
-        // Chama o construtor da superclasse Usuario
-        super(nome, cpf, endereco, email, telefone, tipo, senha); 
+        super(nome, cpf, endereco, email, telefone, tipo, senha);
         this.especialidade = Objects.requireNonNull(especialidade, "Especialidade não pode ser nula.");
-        this.disponivel = true; // Mecânico inicia disponível por padrão
-        this.servicosQualificados = new ArrayList<>(); // Inicializa a lista de qualificações vazia
+        this.disponivel = true;
+        this.servicosQualificados = new ArrayList<>();
     }
 
-    // --- Getters e Setters ---
-    public String getEspecialidade() {
-        return especialidade;
-    }
-
-    public void setEspecialidade(String especialidade) {
-        this.especialidade = Objects.requireNonNull(especialidade, "Especialidade não pode ser nula.");
-    }
-
-    public boolean isDisponivel() {
-        return disponivel;
-    }
-
-    public void setDisponivel(boolean disponivel) {
-        this.disponivel = disponivel;
-    }
+    // ... (Getters e Setters) ...
 
     /**
-     * Adiciona uma qualificação a este mecânico, indicando um tipo de serviço que ele pode realizar.
+     * Adiciona uma qualificação a este mecânico.
      * @param servico O Serviço a ser adicionado nas qualificações.
      */
     public void adicionarQualificacao(Servico servico) {
         Objects.requireNonNull(servico, "Serviço não pode ser nulo para qualificação.");
-        if (!servicosQualificados.contains(servico)) { // Usa o equals/hashCode de Servico
+        if (!servicosQualificados.contains(servico)) {
             servicosQualificados.add(servico);
-            System.out.println("Mecânico " + getNome() + " qualificado para: " + servico.getDescricao());
+            // ALTERADO: servico.getDescricao() para servico.getObservacoes()
+            System.out.println("Mecânico " + getNome() + " qualificado para: " + servico.getObservacoes());
         } else {
-            System.out.println("Mecânico " + getNome() + " já qualificado para: " + servico.getDescricao());
+            System.out.println("Mecânico " + getNome() + " já qualificado para: " + servico.getObservacoes());
         }
     }
 
@@ -86,7 +60,6 @@ public class Mecanico extends Usuario {
 
     /**
      * Inicia um diagnóstico técnico para um veículo e gera uma nova ordem de serviço.
-     * A OS é criada com status EM_DIAGNOSTICO e o mecânico fica indisponível.
      * @param veiculo O veículo que será diagnosticado.
      * @param cliente O cliente proprietário do veículo.
      * @return A nova OrdemServico criada.
@@ -102,43 +75,39 @@ public class Mecanico extends Usuario {
         }
 
         List<Servico> servicosIniciais = new ArrayList<>();
-        // CUIDADO AQUI: O construtor de Servico espera (codigo, descricao, preco, setor, idItemEstoquePeca, requerElevadorAlinhamento)
+        // ALTERADO: Construtor de Servico agora é (precoMaoDeObra, setor, codigoPeca, quantidadePeca, requerPrioridade, observacoes)
         Servico diagnostico = new Servico(
-            "DIAG-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmm")), // Código único
-            "Diagnóstico Inicial do Veículo",
-            new BigDecimal("50.00"), // Preço como BigDecimal
-            SetorServico.DIAGNOSTICO, // SetorServico.DIAGNOSTICO
-            0, // idItemEstoquePeca (0 para 'sem peça' ou seu valor padrão)
-            false // requerElevadorAlinhamento (diagnóstico não requer elevador especial)
+            new BigDecimal("50.00"), // Preço Mão de Obra
+            SetorServico.DIAGNOSTICO, // Setor
+            null, // Código da peça (diagnóstico não usa peça)
+            0, // Quantidade de peça
+            false, // Requer prioridade (diagnóstico não requer elevador especial)
+            "Diagnóstico Inicial do Veículo" // Observações (descrição do serviço)
         );
         servicosIniciais.add(diagnostico);
 
         OrdemServico os = new OrdemServico(
             gerarCodigoOS(),
             LocalDateTime.now(),
-            veiculo.getId(), // ID do Veículo
-            cliente.getId(), // ID do Cliente
-            this.getId(), // ID deste Mecânico
-            StatusOrdem.EM_DIAGNOSTICO // Status inicial da OS
+            veiculo.getId(),
+            cliente.getId(),
+            this.getId(),
+            StatusOrdem.EM_DIAGNOSTICO
         );
         
-        // Adiciona os serviços iniciais à OS (ela vai calcular o total internamente)
         for (Servico s : servicosIniciais) {
             os.adicionarServico(s);
         }
 
-        this.disponivel = false; // Mecânico fica ocupado com a OS de diagnóstico
+        this.disponivel = false;
         System.out.println("Mecânico " + getNome() + " iniciou diagnóstico para veículo " + veiculo.getPlaca() + ". OS: " + os.getCodigo());
         return os;
     }
 
     /**
      * Executa um serviço em uma ordem de serviço existente.
-     * O status da OS é atualizado e o mecânico fica indisponível.
      * @param ordem Ordem de serviço a ser executada.
      * @param servico Serviço que será realizado.
-     * @throws IllegalStateException Se o mecânico não estiver disponível, não qualificado ou a OS não estiver no status correto.
-     * @throws NullPointerException Se ordem ou serviço forem nulos.
      */
     public void executarServico(OrdemServico ordem, Servico servico) {
         Objects.requireNonNull(ordem, "Ordem de Serviço não pode ser nula.");
@@ -148,18 +117,19 @@ public class Mecanico extends Usuario {
             throw new IllegalStateException("Mecânico " + getNome() + " não está disponível para execução de serviço.");
         }
         if (!podeExecutarServico(servico)) {
-            throw new IllegalStateException("Mecânico " + getNome() + " não qualificado para este serviço: " + servico.getDescricao());
+            // ALTERADO: servico.getDescricao() para servico.getObservacoes()
+            throw new IllegalStateException("Mecânico " + getNome() + " não qualificado para este serviço: " + servico.getObservacoes());
         }
-        // Validações de transição de status para execução (pode vir de AGUARDANDO_LIBERACAO ou EM_DIAGNOSTICO)
         if (!ordem.getStatus().equals(StatusOrdem.AGUARDANDO_LIBERACAO) &&
             !ordem.getStatus().equals(StatusOrdem.EM_DIAGNOSTICO)) { 
             throw new IllegalStateException("Ordem de Serviço " + ordem.getCodigo() + " não está pronta para execução. Status atual: " + ordem.getStatus().getDescricao());
         }
 
-        ordem.adicionarServico(servico); // Adiciona o serviço à OS (e recalcula o total)
-        ordem.alterarStatus(StatusOrdem.EM_EXECUCAO); // Altera o status da OS (e notifica observadores)
-        this.disponivel = false; // Mecânico fica ocupado
-        System.out.println("Mecânico " + getNome() + " iniciou execução do serviço '" + servico.getDescricao() + "' na OS " + ordem.getCodigo());
+        ordem.adicionarServico(servico);
+        ordem.alterarStatus(StatusOrdem.EM_EXECUCAO);
+        this.disponivel = false;
+        // ALTERADO: servico.getDescricao() para servico.getObservacoes()
+        System.out.println("Mecânico " + getNome() + " iniciou execução do serviço '" + servico.getObservacoes() + "' na OS " + ordem.getCodigo());
     }
 
     /**
@@ -167,7 +137,6 @@ public class Mecanico extends Usuario {
      * @return Retorna código no formato "OS-{timestamp}-{3primeirosDigitosCPF}".
      */
     private String gerarCodigoOS() {
-        // Obtém os 3 primeiros dígitos do CPF do mecânico para o código da OS
         String cpfParte = (this.getCpf() != null && this.getCpf().length() >= 3) ? this.getCpf().substring(0, 3) : "XXX";
         return "OS-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm")) +
                "-" + cpfParte;
@@ -176,8 +145,8 @@ public class Mecanico extends Usuario {
     @Override
     public String toString() {
         return String.format("Mecânico [ID: %d | Nome: %s] - Especialidade: %s - %s - %d qualificações",
-            getId(), // ID herdado de Usuario
-            getNome(), // Nome herdado de Usuario
+            getId(),
+            getNome(),
             especialidade,
             disponivel ? "Disponível" : "Ocupado",
             servicosQualificados.size());

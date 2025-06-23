@@ -23,12 +23,20 @@ import service.ServicoService;
  */
 public class CompGerenciarServico {
 
-    private OrdemServico ordemDeServicoContexto;
-    private ServicoService servicoService;
-    private ItemEstoqueService itemEstoqueService;
-    private OrdemServicoService ordemServicoService;
+    private OrdemServico ordemDeServicoContexto; // A Ordem de Serviço que este componente está manipulando
+    private ServicoService servicoService;       // Serviço para auxiliar na criação de instico de Servico
+    private ItemEstoqueService itemEstoqueService; // Para seleção de peças
+    private OrdemServicoService ordemServicoService; // Para adicionar/remover/atualizar na OS (persiste a OS)
     private Scanner scanner;
 
+    /**
+     * Construtor do CompGerenciarServico.
+     * @param ordemDeServicoContexto A Ordem de Serviço na qual os serviços serão gerenciados.
+     * @param servicoService O serviço de negócio para auxiliar na criação/atualização de Servico.
+     * @param itemEstoqueService O serviço de itens de estoque (para selecionar peças).
+     * @param ordemServicoService O serviço de ordens de serviço (para persistir mudanças na OS).
+     * @param scanner O scanner para entrada do usuário.
+     */
     public CompGerenciarServico(OrdemServico ordemDeServicoContexto, ServicoService servicoService,
                                 ItemEstoqueService itemEstoqueService, OrdemServicoService ordemServicoService, Scanner scanner) {
         this.ordemDeServicoContexto = ordemDeServicoContexto;
@@ -38,6 +46,9 @@ public class CompGerenciarServico {
         this.scanner = scanner;
     }
 
+    /**
+     * Exibe o menu de opções para gerenciar serviços da Ordem de Serviço em contexto.
+     */
     public void exibirMenu() {
         int opcao;
         do {
@@ -74,38 +85,26 @@ public class CompGerenciarServico {
         }
     }
 
+    // --- Métodos de Manipulação de Serviço na Ordem de Serviço Específica ---
+
     private void adicionarServicoAOrdem() {
         System.out.println("\n--- ADICIONAR SERVIÇO À OS " + ordemDeServicoContexto.getCodigo() + " ---");
         
-        System.out.print("O serviço já existe no sistema (pronto para usar)? (S/N): ");
-        String respServicoExistente = scanner.nextLine().trim().toUpperCase();
-        Servico servicoAAcionar = null;
-
-        if (respServicoExistente.equals("S")) {
-            Optional<Servico> servicoOpt = solicitarServicoExistenteDoSistema();
-            if (servicoOpt.isPresent()) {
-                servicoAAcionar = servicoOpt.get();
-            } else {
-                System.out.println("Serviço não encontrado no sistema. Por favor, tente novamente ou cadastre um novo serviço.");
-                return;
-            }
-        } else if (respServicoExistente.equals("N")) {
-            Optional<Servico> novoServicoOpt = solicitarDadosNovoServicoParaSistema();
-            if (novoServicoOpt.isPresent()) {
-                servicoAAcionar = novoServicoOpt.get();
-            } else {
-                System.out.println("Cadastro de serviço falhou. Abortando adição à OS.");
-                return;
-            }
-        } else {
-            System.out.println("Resposta inválida. Abortando adição de serviço à OS.");
+        // NUNCA MAIS PERGUNTA "Serviço já existe", SEMPRE CRIA UM NOVO SERVIÇO PARA ESSA OS
+        // A lógica de serviço não ter um "catálogo global" está embutida aqui.
+        // O serviço é criado especificamente para esta OS.
+        
+        Optional<Servico> novoServicoOpt = solicitarDadosNovoServicoParaOS(); // Cria novo serviço (instância)
+        if (novoServicoOpt.isEmpty()) {
+            System.out.println("Criação do serviço falhou. Abortando adição à OS.");
             return;
         }
+        Servico servicoAAcionar = novoServicoOpt.get();
 
+        // Adicionar o Serviço à OS usando o OrdemServicoService
         try {
-            // Este método NO ORDEMSERVICOSERVICE JÁ CHAMA ordemServicoRepository.atualizarOrdemServico(os)
             ordemServicoService.adicionarServicoNaOrdem(ordemDeServicoContexto.getId(), servicoAAcionar);
-            System.out.println("Serviço '" + servicoAAcionar.getDescricao() + "' adicionado à OS " + ordemDeServicoContexto.getCodigo() + " com sucesso!");
+            System.out.println("Serviço '" + servicoAAcionar.getObservacoes() + "' adicionado à OS " + ordemDeServicoContexto.getCodigo() + " com sucesso!");
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println("Erro ao adicionar serviço à OS: " + e.getMessage());
         }
@@ -113,7 +112,7 @@ public class CompGerenciarServico {
 
     private void removerServicoDaOrdem() {
         System.out.println("\n--- REMOVER SERVIÇO DA OS " + ordemDeServicoContexto.getCodigo() + " ---");
-        List<Servico> servicosNaOS = ordemDeServicoContexto.getServicos();
+        List<Servico> servicosNaOS = ordemDeServicoContexto.getServicos(); // Pega a lista de serviços da OS em contexto
 
         if (servicosNaOS.isEmpty()) {
             System.out.println("Esta Ordem de Serviço não possui serviços para remover.");
@@ -122,7 +121,7 @@ public class CompGerenciarServico {
 
         System.out.println("\nServiços atualmente nesta Ordem de Serviço:");
         for (int i = 0; i < servicosNaOS.size(); i++) {
-            System.out.println((i + 1) + ". " + servicosNaOS.get(i).getDescricao() + " (Código: " + servicosNaOS.get(i).getCodigo() + ")");
+            System.out.println((i + 1) + ". " + servicosNaOS.get(i).getObservacoes() + " (ID: " + servicosNaOS.get(i).getId() + ")");
         }
         System.out.print("Digite o NÚMERO do serviço a ser removido (da lista acima): ");
         int opcaoServico = lerInteiroValido();
@@ -136,9 +135,8 @@ public class CompGerenciarServico {
         }
 
         try {
-            // Este método NO ORDEMSERVICOSERVICE JÁ CHAMA ordemServicoRepository.atualizarOrdemServico(os)
             ordemServicoService.removerServicoDaOrdem(ordemDeServicoContexto.getId(), servicoARemover);
-            System.out.println("Serviço '" + servicoARemover.getDescricao() + "' removido da OS " + ordemDeServicoContexto.getCodigo() + " com sucesso!");
+            System.out.println("Serviço '" + servicoARemover.getObservacoes() + "' removido da OS " + ordemDeServicoContexto.getCodigo() + " com sucesso!");
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println("Erro ao remover serviço da OS: " + e.getMessage());
         }
@@ -168,36 +166,48 @@ public class CompGerenciarServico {
             return;
         }
 
-        System.out.println("\n--- ATUALIZAR DADOS DO SERVIÇO '" + servicoAAtualizar.getDescricao() + "' ---");
+        System.out.println("\n--- ATUALIZAR DADOS DO SERVIÇO ID " + servicoAAtualizar.getId() + " ---");
         System.out.println("Deixe em branco para manter o valor atual.");
+        System.out.println("Descrição (Atual: " + servicoAAtualizar.getObservacoes() + "): "); String novasObservacoes = scanner.nextLine();
+        if (novasObservacoes.isEmpty()) { novasObservacoes = servicoAAtualizar.getObservacoes(); }
 
-        System.out.print("Novo Código (" + servicoAAtualizar.getCodigo() + "): "); String novoCodigo = scanner.nextLine();
-        if (novoCodigo.isEmpty()) { novoCodigo = servicoAAtualizar.getCodigo(); }
-        System.out.print("Nova Descrição (" + servicoAAtualizar.getDescricao() + "): "); String novaDescricao = scanner.nextLine();
-        if (novaDescricao.isEmpty()) { novaDescricao = servicoAAtualizar.getDescricao(); }
-        System.out.print("Novo Preço (" + servicoAAtualizar.getPreco() + "): "); String precoStr = scanner.nextLine();
-        BigDecimal novoPreco = precoStr.isEmpty() ? servicoAAtualizar.getPreco() : new BigDecimal(precoStr);
+        System.out.print("Preço Mão de Obra (Atual: " + servicoAAtualizar.getPrecoMaoDeObra() + "): "); String precoStr = scanner.nextLine();
+        BigDecimal novoPreco = precoStr.isEmpty() ? servicoAAtualizar.getPrecoMaoDeObra() : lerBigDecimalValido(precoStr); // Usa auxiliar para BigDecimal
         SetorServico novoSetor = solicitarSetorServico(servicoAAtualizar.getSetor());
-        System.out.print("Novo ID da Peça de Estoque (Atual: " + servicoAAtualizar.getIdItemEstoquePeca() + ", 0 para nenhuma): "); int novoIdPeca = lerInteiroValido();
-        System.out.print("Novo Requer Elevador de Alinhamento (Atual: " + servicoAAtualizar.requerElevadorAlinhamento() + ", true/false)? ");
-        String requerAlinhamentoStr = scanner.nextLine();
-        boolean novoRequerAlinhamento = requerAlinhamentoStr.isEmpty() ? servicoAAtualizar.requerElevadorAlinhamento() : requerAlinhamentoStr.equalsIgnoreCase("true");
+        
+        System.out.print("Código da Peça de Estoque (Atual: " + (servicoAAtualizar.getCodigoPeca() != null ? servicoAAtualizar.getCodigoPeca() : "Nenhuma") + ", deixe em branco para manter, '0' para remover): ");
+        String novoCodigoPeca = scanner.nextLine();
+        if (novoCodigoPeca.isEmpty()) { // Mantém o atual
+            novoCodigoPeca = servicoAAtualizar.getCodigoPeca();
+        } else if (novoCodigoPeca.equals("0")) { // Remove a peça
+            novoCodigoPeca = null;
+        }
+        
+        System.out.print("Quantidade da Peça (Atual: " + servicoAAtualizar.getQuantidadePeca() + "): ");
+        String qtdPecaStr = scanner.nextLine();
+        int novaQuantidadePeca = qtdPecaStr.isEmpty() ? servicoAAtualizar.getQuantidadePeca() : Integer.parseInt(qtdPecaStr);
+
+        // Requer Prioridade é definido pelo Setor, não é perguntado ao usuário
+        boolean novoRequerPrioridade = (novoSetor == SetorServico.PNEUS_RODAS); // Lógica do sistema
 
         try {
-            // Chama o ServicoService para atualizar o serviço no sistema (se ele for persistido globalmente)
-            boolean sucessoServicoSistema = servicoService.atualizarServico(servicoAAtualizar.getId(), novoCodigo, novaDescricao, novoPreco, novoSetor, novoIdPeca, novoRequerAlinhamento);
+            // Chama o ServicoService para ATUALIZAR A INSTÂNCIA do serviço
+            // O ServicoService vai validar e atualizar o objeto servicoAAtualizar (que é referência na OS)
+            boolean sucessoServicoAtualizado = servicoService.atualizarInstanciaServico(
+                servicoAAtualizar.getId(), novoPreco, novoSetor, novoCodigoPeca, novaQuantidadePeca, novasObservacoes
+            );
             
-            // REMOVIDO: A chamada redundante a ordemServicoService.atualizarOrdemServico(ordemDeServicoContexto);
-            // pois o objeto Servico está sendo atualizado por referência e o OrdemServicoService
-            // já chama o repositório em suas operações de adicionar/remover/etc.
+            // Depois de atualizar o objeto Servico em memória, precisamos persistir a Ordem de Serviço
+            // para que a mudança no Servico seja salva no JSON da OS.
+            ordemServicoService.atualizarOrdemServico(ordemDeServicoContexto);
             
-            if (sucessoServicoSistema) {
-                 System.out.println("Serviço '" + servicoAAtualizar.getDescricao() + "' atualizado com sucesso na OS " + ordemDeServicoContexto.getCodigo() + "!");
+            if (sucessoServicoAtualizado) {
+                 System.out.println("Serviço '" + novasObservacoes + "' atualizado com sucesso na OS " + ordemDeServicoContexto.getCodigo() + "!");
             } else {
-                 System.out.println("Atenção: Serviço atualizado na OS, mas falha ao atualizar no registro global de serviços (se houver).");
+                 System.out.println("Atenção: Serviço atualizado na OS, mas falha no serviçoService.atualizarInstanciaServico.");
             }
            
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println("Erro ao atualizar serviço na OS: " + e.getMessage());
         }
     }
@@ -210,13 +220,14 @@ public class CompGerenciarServico {
         } else {
             for (Servico servico : servicosNaOS) {
                 String pecaInfo = "Sem peça";
-                if (servico.getIdItemEstoquePeca() > 0) {
-                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorId(servico.getIdItemEstoquePeca());
+                if (servico.getCodigoPeca() != null && !servico.getCodigoPeca().isEmpty()) {
+                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca());
                     pecaInfo = pecaOpt.isPresent() ? pecaOpt.get().getNome() : "Peça Desconhecida";
                 }
-                System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Alinhamento: %b - Peça: %s%n",
-                                servico.getId(), servico.getDescricao(), servico.getSetor().getDescricao(),
-                                servico.getPreco(), servico.requerElevadorAlinhamento(), pecaInfo);
+                // Usando servico.getObservacoes() e servico.requerPrioridade()
+                System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Prioridade: %b - Peça: %s%n",
+                                servico.getId(), servico.getObservacoes(), servico.getSetor().getDescricao(),
+                                servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo);
             }
         }
         System.out.println("---------------------------------------------");
@@ -237,46 +248,44 @@ public class CompGerenciarServico {
         }
     }
 
-    private BigDecimal lerBigDecimalValido() {
+    private BigDecimal lerBigDecimalValido(String input) { // Recebe o input para tentar parsear
         while (true) {
             try {
-                String input = scanner.nextLine();
                 return new BigDecimal(input);
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
+                input = scanner.nextLine(); // Pede nova entrada se a primeira falhou
             }
         }
     }
 
-    // --- Métodos Auxiliares para Coleta/Busca de Serviço (para sistema global) ---
-    private Optional<Servico> solicitarServicoExistenteDoSistema() {
-        System.out.print("Digite o Código do Serviço existente no sistema: ");
-        String codigo = scanner.nextLine();
-        return servicoService.buscarServicoPorCodigo(codigo);
-    }
+    // --- Métodos Auxiliares para Coleta/Criação de Serviço (NOVO) ---
+    // Este método cria uma nova instância de Serviço, sem adicioná-lo ao ServicoRepository.
+    private Optional<Servico> solicitarDadosNovoServicoParaOS() {
+        System.out.println("--- CRIAR NOVO SERVIÇO PARA ESTA ORDEM DE SERVIÇO ---");
+        System.out.print("Descrição/Observações do Serviço: "); String observacoes = scanner.nextLine();
+        System.out.print("Preço da Mão de Obra (Ex: 123.45): "); BigDecimal precoMaoDeObra = lerBigDecimalValido(scanner.nextLine());
+        SetorServico setor = solicitarSetorServico(null); // Solicita setor, sem padrão inicial
+        
+        System.out.print("Código da Peça de Estoque associada (deixe em branco para nenhuma): "); String codigoPeca = scanner.nextLine();
+        
+        System.out.print("Quantidade da Peça usada: "); int quantidadePeca = lerInteiroValido();
 
-    private Optional<Servico> solicitarDadosNovoServicoParaSistema() {
-        System.out.println("--- NOVO CADASTRO DE SERVIÇO PARA O SISTEMA ---");
-        System.out.print("Código do Serviço: "); String codigo = scanner.nextLine();
-        System.out.print("Descrição do Serviço: "); String descricao = scanner.nextLine();
-        System.out.print("Preço do Serviço (Ex: 123.45): "); BigDecimal preco = lerBigDecimalValido();
-        SetorServico setor = solicitarSetorServico(null);
-        
-        System.out.print("ID da Peça de Estoque associada (0 para nenhuma): "); int idItemEstoquePeca = lerInteiroValido();
-        
-        System.out.print("Requer Elevador de Alinhamento (true/false)? "); boolean requerAlinhamento = scanner.nextLine().equalsIgnoreCase("true");
+        // O 'requerPrioridade' é definido automaticamente pelo setor
+        boolean requerPrioridade = (setor == SetorServico.PNEUS_RODAS); 
 
         try {
-            Servico novoServico = servicoService.adicionarServico(codigo, descricao, preco, setor, idItemEstoquePeca, requerAlinhamento);
-            System.out.println("Serviço '" + novoServico.getDescricao() + "' cadastrado no sistema com sucesso!");
+            // O ServicoService.criarInstanciaServico APENAS CRIA E VALIDA, não persiste no repo de serviços.
+            Servico novoServico = servicoService.criarInstanciaServico(precoMaoDeObra, setor, codigoPeca, quantidadePeca, observacoes);
+            System.out.println("Serviço pronto para ser adicionado à OS.");
             return Optional.of(novoServico);
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            System.err.println("Erro ao cadastrar serviço: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("Erro ao criar serviço: " + e.getMessage());
             return Optional.empty();
         }
     }
 
-    // Métodos Auxiliares para Seleção de Setor de Serviço
+    // Métodos Auxiliares para Seleção de Setor de Serviço (EXISTENTES, mas movidos para cá)
     private SetorServico solicitarSetorServico(SetorServico setorAtual) {
         System.out.println("Selecione o Setor do Serviço" + (setorAtual != null ? " (Atual: " + setorAtual.getDescricao() + ")" : "") + ":");
         SetorServico[] setores = SetorServico.values();

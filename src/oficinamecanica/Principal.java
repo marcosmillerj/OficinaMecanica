@@ -71,9 +71,9 @@ public class Principal {
             veiculoService = new VeiculoService(veiculoRepository, clienteRepository);
             pontoService = new RegistroPontoService(pontoRepository);
             itemEstoqueService = new ItemEstoqueService(itemEstoqueRepository);
-            servicoService = new ServicoService(servicoRepository, itemEstoqueRepository); // <<--- CORREÇÃO AQUI!
+            servicoService = new ServicoService(servicoRepository, itemEstoqueRepository);
             ordemServicoService = new OrdemServicoService(
-                ordemServicoRepository, usuarioCRUD, clienteService, veiculoService, servicoService // <<--- CORREÇÃO AQUI!
+                ordemServicoRepository, usuarioCRUD, clienteService, veiculoService, servicoService
             );
 
             // --- INSTANCIA E INICIA O PAINEL PRINCIPAL ---

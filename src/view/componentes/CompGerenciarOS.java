@@ -61,8 +61,8 @@ public class CompGerenciarOS {
             System.out.println("1. Criar Nova Ordem de Serviço");
             System.out.println("2. Listar Todas as Ordens de Serviço");
             System.out.println("3. Atualizar Status de Ordem de Serviço");
-            System.out.println("4. Gerenciar Serviços de uma OS (Adicionar/Remover/Atualizar/Listar)"); // ÚNICO BOTÃO PARA SERVIÇOS
-            System.out.println("5. Ver Detalhes Completos de uma OS"); // Detalhes gerais da OS
+            System.out.println("4. Gerenciar Serviços de uma OS (Adicionar/Remover/Atualizar/Listar)");
+            System.out.println("5. Ver Detalhes Completos de uma OS");
             System.out.println("0. Voltar ao Menu Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -86,8 +86,8 @@ public class CompGerenciarOS {
             case 1: criarNovaOrdemServicoIntegrada(); break;
             case 2: listarTodasOrdensDeServico(); break;
             case 3: atualizarStatusOrdemServico(); break;
-            case 4: gerenciarServicosDeOrdem(); break; // CHAMA O NOVO MÉTODO gerenciarServicosDeOrdem()
-            case 5: verDetalhesOrdemServico(); break; // MÉTODO DE VER DETALHES DE OS
+            case 4: gerenciarServicosDeOrdem(); break; // CHAMA O MÉTODO QUE DELEGA PARA CompGerenciarServico
+            case 5: verDetalhesOrdemServico(); break;
             case 0: System.out.println("Saindo do Gerenciamento de Ordens de Serviço."); break;
             default: System.out.println("Opção inválida. Tente novamente."); break;
         }
@@ -342,7 +342,7 @@ public class CompGerenciarOS {
         OrdemServico osSelecionada = osOpt.get();
         System.out.println("OS Selecionada: " + osSelecionada.getCodigo() + " - Status: " + osSelecionada.getStatus().getDescricao());
 
-        // CHAMA O CompGerenciarServico, passando a OS de contexto e todos os Services necessários
+        // CHAMA O CompGerenciarServico, passando a OS e os Services necessários
         CompGerenciarServico compGerenciarServico = new CompGerenciarServico(
             osSelecionada,       // A Ordem de Serviço de contexto
             servicoService,      // Para gerenciar serviços do sistema
@@ -395,13 +395,16 @@ public class CompGerenciarOS {
             System.out.println("  Serviços Detalhados:");
             for (Servico servico : servicosNaOS) {
                 String pecaInfo = "Sem peça";
-                if (servico.getIdItemEstoquePeca() > 0) {
-                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorId(servico.getIdItemEstoquePeca());
+                // Corrigido: servico.getIdItemEstoquePeca() não existe mais, usar servico.getCodigoPeca()
+                if (servico.getCodigoPeca() != null && !servico.getCodigoPeca().isEmpty()) { // Usar .isEmpty() para String
+                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca()); // Busca por CÓDIGO
                     pecaInfo = pecaOpt.isPresent() ? pecaOpt.get().getNome() : "Peça Desconhecida";
                 }
-                System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Alinhamento: %b - Peça: %s%n",
-                                servico.getId(), servico.getDescricao(), servico.getSetor().getDescricao(),
-                                servico.getPreco(), servico.requerElevadorAlinhamento(), pecaInfo);
+                // Corrigido: servico.getDescricao() não existe mais, usar servico.getObservacoes()
+                // Corrigido: servico.getPreco() retorna precoMaoDeObra, usar getPrecoMaoDeObra()
+                System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Prioridade: %b - Peça: %s%n",
+                                servico.getId(), servico.getObservacoes(), servico.getSetor().getDescricao(),
+                                servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo); // Usar getObservacoes e requerPrioridade
             }
         }
         System.out.println("---------------------------------------------");
@@ -431,4 +434,6 @@ public class CompGerenciarOS {
             }
         }
     }
+    // Removidos todos os métodos auxiliares de serviço que foram movidos para CompGerenciarServico
+    // (solicitarServicoExistenteDoSistema, solicitarDadosNovoServicoParaSistema, solicitarSetorServico)
 }

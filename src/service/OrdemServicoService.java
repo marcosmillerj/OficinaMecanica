@@ -4,6 +4,7 @@
  */
 package service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -24,12 +25,11 @@ import repository.UsuarioCRUD;
  */
 public class OrdemServicoService {
 
-    private OrdemServicoRepository ordemServicoRepository; // Repositório de OS
-    private UsuarioCRUD usuarioCRUD; // Para buscar mecânicos (ou seria UsuarioService)
-    private ClienteService clienteService; // ATRIBUTO NOVO!
+    private OrdemServicoRepository ordemServicoRepository;
+    private UsuarioCRUD usuarioCRUD;
+    private ClienteService clienteService;
     private VeiculoService veiculoService;
-    private ServicoService servicoService;// ATRIBUTO NOVO!
-    // private ServicoService servicoService; // Futura dependência se tiver um service para Servico
+    private ServicoService servicoService; // Atributo que armazena o ServicoService
 
     /**
      * Construtor do OrdemServicoService.
@@ -37,18 +37,18 @@ public class OrdemServicoService {
      * @param usuarioCRUD O CRUD de usuários (para acessar mecânicos).
      * @param clienteService O serviço de clientes (para validar existência de cliente por ID).
      * @param veiculoService O serviço de veículos (para validar existência de veículo por ID).
-     * // Futuramente: @param servicoService O serviço de serviços.
+     * @param servicoService O serviço de serviços (para auxiliar na manipulação de instâncias de Servico).
      */
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                UsuarioCRUD usuarioCRUD,
                                ClienteService clienteService,
                                VeiculoService veiculoService,
-                               ServicoService servicoService) { // <<--- NOVO PARÂMETRO!
+                               ServicoService servicoService) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.usuarioCRUD = usuarioCRUD;
         this.clienteService = Objects.requireNonNull(clienteService, "ClienteService não pode ser nulo.");
         this.veiculoService = Objects.requireNonNull(veiculoService, "VeiculoService não pode ser nulo.");
-        this.servicoService = Objects.requireNonNull(servicoService, "ServicoService não pode ser nulo."); // <<--- INICIALIZA!
+        this.servicoService = Objects.requireNonNull(servicoService, "ServicoService não pode ser nulo.");
     }
 
     /**
@@ -63,14 +63,14 @@ public class OrdemServicoService {
     public OrdemServico criarNovaOrdemServico(int idCliente, int idVeiculo, int idMecanicoResponsavel)
                                               throws IllegalArgumentException {
         // --- Validações de Negócio ---
-        // 1. Verificar se Cliente existe (AGORA USA clienteService)
-        Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(idCliente); // USANDO O SERVICE!
+        // 1. Verificar se Cliente existe
+        Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(idCliente);
         if (clienteOpt.isEmpty()) {
             throw new IllegalArgumentException("Cliente com ID " + idCliente + " não encontrado.");
         }
 
-        // 2. Verificar se Veículo existe (AGORA USA veiculoService)
-        Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorId(idVeiculo); // USANDO O SERVICE!
+        // 2. Verificar se Veículo existe
+        Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorId(idVeiculo);
         if (veiculoOpt.isEmpty()) {
             throw new IllegalArgumentException("Veículo com ID " + idVeiculo + " não encontrado.");
         }
@@ -81,23 +81,31 @@ public class OrdemServicoService {
             throw new IllegalArgumentException("Mecânico com ID " + idMecanicoResponsavel + " não encontrado ou não é um mecânico válido.");
         }
         
-        // --- Geração do Código da OS ---
         String codigoOS = "OS-" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyMMddHHmmss")) + "-" + UUID.randomUUID().toString().substring(0, 4);
 
-        // --- Criação do Objeto OrdemServico ---
         OrdemServico novaOS = new OrdemServico(
             codigoOS,
-            LocalDateTime.now(), // Data de abertura
+            LocalDateTime.now(),
             idVeiculo,
             idCliente,
             idMecanicoResponsavel,
-            StatusOrdem.AGUARDANDO_DIAGNOSTICO // Status inicial da OS
+            StatusOrdem.AGUARDANDO_DIAGNOSTICO
         );
 
-        // --- Persistência ---
         ordemServicoRepository.adicionarOrdemServico(novaOS);
         System.out.println("Nova Ordem de Serviço criada: " + novaOS.getCodigo());
         return novaOS;
+    }
+
+    /**
+     * NOVO MÉTODO: Persiste as alterações em uma Ordem de Serviço já modificada em memória.
+     * Este método é chamado quando o objeto OrdemServico é atualizado diretamente,
+     * por exemplo, ao adicionar/remover/atualizar um serviço em sua lista interna.
+     * @param ordemParaAtualizar O objeto OrdemServico que foi modificado em memória.
+     */
+    public void atualizarOrdemServico(OrdemServico ordemParaAtualizar) {
+        Objects.requireNonNull(ordemParaAtualizar, "Ordem de Serviço para atualizar não pode ser nula.");
+        ordemServicoRepository.atualizarOrdemServico(ordemParaAtualizar);
     }
 
     /**
@@ -118,17 +126,13 @@ public class OrdemServicoService {
 
         Objects.requireNonNull(novoStatus, "Novo status não pode ser nulo.");
 
-        // --- Lógica de Validação de Transição de Status ---
         if (os.getStatus() == StatusOrdem.FINALIZADA || os.getStatus() == StatusOrdem.CANCELADA) {
             throw new IllegalStateException("Não é possível alterar o status de uma OS " + os.getStatus().getDescricao() + " (já está finalizada ou cancelada).");
         }
-        // Exemplo de regras de transição mais complexas:
-        // if (os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO && novoStatus == StatusOrdem.EM_EXECUCAO) {
-        //     throw new IllegalStateException("Não pode ir de Diagnóstico para Execução diretamente.");
-        // }
         
-        os.alterarStatus(novoStatus); // O método da OS já notifica observadores
-        ordemServicoRepository.atualizarOrdemServico(os); // Persiste a mudança de status
+        os.alterarStatus(novoStatus);
+        // Persiste a mudança chamando o método auxiliar de atualização da própria classe
+        atualizarOrdemServico(os); 
         return os;
     }
     
@@ -141,7 +145,7 @@ public class OrdemServicoService {
      * @throws IllegalStateException Se a OS não estiver em um status que permite adição de serviços.
      */
     public OrdemServico adicionarServicoNaOrdem(int idOs, Servico servico)
-                                              throws IllegalArgumentException, IllegalStateException {
+                                               throws IllegalArgumentException, IllegalStateException {
         Objects.requireNonNull(servico, "Serviço a ser adicionado não pode ser nulo.");
 
         Optional<OrdemServico> osOpt = ordemServicoRepository.buscarOrdemServicoPorId(idOs);
@@ -153,9 +157,10 @@ public class OrdemServicoService {
         if (os.getStatus() == StatusOrdem.FINALIZADA || os.getStatus() == StatusOrdem.CANCELADA || os.getStatus() == StatusOrdem.AGUARDANDO_PAGAMENTO) {
             throw new IllegalStateException("Não é possível adicionar serviços a uma OS com status " + os.getStatus().getDescricao() + ".");
         }
-
-        os.adicionarServico(servico); // Adiciona o serviço (e recalcula o total)
-        ordemServicoRepository.atualizarOrdemServico(os); // Persiste a mudança
+        // O método adicionarServico na OrdemServico já recalcula o total.
+        os.adicionarServico(servico);
+        // Persiste a mudança chamando o método auxiliar de atualização da própria classe
+        atualizarOrdemServico(os); 
         return os;
     }
     
@@ -182,9 +187,10 @@ public class OrdemServicoService {
         }
         
         if (!os.removerServico(servico)) { // Remove o serviço (e recalcula o total)
-            throw new IllegalArgumentException("Serviço '" + servico.getDescricao() + "' não encontrado na Ordem de Serviço " + os.getCodigo() + ".");
+            throw new IllegalArgumentException("Serviço '" + servico.getObservacoes() + "' não encontrado na Ordem de Serviço " + os.getCodigo() + "."); // Usar getObservacoes()
         }
-        ordemServicoRepository.atualizarOrdemServico(os); // Persiste a mudança
+        // Persiste a mudança chamando o método auxiliar de atualização da própria classe
+        atualizarOrdemServico(os); 
         return os;
     }
 
@@ -221,5 +227,22 @@ public class OrdemServicoService {
      */
     public List<OrdemServico> listarOrdensPorCliente(int idCliente) {
         return ordemServicoRepository.listarOrdensPorCliente(idCliente);
+    }
+    
+    /**
+     * Calcula o preço total final de uma Ordem de Serviço, incluindo mão de obra e custo das peças.
+     * Este método utiliza o ItemEstoqueService para buscar o preço das peças pelo código.
+     * @param os A Ordem de Serviço para calcular o total.
+     * @return O preço total final da OS.
+     * @throws IllegalArgumentException Se uma peça não for encontrada no estoque.
+     */
+    public BigDecimal calcularPrecoTotalFinalOS(OrdemServico os) throws IllegalArgumentException {
+        Objects.requireNonNull(os, "Ordem de Serviço não pode ser nula para calcular o total.");
+        BigDecimal totalOS = BigDecimal.ZERO;
+
+        for (Servico servico : os.getServicos()) {
+            totalOS = totalOS.add(servicoService.calcularCustoTotalServico(servico)); // Usa o método do ServicoService
+        }
+        return totalOS;
     }
 }

@@ -13,103 +13,103 @@ import models.enums.SetorServico;
  * @author camila_barbosa
  */
 public class Servico {
-    public static int proximoId = 1;
+    public static int proximoId = 1; // ID único para CADA instância de serviço criada
 
     private int id;
-    private String codigo;
-    private String descricao;
-    private BigDecimal preco;
-    private SetorServico setor; // NOVO ATRIBUTO: O setor a que este serviço pertence
-    private int idItemEstoquePeca; // Referência por ID para ItemEstoque (se houver peça)
-    private boolean requerElevadorAlinhamento; // NOVO ATRIBUTO: Indica se este serviço requer um elevador de alinhamento
+    private BigDecimal precoMaoDeObra; // Preço da mão de obra para este serviço específico
+    private SetorServico setor; // O setor a que este serviço pertence
+    private String codigoPeca; // Código da peça de estoque associada (Ex: "VELA-NGK")
+    private int quantidadePeca; // Quantidade da peça usada (ex: 4 velas)
+    private boolean requerPrioridade; // Indica se este serviço requer prioridade de elevador (alinhamento)
+    private String observacoes; // Observações/descrição detalhada desta instância de serviço (seria a "descrição" de antes)
 
     /**
-     * Construtor principal para criar um novo Serviço.
-     * @param codigo O código único do serviço.
-     * @param descricao A descrição detalhada do serviço.
-     * @param preco O preço do serviço.
+     * Construtor principal para criar uma instância de Serviço para uma OS.
+     * @param precoMaoDeObra O preço da mão de obra para este serviço.
      * @param setor O setor a que este serviço pertence.
-     * @param idItemEstoquePeca O ID da peça de estoque associada a este serviço (0 se não houver peça).
-     * @param requerElevadorAlinhamento true se este serviço exigir um elevador de alinhamento, false caso contrário.
+     * @param codigoPeca O código da peça de estoque associada (nulo/vazio se não houver).
+     * @param quantidadePeca A quantidade da peça usada (0 se não houver peça).
+     * @param requerPrioridade Indica se este serviço requer prioridade de elevador (alinhamento).
+     * @param observacoes Observações/descrição detalhada para este serviço.
      */
-    public Servico(String codigo, String descricao, BigDecimal preco, SetorServico setor, int idItemEstoquePeca, boolean requerElevadorAlinhamento) {
-        this.id = proximoId++;
-        this.codigo = Objects.requireNonNull(codigo, "Código do serviço não pode ser nulo.");
-        this.descricao = Objects.requireNonNull(descricao, "Descrição do serviço não pode ser nula.");
-        setPreco(preco); // Usa o setter para validação de preço
-        this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo."); // Valida setor
-        this.idItemEstoquePeca = idItemEstoquePeca;
-        this.requerElevadorAlinhamento = requerElevadorAlinhamento; // Inicializa o novo atributo
+    public Servico(BigDecimal precoMaoDeObra, SetorServico setor, String codigoPeca,
+                   int quantidadePeca, boolean requerPrioridade, String observacoes) {
+        this.id = proximoId++; // Atribui um ID único a esta instância
+        setPrecoMaoDeObra(precoMaoDeObra); // Usa setter para validação
+        this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo.");
+        this.codigoPeca = (codigoPeca != null && !codigoPeca.isEmpty()) ? codigoPeca : null;
+        this.quantidadePeca = quantidadePeca;
+        this.requerPrioridade = requerPrioridade;
+        this.observacoes = (observacoes != null && !observacoes.isEmpty()) ? observacoes : null;
     }
 
-    /**
-     * Construtor para Serviço sem peça associada e que não requer elevador de alinhamento (padrão).
-     * @param codigo O código único do serviço.
-     * @param descricao A descrição detalhada do serviço.
-     * @param preco O preço do serviço.
-     * @param setor O setor a que este serviço pertence.
-     */
-    public Servico(String codigo, String descricao, BigDecimal preco, SetorServico setor) {
-        this(codigo, descricao, preco, setor, 0, false); // Chama o construtor completo com defaults
-    }
-    
     /**
      * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
-     * @param id ID do serviço.
-     * @param codigo Código do serviço.
-     * @param descricao Descrição do serviço.
-     * @param preco Preço do serviço.
+     * @param id ID da instância do serviço.
+     * @param precoMaoDeObra Preço da mão de obra.
      * @param setor Setor do serviço.
-     * @param idItemEstoquePeca ID da peça de estoque associada.
-     * @param requerElevadorAlinhamento Indica se o serviço requer elevador de alinhamento.
+     * @param codigoPeca Código da peça de estoque associada.
+     * @param quantidadePeca Quantidade da peça usada.
+     * @param requerPrioridade Indica se o serviço requer prioridade de elevador.
+     * @param observacoes Observações específicas.
      */
-    public Servico(int id, String codigo, String descricao, BigDecimal preco, SetorServico setor, int idItemEstoquePeca, boolean requerElevadorAlinhamento) {
+    public Servico(int id, BigDecimal precoMaoDeObra, SetorServico setor, String codigoPeca,
+                   int quantidadePeca, boolean requerPrioridade, String observacoes) {
         this.id = id;
-        this.codigo = codigo;
-        this.descricao = descricao;
-        this.preco = preco;
+        this.precoMaoDeObra = precoMaoDeObra;
         this.setor = setor;
-        this.idItemEstoquePeca = idItemEstoquePeca;
-        this.requerElevadorAlinhamento = requerElevadorAlinhamento;
+        this.codigoPeca = codigoPeca;
+        this.quantidadePeca = quantidadePeca;
+        this.requerPrioridade = requerPrioridade;
+        this.observacoes = observacoes;
     }
 
     // --- Getters e Setters ---
     public int getId() { return id; }
 
-    public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = Objects.requireNonNull(codigo, "Código do serviço não pode ser nulo."); }
-
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = Objects.requireNonNull(descricao, "Descrição do serviço não pode ser nula."); }
-
-    public BigDecimal getPreco() { return preco; }
-    public void setPreco(BigDecimal preco) {
-        Objects.requireNonNull(preco, "Preço do serviço não pode ser nulo.");
-        if (preco.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Preço do serviço não pode ser negativo.");
+    public BigDecimal getPrecoMaoDeObra() { return precoMaoDeObra; }
+    public void setPrecoMaoDeObra(BigDecimal precoMaoDeObra) {
+        Objects.requireNonNull(precoMaoDeObra, "Preço de mão de obra não pode ser nulo.");
+        if (precoMaoDeObra.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Preço de mão de obra não pode ser negativo.");
         }
-        this.preco = preco;
+        this.precoMaoDeObra = precoMaoDeObra;
     }
 
-    public SetorServico getSetor() { return setor; } // Getter para o Setor
-    public void setSetor(SetorServico setor) { this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo."); } // Setter para o Setor
+    public SetorServico getSetor() { return setor; }
+    public void setSetor(SetorServico setor) { this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo."); }
 
-    public int getIdItemEstoquePeca() { return idItemEstoquePeca; }
-    public void setIdItemEstoquePeca(int idItemEstoquePeca) { this.idItemEstoquePeca = idItemEstoquePeca; }
+    public String getCodigoPeca() { return codigoPeca; }
+    public void setCodigoPeca(String codigoPeca) { this.codigoPeca = (codigoPeca != null && !codigoPeca.isEmpty()) ? codigoPeca : null; }
 
-    public boolean requerElevadorAlinhamento() { return requerElevadorAlinhamento; } // Getter para o novo atributo
-    public void setRequerElevadorAlinhamento(boolean requerElevadorAlinhamento) { this.requerElevadorAlinhamento = requerElevadorAlinhamento; } // Setter para o novo atributo
+    public int getQuantidadePeca() { return quantidadePeca; }
+    public void setQuantidadePeca(int quantidadePeca) { this.quantidadePeca = quantidadePeca; }
+
+    public boolean requerPrioridade() { return requerPrioridade; }
+    public void setRequerPrioridade(boolean requerPrioridade) { this.requerPrioridade = requerPrioridade; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = (observacoes != null && !observacoes.isEmpty()) ? observacoes : null; }
+
+    // O método getPreco() retornará apenas o precoMaoDeObra, como decidido.
+    // O cálculo do preço total com peças será feito no OrdemServicoService,
+    // que terá acesso ao ItemEstoqueService para buscar o preço da peça.
+    public BigDecimal getPreco() { return precoMaoDeObra; } // Retorna apenas o preço da mão de obra
 
     @Override
     public String toString() {
-        return String.format("Serviço [ID: %d | Código: %s | Descrição: %s | Preço: R$ %.2f | Setor: %s %s %s]",
+        String pecaInfo = (codigoPeca != null) ? "| Peça: " + codigoPeca + " (Qtd: " + quantidadePeca + ")" : "";
+        String prioridadeInfo = requerPrioridade ? "| REQUER PRIORIDADE" : "";
+        String obsInfo = (observacoes != null) ? " | Obs: " + observacoes : "";
+
+        return String.format("Serviço [ID:%d | Descrição: %s | M.O.: R$ %.2f | Setor: %s %s%s]",
                 id,
-                codigo,
-                descricao,
-                preco,
-                setor.getDescricao(), // Usando a descrição do SetorServico
-                (idItemEstoquePeca != 0) ? "| Peça ID: " + idItemEstoquePeca : "",
-                requerElevadorAlinhamento ? "| REQUER ALINHAMENTO" : "" // Indica se requer elevador de alinhamento
+                (observacoes != null ? observacoes : "Sem descrição"), // Exibe observações
+                precoMaoDeObra,
+                setor.getDescricao(),
+                pecaInfo,
+                prioridadeInfo,
+                obsInfo // Observações são a descrição principal
         );
     }
     
@@ -118,7 +118,7 @@ public class Servico {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Servico servico = (Servico) o;
-        return id == servico.id;
+        return id == servico.id; // Serviços são identificados por seu ID único
     }
 
     @Override

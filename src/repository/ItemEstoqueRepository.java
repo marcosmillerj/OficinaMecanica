@@ -55,16 +55,9 @@ public class ItemEstoqueRepository {
         return removido;
     }
 
-    /**
-     * ALTERADO: Atualiza um item de estoque existente recebendo o objeto ItemEstoque já modificado.
-     * Assume que as alterações já foram feitas no objeto ItemEstoque em memória pelo service.
-     * @param itemParaAtualizar O objeto ItemEstoque já modificado.
-     */
-    public void atualizarItem(ItemEstoque itemParaAtualizar) { // <<< MUDANÇA AQUI: RECEBE O OBJETO COMPLETO
-        // Não é necessário buscar o item, pois a lista já contém a referência a esse objeto.
-        // Apenas persista a lista.
+    public void atualizarItem(ItemEstoque itemParaAtualizar) {
         System.out.println("Item de Estoque '" + itemParaAtualizar.getNome() + "' (ID: " + itemParaAtualizar.getId() + ") atualizado no repositório.");
-        fileHandler.save(itens); // Salva a lista atualizada
+        fileHandler.save(itens);
     }
 
     public List<ItemEstoque> listarItens() {
@@ -74,6 +67,16 @@ public class ItemEstoqueRepository {
     public Optional<ItemEstoque> buscarItemPorId(int id) {
         for (ItemEstoque item : itens) {
             if (item.getId() == id) {
+                return Optional.of(item);
+            }
+        }
+        return Optional.empty();
+    }
+
+    // NOVO MÉTODO: Buscar item por código
+    public Optional<ItemEstoque> buscarItemPorCodigo(String codigo) {
+        for (ItemEstoque item : itens) {
+            if (item.getCodigo().equalsIgnoreCase(codigo)) {
                 return Optional.of(item);
             }
         }

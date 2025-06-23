@@ -25,23 +25,26 @@ public class ItemEstoqueService {
 
     /**
      * Adiciona um novo item ao estoque.
+     * @param codigo Código único do item.
      * @param nome Nome do item.
      * @param quantidade Quantidade inicial.
      * @param precoUnitario Preço unitário.
      * @return O ItemEstoque criado.
-     * @throws IllegalStateException Se um item com o mesmo nome já existe.
+     * @throws IllegalStateException Se um item com o mesmo código já existe.
      * @throws IllegalArgumentException Se dados de entrada forem inválidos (quantidade/preço negativo).
      */
-    public ItemEstoque adicionarItem(String nome, int quantidade, BigDecimal precoUnitario) throws IllegalStateException, IllegalArgumentException {
+    public ItemEstoque adicionarItem(String codigo, String nome, int quantidade, BigDecimal precoUnitario) throws IllegalStateException, IllegalArgumentException { // 'codigo' como parâmetro
+        Objects.requireNonNull(codigo, "Código do item não pode ser nulo.");
         Objects.requireNonNull(nome, "Nome do item não pode ser nulo.");
         Objects.requireNonNull(precoUnitario, "Preço unitário não pode ser nulo.");
 
-        if (itemEstoqueRepository.buscarItemPorNome(nome).isPresent()) {
-            throw new IllegalStateException("Erro: Item com nome '" + nome + "' já cadastrado no estoque.");
+        // ALTERADO: Validação de unicidade pelo CÓDIGO, não pelo nome
+        if (itemEstoqueRepository.buscarItemPorCodigo(codigo).isPresent()) {
+            throw new IllegalStateException("Erro: Item com código '" + codigo + "' já cadastrado no estoque.");
         }
         
         // Validações de quantidade e preço já são feitas no construtor/setters do ItemEstoque
-        ItemEstoque novoItem = new ItemEstoque(nome, quantidade, precoUnitario);
+        ItemEstoque novoItem = new ItemEstoque(codigo, nome, quantidade, precoUnitario); // Passa o código para o construtor
         itemEstoqueRepository.adicionarItem(novoItem); // Delega ao repositório
         return novoItem;
     }
@@ -49,14 +52,16 @@ public class ItemEstoqueService {
     /**
      * Atualiza os dados de um item de estoque existente.
      * @param id ID do item.
+     * @param novoCodigo Novo código.
      * @param novoNome Novo nome.
      * @param novaQuantidade Nova quantidade.
      * @param novoPreco Novo preço unitário.
      * @return true se atualizado, false se não encontrado.
-     * @throws IllegalStateException Se o novo nome já pertencer a outro item.
+     * @throws IllegalStateException Se o novo código já pertencer a outro item.
      * @throws IllegalArgumentException Se dados de entrada forem inválidos.
      */
-    public boolean atualizarItem(int id, String novoNome, int novaQuantidade, BigDecimal novoPreco) throws IllegalStateException, IllegalArgumentException {
+    public boolean atualizarItem(int id, String novoCodigo, String novoNome, int novaQuantidade, BigDecimal novoPreco) throws IllegalStateException, IllegalArgumentException { // NOVO PARÂMETRO 'novoCodigo'
+        Objects.requireNonNull(novoCodigo, "Novo código do item não pode ser nulo.");
         Objects.requireNonNull(novoNome, "Novo nome do item não pode ser nulo.");
         Objects.requireNonNull(novoPreco, "Novo preço unitário não pode ser nulo.");
 
@@ -66,20 +71,21 @@ public class ItemEstoqueService {
         }
         ItemEstoque itemParaAtualizar = itemOpt.get();
 
-        // Validação de unicidade de nome se for alterado e pertencer a outro item
-        if (!itemParaAtualizar.getNome().equalsIgnoreCase(novoNome)) {
-            Optional<ItemEstoque> existentePorNome = itemEstoqueRepository.buscarItemPorNome(novoNome);
-            if (existentePorNome.isPresent() && existentePorNome.get().getId() != id) {
-                throw new IllegalStateException("Erro: Novo nome '" + novoNome + "' já cadastrado para outro item.");
+        // ALTERADO: Validação de unicidade de CÓDIGO se for alterado e pertencer a outro item
+        if (!itemParaAtualizar.getCodigo().equalsIgnoreCase(novoCodigo)) {
+            Optional<ItemEstoque> existentePorCodigo = itemEstoqueRepository.buscarItemPorCodigo(novoCodigo);
+            if (existentePorCodigo.isPresent() && existentePorCodigo.get().getId() != id) {
+                throw new IllegalStateException("Erro: Novo código '" + novoCodigo + "' já cadastrado para outro item.");
             }
         }
         
         // As validações de quantidade e preço negativo são feitas nos setters do ItemEstoque
+        itemParaAtualizar.setCodigo(novoCodigo); // Atualiza o código
         itemParaAtualizar.setNome(novoNome);
         itemParaAtualizar.setQuantidade(novaQuantidade);
         itemParaAtualizar.setPrecoUnitario(novoPreco);
 
-        itemEstoqueRepository.atualizarItem(itemParaAtualizar); // Delega ao repositório
+        itemEstoqueRepository.atualizarItem(itemParaAtualizar); // Delega ao repositório (agora espera ItemEstoque)
         return true;
     }
 
@@ -106,7 +112,7 @@ public class ItemEstoqueService {
         }
 
         item.setQuantidade(item.getQuantidade() - quantidadeBaixa);
-        itemEstoqueRepository.atualizarItem(item); // Atualiza e persiste
+        itemEstoqueRepository.atualizarItem(item); // Delega ao repositório
         System.out.println("Baixa de " + quantidadeBaixa + " unidades do item '" + item.getNome() + "' realizada. Novo estoque: " + item.getQuantidade());
         return true;
     }
@@ -130,7 +136,7 @@ public class ItemEstoqueService {
         ItemEstoque item = itemOpt.get();
 
         item.setQuantidade(item.getQuantidade() + quantidadeAdicao);
-        itemEstoqueRepository.atualizarItem(item); // Atualiza e persiste
+        itemEstoqueRepository.atualizarItem(item); // Delega ao repositório
         System.out.println("Adição de " + quantidadeAdicao + " unidades do item '" + item.getNome() + "' realizada. Novo estoque: " + item.getQuantidade());
         return true;
     }
@@ -138,6 +144,10 @@ public class ItemEstoqueService {
     // Métodos de busca e listagem
     public Optional<ItemEstoque> buscarItemPorId(int id) {
         return itemEstoqueRepository.buscarItemPorId(id);
+    }
+
+    public Optional<ItemEstoque> buscarItemPorCodigo(String codigo) { // NOVO: Busca por CÓDIGO
+        return itemEstoqueRepository.buscarItemPorCodigo(codigo);
     }
 
     public Optional<ItemEstoque> buscarItemPorNome(String nome) {
