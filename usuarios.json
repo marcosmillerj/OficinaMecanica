@@ -28,5 +28,15 @@
     "telefone": "234",
     "tipo": "MECANICO",
     "senha": "123"
+  },
+  {
+    "id": 6,
+    "nome": "AtendenteTeste",
+    "cpf": "12345678456",
+    "endereco": "ssss",
+    "email": "bbb",
+    "telefone": "3234",
+    "tipo": "ATENDENTE",
+    "senha": "123"
   }
 ]

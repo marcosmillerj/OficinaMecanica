@@ -118,7 +118,8 @@ public class CompOSEspecializada {
             case MECANICO:
                 ordensFiltradas = ordemServicoService.listarOrdensPorMecanico(usuarioLogado.getId()).stream()
                     .filter(os -> os.getStatus() == StatusOrdem.EM_DIAGNOSTICO ||
-                                   os.getStatus() == StatusOrdem.EM_EXECUCAO)
+                                  os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO ||
+                                  os.getStatus() == StatusOrdem.EM_EXECUCAO)
                     .collect(Collectors.toList());
                 System.out.println("Visão: Suas Ordens de Serviço em Diagnóstico/Execução (Mecânico)");
                 break;

@@ -140,6 +140,28 @@ public class ItemEstoqueService {
         System.out.println("Adição de " + quantidadeAdicao + " unidades do item '" + item.getNome() + "' realizada. Novo estoque: " + item.getQuantidade());
         return true;
     }
+    
+        /**
+     * Simula a notificação de falta ou escassez de um item.
+     * Em um sistema real, enviaria um e-mail/mensagem ao gerente.
+     * @param codigoItem Código do item.
+     * @param mensagem Mensagem de notificação.
+     * @throws IllegalArgumentException Se o item não for encontrado.
+     */
+    public void informarFaltaDeItem(String codigoItem, String mensagem) throws IllegalArgumentException {
+        // Lógica de negócio: Verificar se o item existe
+        Optional<ItemEstoque> itemOpt = itemEstoqueRepository.buscarItemPorCodigo(codigoItem);
+        if (itemOpt.isEmpty()) {
+            throw new IllegalArgumentException("Item com código '" + codigoItem + "' não encontrado no estoque.");
+        }
+        ItemEstoque item = itemOpt.get();
+
+        // --- SIMULAÇÃO DA NOTIFICAÇÃO ---
+        System.out.println("\n[NOTIFICAÇÃO GERENTE] Item '" + item.getNome() + "' (código: " + codigoItem + ") precisa de atenção. Mensagem: '" + mensagem + "'");
+        System.out.println("Status atual: Quantidade = " + item.getQuantidade());
+        // Em um sistema real, aqui você dispararia um evento, enviaria um email, etc.
+        // Se tivéssemos um Observer para o Gerente, ele seria notificado aqui.
+    }
 
     // Métodos de busca e listagem
     public Optional<ItemEstoque> buscarItemPorId(int id) {
