@@ -4,10 +4,16 @@
  */
 package view;
 
+import java.util.List;
+import java.util.Optional;
 import view.componentes.CompPonto;
 import view.menus.MenuGerente;
 import java.util.Scanner;
+import models.Cliente;
+import models.OrdemServico;
 import models.Usuario;
+import models.Veiculo;
+import models.enums.StatusOrdem;
 import repository.UsuarioCRUD;
 import service.ClienteService;
 import service.ItemEstoqueService;
@@ -16,6 +22,8 @@ import service.RegistroPontoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import util.UserSession;
+import view.menus.MenuMecanico;
+import view.componentes.CompGerenciarOS; // Adicionar import para CompGerenciarOS
 
 /**
  *
@@ -34,11 +42,12 @@ public class PainelPrincipal {
     private Scanner scanner;
 
     private CompPonto componentePonto;
-    // Futuramente: ComponenteOrdemServicoEspecializada componenteOSEspecializada;
+    private CompGerenciarOS compGerenciarOS; // Adicionar o componente aqui
 
     /**
-     * Construtor do PainelPrincipal.
-     * Recebe todas as dependências necessárias para suas operações.
+     * Construtor do PainelPrincipal. Recebe todas as dependências necessárias
+     * para suas operações.
+     *
      * @param usuarioCRUD O CRUD de usuários.
      * @param pontoService O serviço de negócio para o registro de ponto.
      * @param scanner O scanner para entrada do usuário.
@@ -46,12 +55,12 @@ public class PainelPrincipal {
      * @param clienteService O serviço de clientes.
      * @param veiculoService O serviço de veículos.
      * @param usuarioService O serviço de usuários.
-     * @param itemEstoqueService O serviço de itens de estoque. // NOVO PARÂMETRO DOC
+     * @param itemEstoqueService O serviço de itens de estoque.
      */
     public PainelPrincipal(UsuarioCRUD usuarioCRUD, RegistroPontoService pontoService, Scanner scanner,
-                           OrdemServicoService ordemServicoService, ClienteService clienteService,
-                           VeiculoService veiculoService, UsuarioService usuarioService,
-                           ItemEstoqueService itemEstoqueService) { // NOVO PARÂMETRO!
+            OrdemServicoService ordemServicoService, ClienteService clienteService,
+            VeiculoService veiculoService, UsuarioService usuarioService,
+            ItemEstoqueService itemEstoqueService) {
         this.usuarioCRUD = usuarioCRUD;
         this.pontoService = pontoService;
         this.scanner = scanner;
@@ -59,11 +68,18 @@ public class PainelPrincipal {
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.usuarioService = usuarioService;
-        this.itemEstoqueService = itemEstoqueService; // Inicializa ItemEstoqueService
-        
+        this.itemEstoqueService = itemEstoqueService;
+
         this.usuarioLogado = UserSession.getInstance().getLoggedInUser();
         this.componentePonto = new CompPonto(pontoService, scanner);
-        
+        // Inicialize o CompGerenciarOS aqui, pois ele é uma dependência do MenuMecanico
+        this.compGerenciarOS = new CompGerenciarOS(
+                this.ordemServicoService,
+                this.clienteService,
+                this.veiculoService,
+                this.usuarioService,
+                this.scanner
+        );
         if (this.usuarioLogado == null) {
             System.err.println("Erro: Tentativa de exibir PainelPrincipal sem usuário logado. Encerrando.");
             System.exit(1);
@@ -80,93 +96,92 @@ public class PainelPrincipal {
 
             // 1. Exibir e Processar o Componente de Ponto
             int opcaoPonto = componentePonto.exibirStatusEPedirAcao();
-            if (opcaoPonto == 8 || opcaoPonto == 9) {
+            if (opcaoPonto == 8 || opcaoPonto == 9) { // Assumindo 8 e 9 são as opções para registrar ponto
                 componentePonto.processarAcaoPonto(opcaoPonto, usuarioLogado);
-            } else if (opcaoPonto != -1) {
-                System.out.println("Opção de ponto não reconhecida. Prosseguindo para o menu principal...");
+            } else if (opcaoPonto != -1) { // -1 significa que não houve entrada válida ou o usuário não escolheu uma ação de ponto
+                // Aqui você pode decidir o que fazer se o usuário não escolher uma opção de ponto válida
+                // Por enquanto, vamos apenas prosseguir para o menu principal
+                // System.out.println("Opção de ponto não reconhecida. Prosseguindo para o menu principal...");
             }
             System.out.println("---------------------------------------------");
 
-            // 2. Exibir a Lista de O.S. Especializadas
+            // 2. Exibir a Lista de O.S. Especializadas (Mantido como um placeholder)
             exibirOrdensDeServicoEspecializadas();
             System.out.println("---------------------------------------------");
 
-            // 3. Exibir o Menu de Opções Específico para o Tipo de Usuário
-            exibirMenuOpcoesPorTipo();
+            // 3. O Painel Principal apenas redireciona para o menu específico do usuário logado
+            // Não deve exibir as opções detalhadas de cada menu aqui, apenas a opção de "entrar" nele.
+            // O loop do menu específico (MenuMecanico, MenuGerente) controlará suas próprias opções.
+            // Não pedimos opção aqui, apenas chamamos o menu apropriado.
+            // O "voltar" de cada menu específico retornará o controle para o PainelPrincipal.
+            processarMenuPorTipoUsuario();
+            opcao = 0;
 
-            System.out.print("Escolha uma opção do menu principal ou '0' para sair: ");
-            try {
-                opcao = scanner.nextInt();
-                scanner.nextLine();
-            } catch (java.util.InputMismatchException e) {
-                System.err.println("Entrada inválida para a opção do menu. Por favor, digite um número.");
-                scanner.nextLine();
-                opcao = -1;
-            }
+        } while (opcao != 0); // O loop agora depende de como o `processarMenuPorTipoUsuario` interage com ele.
+        // Uma forma simples é deixar o "0" para "Sair do Painel Principal" ser capturado aqui
+        // mas o que acontece é que o menu específico já tem seu próprio loop.
+        // Para uma estrutura mais robusta, cada menu pode retornar um boolean (true para continuar, false para sair).
+        // Por enquanto, vamos presumir que ao sair do menu específico, voltamos ao loop do PainelPrincipal
+        // e o usuário teria que digitar '0' no painel principal para sair de tudo.
 
-            // 4. Processar a Opção Escolhida no Menu Principal
-            processarOpcaoMenu(opcao);
-
-        } while (opcao != 0);
-        
         UserSession.getInstance().logout();
         System.out.println("Saindo do Painel " + usuarioLogado.getTipo().getDescricao() + ". Até mais!");
     }
 
     private void exibirOrdensDeServicoEspecializadas() {
         System.out.println("\n[ORDENS DE SERVIÇO ATRIBUÍDAS / EM ABERTO]");
-        System.out.println("Nenhuma Ordem de Serviço exibida ainda (Lógica a ser implementada futuramente).");
+        // Este é o lugar ideal para o mecânico ver as OSs que lhe interessam sem ter que entrar no menu.
+        // Você pode listar as OSs com status "AGUARDANDO_DIAGNOSTICO" ou "EM_DIAGNOSTICO"
+        // que estão atribuídas a ele, como um "painel de tarefas".
+        List<OrdemServico> osDoMecanico = ordemServicoService.buscarPorMecanicoEStatus(
+                usuarioLogado.getId(), StatusOrdem.AGUARDANDO_DIAGNOSTICO);
+        osDoMecanico.addAll(ordemServicoService.buscarPorMecanicoEStatus(
+                usuarioLogado.getId(), StatusOrdem.EM_DIAGNOSTICO));
+        osDoMecanico.addAll(ordemServicoService.buscarPorMecanicoEStatus(
+                usuarioLogado.getId(), StatusOrdem.EM_EXECUCAO));
+
+        if (osDoMecanico.isEmpty()) {
+            System.out.println("  Nenhuma Ordem de Serviço em aberto atribuída a você no momento.");
+        } else {
+            System.out.println("  Ordens de Serviço em andamento para você:");
+            osDoMecanico.forEach(os -> {
+                Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(os.getIdCliente());
+                Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorId(os.getIdVeiculo());
+                System.out.printf("  - OS-%d | Código: %s | Status: %s | Cliente: %s | Veículo: %s (%s)%n",
+                        os.getId(),
+                        os.getCodigo(),
+                        os.getStatus().getDescricao(),
+                        clienteOpt.map(Cliente::getNome).orElse("Desconhecido"),
+                        veiculoOpt.map(Veiculo::getModelo).orElse("Desconhecido"),
+                        veiculoOpt.map(Veiculo::getPlaca).orElse("Desconhecido"));
+            });
+        }
     }
 
-    private void exibirMenuOpcoesPorTipo() {
-        System.out.println("\n[MENU DE OPÇÕES]");
+    // REMOVA exibirMenuOpcoesPorTipo() daqui, pois os menus específicos já cuidam disso.
+    private void processarMenuPorTipoUsuario() {
         switch (usuarioLogado.getTipo()) {
             case ATENDENTE:
-                System.out.println("1. Gerenciar Agendamentos");
-                System.out.println("2. Gerar Nova Ordem de Serviço");
-                System.out.println("3. Processar Pagamento");
+                // Instancie e chame o MenuAtendente aqui
+                System.out.println("Funcionalidade de Atendente ainda não implementada. Digite 0 para sair.");
+                scanner.nextLine(); // Pausa
                 break;
             case MECANICO:
-                System.out.println("1. Visualizar Minhas Ordens de Serviço");
-                System.out.println("2. Registrar Diagnóstico");
-                System.out.println("3. Registrar Execução de Serviço");
-                break;
-            case GERENTE:
-                System.out.println("1. Gerenciar Usuários");
-                System.out.println("2. Gerenciar Estoque");
-                System.out.println("3. Acessar Relatórios Financeiros");
-                System.out.println("4. Gerenciar Ordens de Serviço");
-                break;
-            default:
-                System.out.println("Nenhuma opção disponível para este tipo de usuário.");
-                break;
-        }
-        System.out.println("0. Sair do Painel");
-    }
-
-    private void processarOpcaoMenu(int opcao) {
-        if (opcao == 0) {
-            return;
-        }
-
-        switch (usuarioLogado.getTipo()) {
-            case ATENDENTE:
-                // Chamaria o MenuAtendente real
-                System.out.println("Funcionalidade de Gerenciamento para Atendente ainda não implementada.");
-                break;
-            case MECANICO:
-                // Chamaria o MenuMecanico real
-                System.out.println("Funcionalidade de Gerenciamento para Mecânico ainda não implementada.");
+                MenuMecanico menuMecanico = new MenuMecanico(
+                        scanner,
+                        compGerenciarOS // Apenas o CompGerenciarOS é passado agora
+                );
+                menuMecanico.exibirMenu();
                 break;
             case GERENTE:
                 MenuGerente menuGerente = new MenuGerente(
-                    usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
-                    itemEstoqueService // NOVO PARÂMETRO!
+                        usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
+                        itemEstoqueService
                 );
-                menuGerente.exibirMenu();
+                menuGerente.exibirMenu(); // Chama o menu do gerente
                 break;
             default:
-                System.out.println("Opção inválida para este tipo de usuário.");
+                System.out.println("Nenhuma opção disponível para este tipo de usuário.");
                 break;
         }
     }

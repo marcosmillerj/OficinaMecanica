@@ -6,7 +6,6 @@ package oficinamecanica; // Seu pacote principal, que contém a classe Main/Prin
 
 import java.util.Scanner;
 import models.Usuario;
-import models.enums.TipoUsuario;
 import repository.ClienteRepository;
 import repository.ItemEstoqueRepository;
 import repository.OrdemServicoRepository;
@@ -21,9 +20,7 @@ import service.UsuarioService;
 import service.VeiculoService;
 import util.AuthService;
 import util.UserSession;
-import view.componentes.CompGerenciarUsuario;
 import view.PainelPrincipal;
-import view.componentes.CompPonto;
 
 /**
  * Ponto de entrada principal do Sistema de Gerenciamento da Oficina.

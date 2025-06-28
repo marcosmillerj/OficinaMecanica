@@ -93,7 +93,7 @@ public class CompGerenciarOS {
     /**
      * Implementa o fluxo de criação de Ordem de Serviço, com cadastro de cliente e veículo on-demand.
      */
-    private void criarNovaOrdemServicoIntegrada() {
+    public void criarNovaOrdemServicoIntegrada() {
         System.out.println("\n--- CRIAR NOVA ORDEM DE SERVIÇO ---");
         Cliente cliente = null;
         Veiculo veiculo = null;
@@ -270,7 +270,7 @@ public class CompGerenciarOS {
     }
 
     // --- Métodos de Atualização de Status (Para o Menu de OS) ---
-    private void atualizarStatusOrdemServico() {
+    public void atualizarStatusOrdemServico() {
         System.out.println("\n--- ATUALIZAR STATUS DA ORDEM DE SERVIÇO ---");
         System.out.print("Digite o ID da Ordem de Serviço: ");
         int idOs = -1;

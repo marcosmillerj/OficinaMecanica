@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import models.OrdemServico;
+import models.enums.StatusOrdem;
 import util.JsonFileHandler;
 
 /**
@@ -150,4 +151,19 @@ public class OrdemServicoRepository {
         }
         return ordensFiltradas;
     }
+    public List<OrdemServico> listarOrdensPorMecanicoEStatus(int idMecanico, StatusOrdem status) {
+    List<OrdemServico> ordensFiltradas = new ArrayList<>();
+    for (OrdemServico os : ordensDeServico) {
+        if (os.getIdMecanicoResponsavel() == idMecanico && os.getStatus() == status) {
+            ordensFiltradas.add(os);
+        }
+    }
+    return ordensFiltradas;
 }
+    public void debugExibirTodasOrdens() {
+    System.out.println("\n=== DEBUG: TODAS AS ORDENS NO REPOSITÓRIO ===");
+    for (OrdemServico os : ordensDeServico) {
+        System.out.printf("ID: %d | Código: %s | Mecânico: %d | Status: %s%n",
+            os.getId(), os.getCodigo(), os.getIdMecanicoResponsavel(), os.getStatus());
+    }
+}}
