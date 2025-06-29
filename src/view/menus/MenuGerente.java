@@ -15,11 +15,13 @@ import repository.UsuarioCRUD;
 import service.ClienteService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
+import service.RelatorioService;
 import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import view.componentes.CompGerenciarEstoque;
 import view.componentes.CompGerenciarOS;
+import view.componentes.CompGerenciarRelatorio;
 import view.componentes.CompGerenciarUsuario;
 
 /**
@@ -36,6 +38,7 @@ public class MenuGerente {
     private ServicoService servicoService;
     private UsuarioCRUD usuarioCRUD;
     private Scanner scanner;
+    private RelatorioService relatorioService;
 
     /**
      * Construtor do MenuGerente.
@@ -54,7 +57,7 @@ public class MenuGerente {
     public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
                        VeiculoService veiculoService, ItemEstoqueService itemEstoqueService,
-                       ServicoService servicoService) { // <<< CONSTRUTOR SEM ElevadorService
+                       ServicoService servicoService, RelatorioService relatorioService) { // <<< CONSTRUTOR SEM ElevadorService
         this.usuarioCRUD = usuarioCRUD;
         this.scanner = scanner;
         this.usuarioService = usuarioService;
@@ -63,6 +66,7 @@ public class MenuGerente {
         this.veiculoService = veiculoService;
         this.itemEstoqueService = itemEstoqueService;
         this.servicoService = servicoService;
+        this.relatorioService = relatorioService;
     }
 
     /**
@@ -74,7 +78,7 @@ public class MenuGerente {
             System.out.println("\n===== Menu do Gerente =====");
             System.out.println("1. Gerenciar Usuários");
             System.out.println("2. Gerenciar Estoque");
-            System.out.println("3. Acessar Relatórios Financeiros (Ainda não implementado)");
+            System.out.println("3. Acessar Relatórios Financeiros");
             System.out.println("4. Gerenciar Ordens de Serviço");
             System.out.println("5. Gerenciar Clientes");
             System.out.println("0. Voltar ao Painel Principal");
@@ -112,8 +116,11 @@ public class MenuGerente {
                 compGerenciarEstoque.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 3:
-                System.out.println("Funcionalidade 'Acessar Relatórios Financeiros' ainda não implementada.");
+            case 3: // Acessar Relatórios Financeiros
+                System.out.println("\n--- Acessando Relatórios ---");
+                CompGerenciarRelatorio compGerarRelatorios = new CompGerenciarRelatorio(this.relatorioService, this.scanner);
+                compGerarRelatorios.exibirMenu();
+                System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 4: // Gerenciar Ordens de Serviço
                 System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");

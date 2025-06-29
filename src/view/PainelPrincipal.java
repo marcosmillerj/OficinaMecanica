@@ -16,6 +16,7 @@ import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.PagamentoService;
 import service.RegistroPontoService;
+import service.RelatorioService;
 import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
@@ -43,6 +44,7 @@ public class PainelPrincipal {
     private ElevadorService elevadorService; 
     private AgendamentoService agendamentoService;
     private PagamentoService pagamentoService;
+    private RelatorioService relatorioService;
     private Scanner scanner;
 
     private CompPonto compPonto;
@@ -68,7 +70,8 @@ public class PainelPrincipal {
                            VeiculoService veiculoService, UsuarioService usuarioService,
                            ItemEstoqueService itemEstoqueService, ServicoService servicoService,
                            ElevadorService elevadorService, 
-                           AgendamentoService agendamentoService, PagamentoService pagamentoService) {
+                           AgendamentoService agendamentoService, PagamentoService pagamentoService,
+                           RelatorioService relatorioService) {
         this.usuarioCRUD = usuarioCRUD;
         this.pontoService = pontoService;
         this.scanner = scanner;
@@ -81,7 +84,7 @@ public class PainelPrincipal {
         this.elevadorService = elevadorService; 
         this.agendamentoService = agendamentoService;
         this.pagamentoService = pagamentoService;
-        
+        this.relatorioService = relatorioService;
         this.usuarioLogado = util.UserSession.getInstance().getLoggedInUser();
         this.compPonto = new CompPonto(pontoService, scanner);
         
@@ -140,7 +143,7 @@ public class PainelPrincipal {
                     // MenuGerente agora SEM ElevadorService
                     MenuGerente menuGerente = new MenuGerente(
                         usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
-                        itemEstoqueService, servicoService
+                        itemEstoqueService, servicoService, relatorioService
                         // REMOVIDO: elevadorService
                     );
                     menuGerente.exibirMenu();
