@@ -1,0 +1,243 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package view.componentes;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
+import models.Agendamento;
+import models.Cliente;
+import models.Servico;
+import models.Usuario;
+import models.Veiculo;
+import service.AgendamentoService;
+import service.ClienteService;
+import service.ServicoService;
+import service.UsuarioService;
+import service.VeiculoService;
+
+/**
+ *
+ * @author marcos_miller
+ */
+public class CompGerenciarAgendamento {
+
+    private AgendamentoService agendamentoService;
+    private ClienteService clienteService;
+    private VeiculoService veiculoService;
+    // Removidos atributos que não são mais necessários para a criação simples:
+    // private UsuarioService usuarioService;
+    // private ServicoService servicoService;
+    private Scanner scanner;
+
+    // Construtor simplificado
+    public CompGerenciarAgendamento(AgendamentoService agendamentoService,
+                                    ClienteService clienteService,
+                                    VeiculoService veiculoService,
+                                    Scanner scanner) {
+        this.agendamentoService = agendamentoService;
+        this.clienteService = clienteService;
+        this.veiculoService = veiculoService;
+        this.scanner = scanner;
+    }
+
+    public void exibirMenu() {
+        int opcao;
+        do {
+            System.out.println("\n===== Gerenciar Agendamentos =====");
+            System.out.println("1. Agendar Novo Serviço");
+            System.out.println("2. Listar Todos os Agendamentos");
+            System.out.println("3. Reagendar Agendamento");
+            System.out.println("4. Cancelar Agendamento");
+            System.out.println("0. Voltar ao Menu Anterior");
+            System.out.print("Escolha uma opção: ");
+
+            try {
+                opcao = scanner.nextInt();
+                scanner.nextLine();
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número.");
+                scanner.nextLine();
+                opcao = -1;
+            }
+
+            processarOpcao(opcao);
+
+        } while (opcao != 0);
+    }
+
+    private void processarOpcao(int opcao) {
+        switch (opcao) {
+            case 1:
+                agendarNovoServico();
+                break;
+            case 2:
+                listarTodosAgendamentos();
+                break;
+            case 3:
+                reagendarAgendamento(); 
+                break;
+            case 4:
+                cancelarAgendamento();
+                break;
+            case 0:
+                System.out.println("Saindo do Gerenciamento de Agendamentos.");
+                break;
+            default:
+                System.out.println("Opção inválida. Tente novamente.");
+                break;
+        }
+    }
+
+    private void agendarNovoServico() {
+        System.out.println("\n--- AGENDAR NOVO SERVIÇO ---");
+
+        // 1. Selecionar Cliente
+        Cliente clienteSelecionado = solicitarClienteExistente(); // Método auxiliar já existe no CompGerenciarOS, vamos replicar ou buscar
+        if (clienteSelecionado == null) return;
+
+        // 2. Selecionar Veículo do Cliente
+        Veiculo veiculoSelecionado = solicitarVeiculoExistente(clienteSelecionado.getId()); // Passa ID do cliente
+        if (veiculoSelecionado == null) return;
+
+        // 3. Inserir Data e Hora
+        LocalDateTime dataHoraAgendamento = solicitarDataHora();
+        if (dataHoraAgendamento == null) return;
+
+        // 4. Inserir Valor do Agendamento (Valor Fixo / Taxa)
+        BigDecimal valorAgendamento = lerBigDecimalValido("Digite o valor do agendamento (taxa/estimado): ");
+        if (valorAgendamento == null) return; // Se a leitura falhar
+
+        try {
+            agendamentoService.criarAgendamento(
+                dataHoraAgendamento,
+                clienteSelecionado.getId(),
+                veiculoSelecionado.getId(),
+                valorAgendamento
+            );
+            System.out.println("Agendamento realizado com sucesso!");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.err.println("Erro ao agendar serviço: " + e.getMessage());
+        }
+    }
+
+    private void listarTodosAgendamentos() {
+        System.out.println("\n--- LISTA DE AGENDAMENTOS ---");
+        List<Agendamento> agendamentos = agendamentoService.listarTodosAgendamentos();
+
+        if (agendamentos.isEmpty()) {
+            System.out.println("Nenhum agendamento cadastrado.");
+        } else {
+            agendamentos.forEach(System.out::println);
+        }
+    }
+
+    private void reagendarAgendamento() {
+        System.out.println("\n--- REAGENDAR AGENDAMENTO ---");
+        System.out.print("Digite o ID do agendamento a ser reagendado: ");
+        int idAgendamento = lerInteiroValido(); // Usar auxiliar
+
+        try {
+            LocalDateTime novaDataHora = solicitarDataHora();
+            if (novaDataHora == null) return;
+
+            boolean sucesso = agendamentoService.reagendarAgendamento(idAgendamento, novaDataHora);
+            if (sucesso) {
+                System.out.println("Agendamento reagendado com sucesso!");
+            } else {
+                System.out.println("Falha ao reagendar agendamento. Verifique o ID e o status.");
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.err.println("Erro ao reagendar agendamento: " + e.getMessage());
+        }
+    }
+
+    private void cancelarAgendamento() {
+        System.out.println("\n--- CANCELAR AGENDAMENTO ---");
+        System.out.print("Digite o ID do agendamento a ser cancelado: ");
+        int idAgendamento = lerInteiroValido(); // Usar auxiliar
+
+        try {
+            BigDecimal valorRetido = agendamentoService.cancelarAgendamento(idAgendamento);
+            if (valorRetido != null) { // Se o cancelamento for bem-sucedido e retornar valor
+                System.out.println("Agendamento cancelado com sucesso! Valor retido: R$ " + String.format("%.2f", valorRetido));
+            } else {
+                System.out.println("Falha ao cancelar agendamento. Verifique o ID e o status.");
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.err.println("Erro ao cancelar agendamento: " + e.getMessage());
+        }
+    }
+
+    // --- Métodos Auxiliares de Leitura e Seleção (Replicados/Adaptados do CompGerenciarOS) ---
+
+    private int lerInteiroValido() {
+        while (true) {
+            try {
+                int valor = scanner.nextInt();
+                scanner.nextLine();
+                return valor;
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número inteiro.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    private BigDecimal lerBigDecimalValido(String prompt) {
+        while (true) {
+            System.out.print(prompt); // Adicionado prompt
+            try {
+                String input = scanner.nextLine();
+                return new BigDecimal(input);
+            } catch (NumberFormatException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
+            }
+        }
+    }
+
+    private Cliente solicitarClienteExistente() {
+        System.out.print("Digite o Email do Cliente: ");
+        String email = scanner.nextLine();
+        Optional<Cliente> clienteOpt = clienteService.buscarClientePorEmail(email);
+        if (clienteOpt.isEmpty()) {
+            System.out.println("Cliente não encontrado. Você precisa cadastrar um novo cliente primeiro.");
+            // Poderíamos oferecer para cadastrar o cliente aqui, mas por simplicidade, apenas avisa.
+            return null;
+        }
+        return clienteOpt.get();
+    }
+
+    private Veiculo solicitarVeiculoExistente(int idClienteProprietario) {
+        System.out.print("Digite a Placa do Veículo: ");
+        String placa = scanner.nextLine();
+        Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorPlaca(placa);
+        if (veiculoOpt.isEmpty()) {
+            System.out.println("Veículo não encontrado. Você precisa cadastrar um novo veículo primeiro.");
+            return null;
+        }
+        Veiculo veiculo = veiculoOpt.get();
+        if (veiculo.getIdCliente() != idClienteProprietario) {
+            System.out.println("Este veículo não pertence ao cliente selecionado.");
+            return null;
+        }
+        return veiculo;
+    }
+
+    private LocalDateTime solicitarDataHora() {
+        System.out.print("Digite a data e hora do agendamento (formato yyyy-MM-dd HH:mm): ");
+        String dataHoraStr = scanner.nextLine();
+        try {
+            return LocalDateTime.parse(dataHoraStr + ":00", java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (DateTimeParseException e) {
+            System.err.println("Formato de data e hora inválido. Use yyyy-MM-dd HH:mm.");
+            return null;
+        }
+    }
+}

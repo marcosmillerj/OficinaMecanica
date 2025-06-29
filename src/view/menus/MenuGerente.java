@@ -4,8 +4,13 @@
  */
 package view.menus;
 
+import comparator.ClienteComparatorPorEmail;
+import comparator.ClienteComparatorPorNome;
+import java.util.Comparator;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
+import models.Cliente;
 import repository.UsuarioCRUD;
 import service.ClienteService;
 import service.ItemEstoqueService;
@@ -27,9 +32,9 @@ public class MenuGerente {
     private OrdemServicoService ordemServicoService;
     private ClienteService clienteService;
     private VeiculoService veiculoService;
-    private ItemEstoqueService itemEstoqueService; // ATRIBUTO JÁ EXISTENTE
-    private ServicoService servicoService;         // NOVO ATRIBUTO! (precisa ser adicionado)
-    private UsuarioCRUD usuarioCRUD; // MANTIDO: Atributo para compatibilidade com o construtor do CompGerenciarUsuario no case 1
+    private ItemEstoqueService itemEstoqueService;
+    private ServicoService servicoService;
+    private UsuarioCRUD usuarioCRUD;
     private Scanner scanner;
 
     /**
@@ -43,12 +48,13 @@ public class MenuGerente {
      * @param clienteService O serviço de clientes.
      * @param veiculoService O serviço de veículos.
      * @param itemEstoqueService O serviço de itens de estoque.
-     * @param servicoService O serviço de serviços. // NOVO PARÂMETRO DOC!
+     * @param servicoService O serviço de serviços.
+     * // REMOVIDO: @param elevadorService O serviço de elevadores.
      */
     public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
-                       VeiculoService veiculoService, ItemEstoqueService itemEstoqueService, // JÁ EXISTENTE
-                       ServicoService servicoService) { // NOVO PARÂMETRO!
+                       VeiculoService veiculoService, ItemEstoqueService itemEstoqueService,
+                       ServicoService servicoService) { // <<< CONSTRUTOR SEM ElevadorService
         this.usuarioCRUD = usuarioCRUD;
         this.scanner = scanner;
         this.usuarioService = usuarioService;
@@ -56,7 +62,7 @@ public class MenuGerente {
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.itemEstoqueService = itemEstoqueService;
-        this.servicoService = servicoService; // INICIALIZA O NOVO ATRIBUTO!
+        this.servicoService = servicoService;
     }
 
     /**
@@ -70,6 +76,7 @@ public class MenuGerente {
             System.out.println("2. Gerenciar Estoque");
             System.out.println("3. Acessar Relatórios Financeiros (Ainda não implementado)");
             System.out.println("4. Gerenciar Ordens de Serviço");
+            System.out.println("5. Gerenciar Clientes");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -110,15 +117,16 @@ public class MenuGerente {
                 break;
             case 4: // Gerenciar Ordens de Serviço
                 System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
-                // *** AJUSTE AQUI: PASSAR ServicoService e ItemEstoqueService ***
                 CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
                     this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
-                    this.servicoService,       // NOVO PARÂMETRO!
-                    this.itemEstoqueService,   // NOVO PARÂMETRO!
+                    this.servicoService, this.itemEstoqueService,
                     this.scanner
                 );
                 compGerenciarOS.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
+                break;
+            case 5: // Gerenciar Clientes (TESTE COMPARATOR)
+                gerenciarClientes();
                 break;
             case 0:
                 System.out.println("Voltando ao Painel Principal.");
@@ -126,6 +134,70 @@ public class MenuGerente {
             default:
                 System.out.println("Opção inválida. Tente novamente.");
                 break;
+        }
+    }
+
+    // --- MÉTODOS PARA GERENCIAR CLIENTES E DEMONSTRAR COMPARATOR (MANTIDOS) ---
+    private void gerenciarClientes() {
+        int opcao;
+        do {
+            System.out.println("\n===== Gerenciar Clientes =====");
+            System.out.println("1. Adicionar Novo Cliente");
+            System.out.println("2. Listar Todos os Clientes (Sem Ordenação)");
+            System.out.println("3. Listar Clientes por Nome (Ordenado)");
+            System.out.println("4. Listar Clientes por Email (Ordenado)");
+            System.out.println("0. Voltar ao Menu Anterior");
+            System.out.print("Escolha uma opção: ");
+
+            try {
+                opcao = scanner.nextInt();
+                scanner.nextLine();
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número.");
+                scanner.nextLine();
+                opcao = -1;
+            }
+
+            switch (opcao) {
+                case 1: adicionarCliente(); break;
+                case 2: listarClientes(null); break;
+                case 3: listarClientes(new ClienteComparatorPorNome()); break;
+                case 4: listarClientes(new ClienteComparatorPorEmail()); break;
+                case 0: System.out.println("Saindo do Gerenciamento de Clientes."); break;
+                default: System.out.println("Opção inválida. Tente novamente."); break;
+            }
+        } while (opcao != 0);
+    }
+
+    private void adicionarCliente() {
+        System.out.println("\n--- ADICIONAR NOVO CLIENTE ---");
+        System.out.print("Nome: "); String nome = scanner.nextLine();
+        System.out.print("Telefone: "); String telefone = scanner.nextLine();
+        System.out.print("Email: "); String email = scanner.nextLine();
+
+        try {
+            clienteService.adicionarCliente(nome, telefone, email);
+            System.out.println("Cliente adicionado com sucesso!");
+        } catch (IllegalStateException e) {
+            System.err.println("Erro ao adicionar cliente: " + e.getMessage());
+        }
+    }
+
+    private void listarClientes(Comparator<Cliente> comparator) {
+        System.out.println("\n--- LISTA DE CLIENTES ---");
+        List<Cliente> clientes;
+        if (comparator != null) {
+            clientes = clienteService.listarClientesOrdenados(comparator);
+            System.out.println("Lista ordenada.");
+        } else {
+            clientes = clienteService.listarTodosClientes();
+            System.out.println("Lista sem ordenação específica.");
+        }
+
+        if (clientes.isEmpty()) {
+            System.out.println("Nenhum cliente cadastrado.");
+        } else {
+            clientes.forEach(System.out::println);
         }
     }
 }
