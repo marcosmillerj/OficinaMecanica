@@ -4,9 +4,13 @@
  */
 package models;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import models.enums.TipoPagamento;
 import observers.ObservadorPagamento;
 
@@ -19,99 +23,99 @@ import observers.ObservadorPagamento;
  * Representa um pagamento realizado na oficina.
  * Agora atua como um 'Subject' no padrão Observer, notificando interessados ao ser finalizado.
  */
-public class Pagamento {
-    private static int proximoId = 1; 
+public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
+
+    public static int proximoId = 1;
 
     private int id;
     private LocalDateTime dataHora;
-    private Double valor;
+    private BigDecimal valor; // BigDecimal para precisão monetária
     private TipoPagamento tipo;
-    private OrdemServico ordemServico;
+    private Optional<Integer> idOrdemServico; // Referência por ID para OrdemServico (Optional)
     
-    //ADICIONADO
-    // Esta é a lista dos "assinantes" que querem ser avisados quando este pagamento for finalizado.
-    private final List<ObservadorPagamento> observadores;
+    // REMOVIDO: Atributo para lista de observadores
+    // private final List<IObservadorPagamento> observadores;
 
     /**
-     * Construtor para criar um novo pagamento.
+     * Construtor principal para criar um novo pagamento.
      * O pagamento é criado associado a uma Ordem de Serviço, mas ainda não está 'finalizado'.
-     * @param ordemServico A OrdemDeServiço à qual este pagamento se refere.
+     * @param idOrdemServico O ID da OrdemDeServiço à qual este pagamento se refere (Optional.empty() se não houver OS).
      */
-    public Pagamento(OrdemServico ordemServico) {
-        this.id = proximoId++; 
-        this.ordemServico = ordemServico;
-        this.observadores = new ArrayList<>();
-    }
-
-    // --- MÉTODOS DO OBSERVER ---
-
-    /**
-     * Adiciona um assinante à lista. Este assinante será notificado quando o pagamento for finalizado.
-     * @param obs O assinante (quem vai ser avisado).
-     */
-    public void adicionarObservador(ObservadorPagamento obs) {
-        if (!observadores.contains(obs)) {
-            observadores.add(obs);
-            System.out.println("Pagamento ID " + this.id + ": Assinante adicionado.");
-        }
+    public Pagamento(Optional<Integer> idOrdemServico) {
+        this.id = proximoId++;
+        this.idOrdemServico = Objects.requireNonNull(idOrdemServico, "ID da Ordem de Serviço não pode ser nulo (use Optional.empty()).");
+        this.dataHora = null; // Definido ao finalizar
+        this.valor = BigDecimal.ZERO; // Definido ao finalizar
+        this.tipo = null; // Definido ao finalizar
+        // REMOVIDO: Inicialização da lista de observadores
+        // this.observadores = new ArrayList<>();
     }
 
     /**
-     * Remove um assinante da lista. Ele não será mais notificado.
-     * @param obs O assinante a ser removido.
+     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
+     * @param id ID do pagamento.
+     * @param dataHora Data e hora da finalização do pagamento.
+     * @param valor Valor final do pagamento.
+     * @param tipo Tipo de pagamento.
+     * @param idOrdemServico ID da Ordem de Serviço associada.
      */
-    public void removerObservador(ObservadorPagamento obs) {
-        observadores.remove(obs);
-        System.out.println("Pagamento ID " + this.id + ": Assinante removido.");
+    public Pagamento(int id, LocalDateTime dataHora, BigDecimal valor, TipoPagamento tipo, Optional<Integer> idOrdemServico) { // Construtor para Gson
+        this.id = id;
+        this.dataHora = dataHora;
+        this.valor = valor;
+        this.tipo = tipo;
+        this.idOrdemServico = idOrdemServico;
+        // REMOVIDO: Inicialização da lista de observadores
+        // this.observadores = new ArrayList<>();
     }
 
-    /**
-     * Envia a notícia (notifica) todos os assinantes registrados sobre a finalização deste pagamento.
-     * Este método é chamado internamente pelo método 'finalizar()'.
-     */
-    public void notificarObservadores() {
-        System.out.println("Pagamento ID " + this.id + ": Enviando notícia aos assinantes sobre a finalização...");
-        for (ObservadorPagamento obs : observadores) {
-            obs.notificarAssinantes(this);
-        }
-    }
 
+    // --- REMOVIDOS MÉTODOS DO OBSERVER ---
+    // @Override public void adicionarObservador(IObservadorPagamento obs) { ... }
+    // @Override public void removerObservador(IObservadorPagamento obs) { ... }
+    // @Override public void notificarObservadores() { ... }
+
+    // --- Getters e Setters ---
     public int getId() { return id; }
-    public Double getValor() { return valor; }
+
+    public BigDecimal getValor() { return valor; }
+    public void setValor(BigDecimal valor) {
+        this.valor = Objects.requireNonNull(valor, "Valor não pode ser nulo.");
+        if (valor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Valor não pode ser negativo.");
+        }
+    }
+
     public LocalDateTime getDataHora() { return dataHora; }
+    public void setDataHora(LocalDateTime dataHora) { this.dataHora = Objects.requireNonNull(dataHora, "Data e hora não podem ser nulas."); }
+
     public TipoPagamento getTipo() { return tipo; }
-    public OrdemServico getOrdemServico() { return ordemServico; }
+    public void setTipo(TipoPagamento tipo) { this.tipo = Objects.requireNonNull(tipo, "Tipo de pagamento não pode ser nulo."); }
 
-    public void setId(int id) { this.id = id; }
-    public void setValor(Double valor) { this.valor = valor; }
-    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
-    public void setTipo(TipoPagamento tipo) { this.tipo = tipo; }
-    public void setOrdemServico(OrdemServico ordemDeServico) { this.ordemServico = ordemDeServico; }
-
+    public Optional<Integer> getIdOrdemServico() { return idOrdemServico; }
+    public void setIdOrdemServico(Optional<Integer> idOrdemServico) {
+        this.idOrdemServico = Objects.requireNonNull(idOrdemServico, "ID da Ordem de Serviço não pode ser nulo (use Optional.empty()).");
+    }
 
     /**
      * Finaliza o pagamento, definindo seu valor, data/hora e tipo.
-     * Após a finalização, ENVIA A NOTÍCIA (notifica) a todos os assinantes registrados.
      * @param valorFinal O valor final pago.
      * @param tipoFinal O tipo de pagamento (DINHEIRO, CARTAO_CREDITO, etc.).
      * @return Uma mensagem de confirmação da finalização.
      */
-    public String finalizar(Double valorFinal, TipoPagamento tipoFinal) {
+    public String finalizar(BigDecimal valorFinal, TipoPagamento tipoFinal) {
         this.setValor(valorFinal);
         this.dataHora = LocalDateTime.now();
         this.setTipo(tipoFinal);
 
         String mensagem = "Pagamento de R$" + String.format("%.2f", valorFinal) +
-                " finalizado via " + tipoFinal +
-                " em " + this.dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                ". ID: " + this.id +
-                (this.ordemServico != null ? ", OS: " + this.ordemServico.getCodigo() : ""); 
+                          " finalizado via " + tipoFinal.getPagamento() + // <<--- AGORA USA getPagamento()
+                          " em " + this.dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                          ". ID: " + this.id +
+                          (this.idOrdemServico.isPresent() ? ", OS: " + this.idOrdemServico.get() : "");
 
-        System.out.println(mensagem); 
-
-        // O QUE REALMENTE IMPORTA PRA GENTE
-        notificarObservadores();
-
+        System.out.println(mensagem);
+        // REMOVIDO: notificarObservadores();
         return mensagem;
     }
 
@@ -122,9 +126,22 @@ public class Pagamento {
         System.out.println("--- Detalhes do Pagamento ---");
         System.out.println("ID: " + this.id);
         System.out.println("Valor: R$" + String.format("%.2f", this.valor));
-        System.out.println("Data/Hora: " + (this.dataHora != null ? this.dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : "N/A"));
-        System.out.println("Forma: " + this.tipo);
-        System.out.println("OS Relacionada: " + (this.ordemServico != null ? this.ordemServico.getCodigo() : "N/A"));
+        System.out.println("Data/Hora: " + (this.dataHora != null ? this.dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : "N/A"));
+        System.out.println("Forma: " + (this.tipo != null ? this.tipo.getPagamento() : "N/A")); // <<--- AGORA USA getPagamento()
+        System.out.println("OS Relacionada: " + (this.idOrdemServico.isPresent() ? this.idOrdemServico.get() : "N/A"));
         System.out.println("-----------------------------");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pagamento pagamento = (Pagamento) o;
+        return id == pagamento.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

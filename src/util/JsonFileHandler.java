@@ -11,8 +11,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List; // Importar List para o método load
+import java.util.Optional;
 
 /**
  * Classe utilitária responsável por salvar e carregar listas de objetos
@@ -26,15 +28,24 @@ public class JsonFileHandler<T> { // <T> indica que esta classe é genérica
 
     private final String filePath; // O caminho do arquivo para este manipulador
     private final Type typeToken;  // O tipo da lista de objetos (ex: List<Usuario>)
+    private final Gson gson;       // A instância do Gson configurada
 
     /**
      * Construtor para criar um manipulador de arquivo JSON.
      * @param filePath O caminho completo do arquivo (ex: "usuarios.json").
-     * @param typeToken Um TypeToken que representa o tipo da lista a ser serializada/desserializada (ex: new TypeToken<List<Usuario>>(){}.getType()).
+     * @param typeToken Um TypeToken que representa o tipo da lista a ser serializada/desserializada.
      */
     public JsonFileHandler(String filePath, Type typeToken) {
         this.filePath = filePath;
         this.typeToken = typeToken;
+
+        // --- AQUI É ONDE CONFIGURAMOS O GSON UMA ÚNICA VEZ COM AMBOS OS ADAPTADORES ---
+        this.gson = new GsonBuilder()
+                        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()) // REGISTRA O ADAPTADOR PARA LOCALDATETIME
+                        .registerTypeAdapter(Optional.class, new OptionalAdapter<>())       // REGISTRA O ADAPTADOR PARA OPTIONAL
+                        .setPrettyPrinting() // Para formatar o JSON de forma legível
+                        .create();
+        // --- FIM DA CONFIGURAÇÃO DO GSON ---
     }
 
     /**
@@ -42,7 +53,7 @@ public class JsonFileHandler<T> { // <T> indica que esta classe é genérica
      * @param dataList A lista de objetos a ser salva.
      */
     public void save(List<T> dataList) { // Recebe uma lista do tipo genérico T
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        // Usa a instância de 'gson' que foi configurada no construtor
         String json = gson.toJson(dataList);
 
         FileWriter writer = null;
@@ -69,7 +80,7 @@ public class JsonFileHandler<T> { // <T> indica que esta classe é genérica
      * @return A lista de objetos carregada, ou uma lista vazia se o arquivo não existir ou for inválido.
      */
     public List<T> load() { // Retorna uma lista do tipo genérico T
-        Gson gson = new Gson();
+        // Usa a instância de 'gson' que foi configurada no construtor
         FileReader reader = null;
         List<T> dataList = null;
 

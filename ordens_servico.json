@@ -1,120 +1,23 @@
 [
   {
     "id": 1,
-    "codigo": "OS-250621021727-c92f",
-    "dataAbertura": {
-      "date": {
-        "year": 2025,
-        "month": 6,
-        "day": 21
-      },
-      "time": {
-        "hour": 2,
-        "minute": 17,
-        "second": 27,
-        "nano": 714765490
-      }
-    },
-    "precoTotal": 588,
+    "codigo": "OS-250629185655-ac43",
+    "dataAbertura": "2025-06-29T18:56:55.356683466",
+    "precoTotal": 324,
     "idVeiculo": 1,
     "idCliente": 1,
     "idMecanicoResponsavel": 5,
-    "status": "EM_EXECUCAO",
+    "status": "FINALIZADA",
     "servicos": [
       {
         "id": 1,
-        "precoMaoDeObra": 45,
-        "setor": "SUSPENSAO",
-        "codigoPeca": "FLTARG",
-        "quantidadePeca": 1,
-        "requerPrioridade": false,
-        "observacoes": "suspensao"
-      },
-      {
-        "id": 1,
-        "precoMaoDeObra": 543,
-        "setor": "ACABAMENTO",
-        "codigoPeca": "LMPFARH4",
-        "quantidadePeca": 1,
-        "requerPrioridade": false,
-        "observacoes": "troca de farol"
-      }
-    ],
-    "observadores": []
-  },
-  {
-    "id": 2,
-    "codigo": "OS-250622234332-db13",
-    "dataAbertura": {
-      "date": {
-        "year": 2025,
-        "month": 6,
-        "day": 22
-      },
-      "time": {
-        "hour": 23,
-        "minute": 43,
-        "second": 32,
-        "nano": 53397816
-      }
-    },
-    "precoTotal": 341,
-    "idVeiculo": 1,
-    "idCliente": 1,
-    "idMecanicoResponsavel": 5,
-    "status": "AGUARDANDO_DIAGNOSTICO",
-    "servicos": [
-      {
-        "id": 1,
-        "precoMaoDeObra": 70,
-        "setor": "MOTOR",
-        "codigoPeca": "ol5w30l",
-        "quantidadePeca": 4,
-        "requerPrioridade": false,
-        "observacoes": "servico de troca de oleo"
-      },
-      {
-        "id": 2,
-        "precoMaoDeObra": 49,
-        "setor": "MOTOR",
-        "codigoPeca": "VLAIGNSSIMP",
-        "quantidadePeca": 6,
-        "requerPrioridade": false,
-        "observacoes": "troca de vela"
-      },
-      {
-        "id": 1,
-        "precoMaoDeObra": 222,
-        "setor": "PNEUS_RODAS",
+        "precoMaoDeObra": 324,
+        "setor": "FREIOS",
         "quantidadePeca": 0,
-        "requerPrioridade": true,
-        "observacoes": "troca de filtro"
+        "requerPrioridade": false,
+        "observacoes": "freio ta ruim"
       }
     ],
-    "observadores": []
-  },
-  {
-    "id": 3,
-    "codigo": "OS-250628204612-6c0a",
-    "dataAbertura": {
-      "date": {
-        "year": 2025,
-        "month": 6,
-        "day": 28
-      },
-      "time": {
-        "hour": 20,
-        "minute": 46,
-        "second": 12,
-        "nano": 108899360
-      }
-    },
-    "precoTotal": 0,
-    "idVeiculo": 1,
-    "idCliente": 1,
-    "idMecanicoResponsavel": 5,
-    "status": "AGUARDANDO_DIAGNOSTICO",
-    "servicos": [],
     "observadores": []
   }
 ]

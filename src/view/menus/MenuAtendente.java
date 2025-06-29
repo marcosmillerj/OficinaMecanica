@@ -11,12 +11,14 @@ import service.AgendamentoService;
 import service.ClienteService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
+import service.PagamentoService;
 import service.RegistroPontoService;
 import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import view.componentes.CompGerenciarAgendamento;
 import view.componentes.CompGerenciarEstoque;
+import view.componentes.CompProcessarPagamento;
 
 /**
  *
@@ -31,7 +33,8 @@ public class MenuAtendente {
     private ServicoService servicoService;
     private UsuarioService usuarioService;
     private VeiculoService veiculoService;
-    private AgendamentoService agendamentoService; // NOVO ATRIBUTO!
+    private AgendamentoService agendamentoService;
+    private PagamentoService pagamentoService; // NOVO ATRIBUTO!
     private Scanner scanner;
     private Usuario atendenteLogado;
 
@@ -46,13 +49,15 @@ public class MenuAtendente {
      * @param usuarioService O serviço de usuários.
      * @param veiculoService O serviço de veículos.
      * @param scanner O scanner para entrada do usuário.
-     * @param agendamentoService O serviço de agendamentos. // NOVO PARÂMETRO DOC
+     * @param agendamentoService O serviço de agendamentos.
+     * @param pagamentoService O serviço de pagamentos. // NOVO PARÂMETRO DOC
      */
     public MenuAtendente(ClienteService clienteService, ItemEstoqueService itemEstoqueService,
                          OrdemServicoService ordemServicoService, RegistroPontoService pontoService,
                          ServicoService servicoService, UsuarioService usuarioService,
                          VeiculoService veiculoService, Scanner scanner,
-                         AgendamentoService agendamentoService) { // NOVO PARÂMETRO!
+                         AgendamentoService agendamentoService,
+                         PagamentoService pagamentoService) { // NOVO PARÂMETRO!
         this.clienteService = clienteService;
         this.itemEstoqueService = itemEstoqueService;
         this.ordemServicoService = ordemServicoService;
@@ -61,7 +66,8 @@ public class MenuAtendente {
         this.usuarioService = usuarioService;
         this.veiculoService = veiculoService;
         this.scanner = scanner;
-        this.agendamentoService = agendamentoService; // Inicializa o AgendamentoService
+        this.agendamentoService = agendamentoService;
+        this.pagamentoService = pagamentoService; // Inicializa o PagamentoService
         this.atendenteLogado = util.UserSession.getInstance().getLoggedInUser();
 
         if (this.atendenteLogado == null || this.atendenteLogado.getTipo() != models.enums.TipoUsuario.ATENDENTE) {
@@ -78,8 +84,8 @@ public class MenuAtendente {
         do {
             System.out.println("\n===== Menu do Atendente =====");
             System.out.println("1. Consultar Estoque");
-            System.out.println("2. Criar Agendamento"); // AGORA FUNCIONAL
-            System.out.println("3. Realizar Pagamento (Ainda não implementado)");
+            System.out.println("2. Criar Agendamento");
+            System.out.println("3. Realizar Pagamento"); // AGORA FUNCIONAL
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -111,14 +117,18 @@ public class MenuAtendente {
             case 2:
                 System.out.println("\n--- Criando Agendamento ---");
                 CompGerenciarAgendamento compGerenciarAgendamento = new CompGerenciarAgendamento(
-                    agendamentoService, clienteService, veiculoService, scanner // Passa apenas as dependências que CompGerenciarAgendamento precisa
+                    agendamentoService, clienteService, veiculoService, scanner
                 );
-                compGerenciarAgendamento.exibirMenu(); // Abre o menu de agendamentos
+                compGerenciarAgendamento.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Atendente ---");
                 break;
             case 3:
-                System.out.println("Funcionalidade 'Realizar Pagamento' ainda não implementada.");
-                // Futuramente: chamar um CompProcessarPagamento.exibirMenu();
+                System.out.println("\n--- Realizando Pagamento ---");
+                CompProcessarPagamento compProcessarPagamento = new CompProcessarPagamento(
+                    pagamentoService, ordemServicoService, scanner // Passa dependências para o componente de pagamento
+                );
+                compProcessarPagamento.exibirMenu(); // Abre o menu de processamento de pagamento
+                System.out.println("\n--- Retornando ao Menu do Atendente ---");
                 break;
             case 0:
                 System.out.println("Voltando ao Painel Principal.");

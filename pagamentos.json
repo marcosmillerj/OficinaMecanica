@@ -1,0 +1,9 @@
+[
+  {
+    "id": 1,
+    "dataHora": "2025-06-29T19:01:15.420265348",
+    "valor": 300,
+    "tipo": "CARTAO_DEBITO",
+    "idOrdemServico": 1
+  }
+]

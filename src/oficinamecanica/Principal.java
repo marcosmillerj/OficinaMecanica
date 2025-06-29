@@ -7,18 +7,22 @@ package oficinamecanica; // Seu pacote principal, que contém a classe Main/Prin
 import java.util.Scanner;
 import models.Usuario;
 import models.enums.TipoUsuario;
+import repository.AgendamentoRepository;
 import repository.ClienteRepository;
 import repository.ElevadorRepository;
 import repository.ItemEstoqueRepository;
 import repository.OrdemServicoRepository;
+import repository.PagamentoRepository;
 import repository.PontoRepository;
 import repository.ServicoRepository;
 import repository.UsuarioCRUD;
 import repository.VeiculoRepository;
+import service.AgendamentoService;
 import service.ClienteService;
 import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
+import service.PagamentoService;
 import service.RegistroPontoService;
 import service.ServicoService;
 import service.UsuarioService;
@@ -46,7 +50,8 @@ public class Principal {
     private static VeiculoRepository veiculoRepository = new VeiculoRepository();
     private static ItemEstoqueRepository itemEstoqueRepository = new ItemEstoqueRepository();
     private static ServicoRepository servicoRepository = new ServicoRepository();
-    private static ElevadorRepository elevadorRepository = ElevadorRepository.getInstance(); // Instância Singleton
+    private static AgendamentoRepository agendamentoRepository = new AgendamentoRepository();
+    private static PagamentoRepository pagamentoRepository = new PagamentoRepository();
     private static Scanner scanner = new Scanner(System.in); // Scanner compartilhado
 
     // Declaração de todas as instâncias de Service (serão inicializadas no main)
@@ -56,14 +61,15 @@ public class Principal {
     private static RegistroPontoService pontoService;
     private static ItemEstoqueService itemEstoqueService;
     private static ServicoService servicoService;
-    private static ElevadorService elevadorService; // NOVO ATRIBUTO!
-    private static OrdemServicoService ordemServicoService;
+    private static AgendamentoService agendamentoService;
+    private static PagamentoService pagamentoService;
+    private static OrdemServicoService ordemServicoService; // Declarado aqui
+
 
     public static void main(String[] args) {
         System.out.println("Iniciando Sistema de Gerenciamento da Oficina...");
+
         AuthService authService = new AuthService(usuarioCRUD, scanner);
-        
-        // Tenta realizar o login do usuário
         Usuario usuarioLogado = authService.login();
 
         if (usuarioLogado != null) {
@@ -71,7 +77,6 @@ public class Principal {
             System.out.println("\nLogin realizado com sucesso! Bem-vindo(a), " + usuarioLogado.getNome() + "!");
             
             // --- CRIAÇÃO DOS SERVIÇOS DE NEGÓCIO PRINCIPAIS (APÓS O LOGIN) ---
-            // Eles dependem dos repositórios que já foram instanciados estaticamente.
             // A ordem de inicialização importa para dependências.
             usuarioService = new UsuarioService(usuarioCRUD);
             clienteService = new ClienteService(clienteRepository, veiculoRepository);
@@ -79,24 +84,21 @@ public class Principal {
             pontoService = new RegistroPontoService(pontoRepository);
             itemEstoqueService = new ItemEstoqueService(itemEstoqueRepository);
             servicoService = new ServicoService(servicoRepository, itemEstoqueRepository);
-            elevadorService = new ElevadorService(elevadorRepository, veiculoRepository);
-            ordemServicoService = new OrdemServicoService(
-                ordemServicoRepository, usuarioCRUD, clienteService, veiculoService, servicoService, elevadorService, scanner
+            // elevadorService = new ElevadorService(elevadorRepository, veiculoRepository); // Não inicializa aqui por enquanto
+            
+            // ATENÇÃO: Ordem de inicialização corrigida!
+            ordemServicoService = new OrdemServicoService( // << INICIALIZA AGORA!
+                ordemServicoRepository, usuarioCRUD, clienteService, veiculoService, servicoService
             );
+            pagamentoService = new PagamentoService(pagamentoRepository, ordemServicoService); // << AGORA ordemServicoService NÃO É NULO!
+            agendamentoService = new AgendamentoService(agendamentoRepository, clienteRepository, veiculoRepository); 
 
             // --- INSTANCIA E INICIA O PAINEL PRINCIPAL ---
-            // Passa TODOS os Services e o Scanner para o PainelPrincipal
             PainelPrincipal painelPrincipal = new PainelPrincipal(
-                usuarioCRUD,          // Para MenuGerente (compatibilidade)
-                pontoService,         // Para ComponentePonto
-                scanner,              // Para toda a View
-                ordemServicoService,  // Para CompGerenciarOS
-                clienteService,       // Para CompGerenciarOS e futuros menus de Cliente
-                veiculoService,       // Para CompGerenciarOS e futuros menus de Veiculo
-                usuarioService,       // Para MenuGerente, CompGerenciarOS
-                itemEstoqueService,   // Para CompGerenciarEstoque, CompGerenciarOS
-                servicoService,       // Para CompGerenciarOS, CompGerenciarServico
-                elevadorService       // NOVO PARÂMETRO!
+                usuarioCRUD, pontoService, scanner, ordemServicoService, clienteService, veiculoService, usuarioService,
+                itemEstoqueService, servicoService,
+                null, // << ElevadorService está nulo aqui no PainelPrincipal (conforme sua decisão atual de removê-lo)
+                agendamentoService, pagamentoService
             );
             painelPrincipal.exibirPainel();
             
