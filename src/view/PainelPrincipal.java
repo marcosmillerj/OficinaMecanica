@@ -10,6 +10,7 @@ import java.util.Scanner;
 import models.Usuario;
 import repository.UsuarioCRUD;
 import service.ClienteService;
+import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.RegistroPontoService;
@@ -37,18 +38,29 @@ public class PainelPrincipal {
     private UsuarioService usuarioService;
     private ItemEstoqueService itemEstoqueService;
     private ServicoService servicoService;
+    private ElevadorService elevadorService;
     private Scanner scanner;
-
     private CompPonto compPonto;
 
     /**
      * Construtor do PainelPrincipal.
      * Recebe todas as dependências necessárias para suas operações.
+     * @param usuarioCRUD O CRUD de usuários.
+     * @param pontoService O serviço de negócio para o registro de ponto.
+     * @param scanner O scanner para entrada do usuário.
+     * @param ordemServicoService O serviço de ordens de serviço.
+     * @param clienteService O serviço de clientes.
+     * @param veiculoService O serviço de veículos.
+     * @param usuarioService O serviço de usuários.
+     * @param itemEstoqueService O serviço de itens de estoque.
+     * @param servicoService O serviço de serviços.
+     * @param elevadorService O serviço de elevadores. // NOVO PARÂMETRO DOC
      */
     public PainelPrincipal(UsuarioCRUD usuarioCRUD, RegistroPontoService pontoService, Scanner scanner,
                            OrdemServicoService ordemServicoService, ClienteService clienteService,
                            VeiculoService veiculoService, UsuarioService usuarioService,
-                           ItemEstoqueService itemEstoqueService, ServicoService servicoService) {
+                           ItemEstoqueService itemEstoqueService, ServicoService servicoService,
+                           ElevadorService elevadorService) { // NOVO PARÂMETRO!
         this.usuarioCRUD = usuarioCRUD;
         this.pontoService = pontoService;
         this.scanner = scanner;
@@ -58,6 +70,7 @@ public class PainelPrincipal {
         this.usuarioService = usuarioService;
         this.itemEstoqueService = itemEstoqueService;
         this.servicoService = servicoService;
+        this.elevadorService = elevadorService; // Inicializa ElevadorService
         
         this.usuarioLogado = util.UserSession.getInstance().getLoggedInUser();
         this.compPonto = new CompPonto(pontoService, scanner);
@@ -99,7 +112,7 @@ public class PainelPrincipal {
                 // Instancia e exibe o MenuAtendente
                 MenuAtendente menuAtendente = new MenuAtendente(
                     clienteService, itemEstoqueService, ordemServicoService, pontoService,
-                    servicoService, usuarioService, veiculoService, scanner // Passa todas as dependências
+                    servicoService, usuarioService, veiculoService, scanner // JÁ EXISTENTE
                 );
                 menuAtendente.exibirMenu(); // MenuAtendente tem seu próprio do-while
                 break;
@@ -107,7 +120,8 @@ public class PainelPrincipal {
                 System.out.println("\n--- ABRINDO MENU DO MECÂNICO ---");
                 // Instancia e exibe o MenuMecanico
                 MenuMecanico menuMecanico = new MenuMecanico(
-                    itemEstoqueService, ordemServicoService, servicoService, usuarioService, scanner
+                    itemEstoqueService, ordemServicoService, servicoService, usuarioService, scanner,
+                    elevadorService // NOVO PARÂMETRO!
                 );
                 menuMecanico.exibirMenu(); // MenuMecanico tem seu próprio do-while
                 break;
@@ -135,6 +149,6 @@ public class PainelPrincipal {
             ordemServicoService, usuarioService, clienteService, veiculoService,
             itemEstoqueService, servicoService, scanner
         );
-        compOSEspecializada.exibirMenu(); // CompOSEspecializada tem seu próprio loop do-while e menu
+        compOSEspecializada.exibirMenu();
     }
 }

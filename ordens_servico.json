@@ -15,11 +15,11 @@
         "nano": 714765490
       }
     },
-    "precoTotal": 45,
+    "precoTotal": 588,
     "idVeiculo": 1,
     "idCliente": 1,
     "idMecanicoResponsavel": 5,
-    "status": "AGUARDANDO_PAGAMENTO",
+    "status": "EM_EXECUCAO",
     "servicos": [
       {
         "id": 1,
@@ -29,6 +29,15 @@
         "quantidadePeca": 1,
         "requerPrioridade": false,
         "observacoes": "suspensao"
+      },
+      {
+        "id": 1,
+        "precoMaoDeObra": 543,
+        "setor": "ACABAMENTO",
+        "codigoPeca": "LMPFARH4",
+        "quantidadePeca": 1,
+        "requerPrioridade": false,
+        "observacoes": "troca de farol"
       }
     ],
     "observadores": []
@@ -49,7 +58,7 @@
         "nano": 53397816
       }
     },
-    "precoTotal": 119,
+    "precoTotal": 341,
     "idVeiculo": 1,
     "idCliente": 1,
     "idMecanicoResponsavel": 5,
@@ -72,8 +81,40 @@
         "quantidadePeca": 6,
         "requerPrioridade": false,
         "observacoes": "troca de vela"
+      },
+      {
+        "id": 1,
+        "precoMaoDeObra": 222,
+        "setor": "PNEUS_RODAS",
+        "quantidadePeca": 0,
+        "requerPrioridade": true,
+        "observacoes": "troca de filtro"
       }
     ],
+    "observadores": []
+  },
+  {
+    "id": 3,
+    "codigo": "OS-250628204612-6c0a",
+    "dataAbertura": {
+      "date": {
+        "year": 2025,
+        "month": 6,
+        "day": 28
+      },
+      "time": {
+        "hour": 20,
+        "minute": 46,
+        "second": 12,
+        "nano": 108899360
+      }
+    },
+    "precoTotal": 0,
+    "idVeiculo": 1,
+    "idCliente": 1,
+    "idMecanicoResponsavel": 5,
+    "status": "AGUARDANDO_DIAGNOSTICO",
+    "servicos": [],
     "observadores": []
   }
 ]

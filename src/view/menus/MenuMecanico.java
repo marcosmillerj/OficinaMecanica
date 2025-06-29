@@ -7,6 +7,7 @@ package view.menus;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import models.Usuario;
+import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.ServicoService;
@@ -27,6 +28,8 @@ public class MenuMecanico {
     private UsuarioService usuarioService;
     private Scanner scanner;
     private Usuario mecanicoLogado;
+    private ElevadorService elevadorService;
+
 
 
     /**
@@ -39,13 +42,15 @@ public class MenuMecanico {
      * @param scanner O scanner para entrada do usuário.
      */
     public MenuMecanico(ItemEstoqueService itemEstoqueService, OrdemServicoService ordemServicoService,
-                         ServicoService servicoService, UsuarioService usuarioService, Scanner scanner) {
+                         ServicoService servicoService, UsuarioService usuarioService, Scanner scanner,
+                         ElevadorService elevadorService) {
         this.itemEstoqueService = itemEstoqueService;
         this.ordemServicoService = ordemServicoService;
         this.servicoService = servicoService;
         this.usuarioService = usuarioService;
         this.scanner = scanner;
         this.mecanicoLogado = UserSession.getInstance().getLoggedInUser();
+        this.elevadorService = elevadorService;
         
         if (this.mecanicoLogado == null || this.mecanicoLogado.getTipo() != models.enums.TipoUsuario.MECANICO) {
             System.err.println("Erro: Acesso não autorizado ao Menu Mecânico.");
