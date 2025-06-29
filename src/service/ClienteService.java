@@ -4,9 +4,11 @@
  */
 package service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import models.Cliente;
 import models.Veiculo;
 import repository.ClienteRepository;
@@ -137,5 +139,19 @@ public class ClienteService {
 
     public boolean removerCliente(int id) {
         return clienteRepository.removerCliente(id);
+    }
+
+    /**
+     * Retorna uma lista de clientes ordenada por um Comparator específico.
+     * Isso demonstra a aplicação do padrão Strategy.
+     * @param comparator O Comparator a ser usado para ordenação.
+     * @return Uma nova lista de clientes ordenada.
+     */
+    public List<Cliente> listarClientesOrdenados(Comparator<Cliente> comparator) {
+        Objects.requireNonNull(comparator, "Comparator não pode ser nulo.");
+        List<Cliente> todosClientes = clienteRepository.listarTodosClientes();
+        return todosClientes.stream()
+                            .sorted(comparator)
+                            .collect(Collectors.toList());
     }
 }

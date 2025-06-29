@@ -9,6 +9,7 @@ import view.menus.MenuGerente;
 import java.util.Scanner;
 import models.Usuario;
 import repository.UsuarioCRUD;
+import service.AgendamentoService;
 import service.ClienteService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
@@ -37,6 +38,7 @@ public class PainelPrincipal {
     private UsuarioService usuarioService;
     private ItemEstoqueService itemEstoqueService;
     private ServicoService servicoService;
+    private AgendamentoService agendamentoService;
     private Scanner scanner;
 
     private CompPonto compPonto;
@@ -58,6 +60,7 @@ public class PainelPrincipal {
         this.usuarioService = usuarioService;
         this.itemEstoqueService = itemEstoqueService;
         this.servicoService = servicoService;
+        this.agendamentoService = agendamentoService;
         
         this.usuarioLogado = util.UserSession.getInstance().getLoggedInUser();
         this.compPonto = new CompPonto(pontoService, scanner);
@@ -99,7 +102,7 @@ public class PainelPrincipal {
                 // Instancia e exibe o MenuAtendente
                 MenuAtendente menuAtendente = new MenuAtendente(
                     clienteService, itemEstoqueService, ordemServicoService, pontoService,
-                    servicoService, usuarioService, veiculoService, scanner // Passa todas as dependências
+                    servicoService, usuarioService, veiculoService, scanner, agendamentoService
                 );
                 menuAtendente.exibirMenu(); // MenuAtendente tem seu próprio do-while
                 break;
