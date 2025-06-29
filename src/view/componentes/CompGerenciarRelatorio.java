@@ -129,9 +129,6 @@ public class CompGerenciarRelatorio {
             System.out.println("Título: " + relatorio.getTitulo());
             System.out.println("Tipo: " + relatorio.getTipo().getDescricao());
             System.out.println("Data de Geração: " + relatorio.getDataGeracao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-            System.out.println("Período: " + (relatorio.getPeriodoInicio() != null ? relatorio.getPeriodoInicio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A")
-                                + " a " + (relatorio.getPeriodoFim() != null ? relatorio.getPeriodoFim().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"));
-            System.out.println("Conteúdo:");
             System.out.println(relatorio.getConteudo());
             System.out.println("------------------------------------------");
         }

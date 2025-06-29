@@ -48,7 +48,7 @@ public class RelatorioService {
 
     // Formato padrão para datas em relatórios
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy"); // <<--- NOVO AQUI!
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     /**
      * Construtor do RelatorioService.
@@ -93,8 +93,6 @@ public class RelatorioService {
         Relatorio relatorio = new Relatorio(
             TipoRelatorio.DIARIO,
             LocalDateTime.now(),
-            inicioDoDia,
-            fimDoDia,
             titulo,
             conteudoTexto,
             usuarioGeradorId
@@ -120,12 +118,10 @@ public class RelatorioService {
         Relatorio relatorio = new Relatorio(
             TipoRelatorio.MENSAL,
             LocalDateTime.now(),
-            inicioDoMes,
-            fimDoMes,
             titulo,
             conteudoTexto,
             usuarioGeradorId
-        ); // <<--- AGORA CHAMA O CONSTRUTOR SEM ID NOVO RELATORIO
+        );
         relatorioRepository.adicionarRelatorio(relatorio);
         return relatorio;
     }
@@ -166,6 +162,11 @@ public class RelatorioService {
                 .collect(Collectors.toList());
 
         List<String> conteudoRelatorio = new ArrayList<>();
+        conteudoRelatorio.add("--- RELATÓRIO DE ORDENS DE SERVIÇO ---");
+        conteudoRelatorio.add(String.format("Critérios: Período [%s - %s], Status: %s",
+                        dataInicio != null ? dataInicio.format(DATETIME_FORMATTER) : "Início",
+                        dataFim != null ? dataFim.format(DATETIME_FORMATTER) : "Fim",
+                        status != null ? status.getDescricao() : "Todos"));
         conteudoRelatorio.add("--------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         conteudoRelatorio.add(String.format("%-5s | %-15s | %-25s | %-20s | %-20s | %-20s | %-20s%n",
                                   "ID", "CÓDIGO", "CLIENTE", "VEÍCULO (PLACA)", "MECÂNICO", "STATUS", "PREÇO TOTAL"));
