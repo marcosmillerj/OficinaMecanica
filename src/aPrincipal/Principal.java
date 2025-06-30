@@ -52,6 +52,11 @@ public class Principal {
 
 
     public static void main(String[] args) {
+        System.out.println("==============================================");
+        //
+        //PrincipalTestes.rodarTodasDemonstracoes(scanner);
+        //
+        System.out.println("==============================================");
         System.out.println("Iniciando Sistema de Gerenciamento da Oficina...");
 
         AuthService authService = new AuthService(usuarioCRUD, scanner);
