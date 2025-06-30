@@ -12,12 +12,15 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import models.Cliente;
+import models.Elevador;
 import models.OrdemServico;
+import models.Servico;
 import models.Usuario;
 import models.Veiculo;
 import models.enums.StatusOrdem;
 import models.enums.TipoUsuario;
 import service.ClienteService;
+import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.ServicoService;
@@ -28,7 +31,7 @@ import service.VeiculoService;
  *
  * @author marcos_miller
  */
-public class CompOSEspecializada {
+public class CompOSEspecializada { // Não implementa IObservadorOrdemServico nesta versão
 
     private OrdemServicoService ordemServicoService;
     private UsuarioService usuarioService;
@@ -36,29 +39,29 @@ public class CompOSEspecializada {
     private VeiculoService veiculoService;
     private ItemEstoqueService itemEstoqueService;
     private ServicoService servicoService;
+    private ElevadorService elevadorService; // ATRIBUTO AGORA INCLUÍDO E INICIALIZADO
     private Scanner scanner;
     private Usuario usuarioLogado;
 
     public CompOSEspecializada(OrdemServicoService ordemServicoService, UsuarioService usuarioService,
                                ClienteService clienteService, VeiculoService veiculoService,
                                ItemEstoqueService itemEstoqueService, ServicoService servicoService,
-                               Scanner scanner) {
+                               ElevadorService elevadorService, Scanner scanner) { // CONSTRUTOR COMPLETO
         this.ordemServicoService = ordemServicoService;
         this.usuarioService = usuarioService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.itemEstoqueService = itemEstoqueService;
         this.servicoService = servicoService;
+        this.elevadorService = elevadorService; // INICIALIZA ELEVADORSERVICE
         this.scanner = scanner;
         this.usuarioLogado = util.UserSession.getInstance().getLoggedInUser();
     }
 
-    /**
-     * Exibe o menu de opções para visualização e gerenciamento de OSs especializadas.
-     */
+
     public void exibirMenu() {
         int opcao;
-        exibirOrdens(); 
+        exibirOrdens(); // Apenas uma vez, não dentro do loop
 
         do {
             System.out.println("\n--- Opções de Ordens de Serviço ---");
@@ -77,7 +80,14 @@ public class CompOSEspecializada {
 
             processarOpcao(opcao);
 
+            // Mensagem para demonstrar a NÃO atualização automática (versão SEM Observer)
+            if (opcao != 0 && opcao != -1) {
+                System.out.println("\n(A lista acima NÃO foi atualizada automaticamente. Saia do menu e entre novamente para ver a mudança.)");
+            }
+
         } while (opcao != 0);
+
+        // Não desregistra observadores, pois não os tem nesta versão.
     }
     
     private void processarOpcao(int opcao) {
@@ -105,11 +115,10 @@ public class CompOSEspecializada {
         List<OrdemServico> ordensFiltradas = new ArrayList<>();
         TipoUsuario tipo = usuarioLogado.getTipo();
 
-        // Lógica de filtragem baseada no tipo de usuário
         switch (tipo) {
             case ATENDENTE:
                 ordensFiltradas = ordemServicoService.listarTodasOrdens().stream()
-                    .filter(os -> os.getStatus() == StatusOrdem.AGUARDANDO_LIBERACAO ||
+                    .filter(os -> os.getStatus() == StatusOrdem.AGUARDANDO_LIBERACAO || 
                                    os.getStatus() == StatusOrdem.AGUARDANDO_PAGAMENTO ||
                                    os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO)
                     .collect(Collectors.toList());
@@ -118,8 +127,8 @@ public class CompOSEspecializada {
             case MECANICO:
                 ordensFiltradas = ordemServicoService.listarOrdensPorMecanico(usuarioLogado.getId()).stream()
                     .filter(os -> os.getStatus() == StatusOrdem.EM_DIAGNOSTICO ||
-                                  os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO ||
-                                  os.getStatus() == StatusOrdem.EM_EXECUCAO)
+                                   os.getStatus() == StatusOrdem.EM_EXECUCAO ||
+                                   os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO)
                     .collect(Collectors.toList());
                 System.out.println("Visão: Suas Ordens de Serviço em Diagnóstico/Execução (Mecânico)");
                 break;
@@ -137,7 +146,7 @@ public class CompOSEspecializada {
         } else {
             System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------");
             System.out.printf("%-5s | %-15s | %-25s | %-20s | %-20s | %-20s | %-20s | %-10s%n",
-                              "ID", "CÓDIGO", "CLIENTE", "VEÍCULO (PLACA)", "MECÂNICO", "STATUS", "PREÇO TOTAL (M.O. + PEÇAS)", "QTD SERVIÇOS"); // Corrigi o cabeçalho
+                              "ID", "CÓDIGO", "CLIENTE", "VEÍCULO (PLACA)", "MECÂNICO", "STATUS", "PREÇO TOTAL (M.O. + PEÇAS)", "QTD SERVIÇOS");
             System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
             for (OrdemServico os : ordensFiltradas) {
@@ -163,7 +172,7 @@ public class CompOSEspecializada {
 
     /**
      * Permite ao usuário atualizar o status de uma Ordem de Serviço.
-     * Esta é a funcionalidade a ser testada para demonstrar a NÃO atualização automática.
+     * Esta é a funcionalidade que integra a escolha do elevador.
      */
     private void atualizarStatusDeOrdemDeServico() {
         System.out.println("\n--- ATUALIZAR STATUS DE ORDEM DE SERVIÇO ---");
@@ -210,11 +219,105 @@ public class CompOSEspecializada {
             return;
         }
 
+        // --- LÓGICA DE INTERAÇÃO COM ELEVADOR (PERTENCE AQUI NA VIEW) ---
+        Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
+
+        // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
+        if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) && 
+            !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
+            
+            System.out.println("\n[SISTEMA ELEVADOR] Alocação necessária para OS " + os.getCodigo() + "...");
+            
+            // 1. Verificar se a OS requer elevador de alinhamento
+            boolean osRequerAlinhamento = os.getServicos().stream()
+                                            .anyMatch(Servico::requerPrioridade);
+
+            List<Elevador> elevadoresDisponiveis = elevadorService.listarElevadoresDisponiveis();
+
+            if (elevadoresDisponiveis.isEmpty()) {
+                System.err.println("Nenhum elevador disponível no momento. Não será possível alocar.");
+                return; // Aborta a atualização de status se elevador é necessário mas não há
+            }
+
+            // --- DECLARAÇÃO DE elevadoresFiltrados FORA DO IF/ELSE ---
+            List<Elevador> elevadoresFiltrados;
+
+            if (osRequerAlinhamento) {
+                elevadoresFiltrados = elevadoresDisponiveis.stream()
+                                                            .filter(Elevador::temCapacidadeAlinhamento)
+                                                            .collect(Collectors.toList());
+                System.out.println("OS requer elevador de Alinhamento. Elevadores disponíveis para Alinhamento:");
+            } else { // OS NÃO requer alinhamento
+                elevadoresFiltrados = elevadoresDisponiveis.stream()
+                                                    .filter(e -> !e.temCapacidadeAlinhamento())
+                                                    .collect(Collectors.toList());
+                if(elevadoresFiltrados.isEmpty()){
+                    elevadoresFiltrados.addAll(elevadoresDisponiveis);
+                    System.out.println("Nenhum elevador geral disponível. Usando elevador de alinhamento se disponível.");
+                } else {
+                    System.out.println("OS não requer elevador de Alinhamento. Elevadores Gerais disponíveis:");
+                }
+            }
+            
+            // AQUI O USUÁRIO ESCOLHE O ELEVADOR
+            for (int i = 0; i < elevadoresFiltrados.size(); i++) { // <<< ERRO AQUI!
+                System.out.println((i + 1) + ". " + elevadoresFiltrados.get(i).toString());
+            }
+            int escolha = -1;
+            try {
+                escolha = scanner.nextInt();
+                scanner.nextLine();
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Abortando alocação.");
+                scanner.nextLine();
+                return;
+            }
+
+            if (escolha > 0 && escolha <= elevadoresFiltrados.size()) {
+                idElevadorParaAlocar = Optional.of(elevadoresFiltrados.get(escolha - 1).getId());
+            } else {
+                System.err.println("Opção de elevador inválida. Abortando alocação.");
+                return;
+            }
+        }
+        // NÃO HÁ else if para liberação aqui, pois o service cuida da liberação sem input do user
+        // A liberação acontece no OrdemServicoService, que é chamado abaixo.
+        // --- FIM DA LÓGICA DE INTERAÇÃO COM ELEVADOR NA VIEW ---
+
         try {
-            ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus);
+            // Agora, passa o Optional<Integer> idElevadorParaAlocar para o serviço
+            ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus, idElevadorParaAlocar);
             System.out.println("Status da OS " + os.getCodigo() + " atualizado para " + novoStatus.getDescricao() + " com sucesso!");
+
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println("Erro ao atualizar status: " + e.getMessage());
+        }
+    }
+
+    // --- Métodos Auxiliares de Leitura de Input ---
+    private int lerInteiroValido(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                int valor = scanner.nextInt();
+                scanner.nextLine();
+                return valor;
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número inteiro.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    private BigDecimal lerBigDecimalValido(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                String input = scanner.nextLine();
+                return new BigDecimal(input);
+            } catch (NumberFormatException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
+            }
         }
     }
 }

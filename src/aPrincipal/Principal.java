@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package oficinamecanica;
+package aPrincipal;
 
 import java.util.Scanner;
 import util.UserSession;
@@ -23,7 +23,7 @@ import view.componentes.CompPonto;
  */
 public class Principal {
 
-    // Instâncias estáticas de TODOS os Repositórios
+    // Instâncias estáticas de TODOS os Repositórios que o sistema utilizará
     private static UsuarioCRUD usuarioCRUD = new UsuarioCRUD();
     private static PontoRepository pontoRepository = new PontoRepository();
     private static OrdemServicoRepository ordemServicoRepository = new OrdemServicoRepository();
@@ -34,16 +34,17 @@ public class Principal {
     private static AgendamentoRepository agendamentoRepository = new AgendamentoRepository();
     private static PagamentoRepository pagamentoRepository = new PagamentoRepository();
     private static RelatorioRepository relatorioRepository = new RelatorioRepository();
-    // private static ElevadorRepository elevadorRepository = ElevadorRepository.getInstance(); 
+    private static ElevadorRepository elevadorRepository = ElevadorRepository.getInstance();
     private static Scanner scanner = new Scanner(System.in);
 
-    // Declaração de todas as instâncias de Service
+    // Declaração de todas as instâncias de Service (serão inicializadas no main)
     private static UsuarioService usuarioService;
     private static ClienteService clienteService;
     private static VeiculoService veiculoService;
     private static RegistroPontoService pontoService;
     private static ItemEstoqueService itemEstoqueService;
     private static ServicoService servicoService;
+    private static ElevadorService elevadorService; // NOVO ATRIBUTO PARA ELEVADORSERVICE!
     private static AgendamentoService agendamentoService;
     private static PagamentoService pagamentoService;
     private static OrdemServicoService ordemServicoService;
@@ -63,31 +64,49 @@ public class Principal {
             System.out.println("\nLogin realizado com sucesso! Bem-vindo(a), " + usuarioLogado.getNome() + "!");
             
             // --- CRIAÇÃO DOS SERVIÇOS DE NEGÓCIO PRINCIPAIS (APÓS O LOGIN) ---
-            // A ordem de inicialização é IMPORTANTISSIMA.
+            // A ordem de inicialização é CRÍTICA aqui! (Dependências devem ser inicializadas ANTES de quem as usa)
             usuarioService = new UsuarioService(usuarioCRUD);
             clienteService = new ClienteService(clienteRepository, veiculoRepository);
             veiculoService = new VeiculoService(veiculoRepository, clienteRepository);
             pontoService = new RegistroPontoService(pontoRepository);
             itemEstoqueService = new ItemEstoqueService(itemEstoqueRepository);
             servicoService = new ServicoService(servicoRepository, itemEstoqueRepository);
-            // elevadorService = new ElevadorService(elevadorRepository, veiculoRepository);
+            elevadorService = new ElevadorService(elevadorRepository, veiculoRepository); // <<< INICIALIZA AQUI!
+
+            // OrdemServicoService depende de ElevadorService agora
             ordemServicoService = new OrdemServicoService(
-                ordemServicoRepository, usuarioCRUD, clienteService, veiculoService, servicoService
+                ordemServicoRepository, usuarioCRUD, clienteService, veiculoService, servicoService, elevadorService // <<< PASSANDO ELEVADORSERVICE!
             );
-            pagamentoService = new PagamentoService(pagamentoRepository, ordemServicoService);
+            
+            // PagamentoService depende de OrdemServicoService
+            pagamentoService = new PagamentoService(pagamentoRepository, ordemServicoService); 
+            
+            // AgendamentoService depende de ClienteService, VeiculoService
             agendamentoService = new AgendamentoService(agendamentoRepository, clienteRepository, veiculoRepository);
+            
+            // RelatorioService depende de OrdemServicoService, ServicoService, etc.
             relatorioService = new RelatorioService(
                 ordemServicoRepository, itemEstoqueRepository, pagamentoRepository, agendamentoRepository,
                 clienteRepository, veiculoRepository, usuarioCRUD, servicoService, relatorioRepository,
-                ordemServicoService
+                ordemServicoService 
             );
 
             // --- INSTANCIA E INICIA O PAINEL PRINCIPAL ---
+            // Passa TODOS os Services e o Scanner para o PainelPrincipal
             PainelPrincipal painelPrincipal = new PainelPrincipal(
-                usuarioCRUD, pontoService, scanner, ordemServicoService, clienteService, veiculoService, usuarioService,
-                itemEstoqueService, servicoService,
-                null,
-                agendamentoService, pagamentoService, relatorioService
+                usuarioCRUD,          // Para MenuGerente (compatibilidade)
+                pontoService,         // Para ComponentePonto
+                scanner,              // Para toda a View
+                ordemServicoService,  // Para CompGerenciarOS
+                clienteService,       // Para CompGerenciarOS e futuros menus de Cliente
+                veiculoService,       // Para CompGerenciarOS e futuros menus de Veiculo
+                usuarioService,       // Para MenuGerente, CompGerenciarOS
+                itemEstoqueService,   // Para CompGerenciarEstoque, CompGerenciarOS
+                servicoService,       // Para CompGerenciarOS, CompGerenciarServico
+                elevadorService,      // <<< AGORA PASSANDO ELEVADORSERVICE!
+                agendamentoService,   // Para MenuAtendente (Agendamento)
+                pagamentoService,     // Para MenuAtendente (Pagamento)
+                relatorioService      // Para CompGerarRelatorios
             );
             painelPrincipal.exibirPainel();
             
@@ -95,6 +114,6 @@ public class Principal {
             System.out.println("Não foi possível realizar o login. Encerrando o sistema.");
         }
 
-        scanner.close();
+        scanner.close(); // Fecha o scanner no final do programa
     }
 }

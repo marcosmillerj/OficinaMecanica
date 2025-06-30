@@ -13,6 +13,7 @@ import java.util.Scanner;
 import models.Cliente;
 import repository.UsuarioCRUD;
 import service.ClienteService;
+import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.RelatorioService;
@@ -39,6 +40,7 @@ public class MenuGerente {
     private UsuarioCRUD usuarioCRUD;
     private Scanner scanner;
     private RelatorioService relatorioService;
+    private ElevadorService elevadorService;
 
     /**
      * Construtor do MenuGerente.
@@ -127,7 +129,7 @@ public class MenuGerente {
                 CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
                     this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
                     this.servicoService, this.itemEstoqueService,
-                    this.scanner
+                    this.scanner, this.elevadorService
                 );
                 compGerenciarOS.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");

@@ -20,8 +20,13 @@ import repository.VeiculoRepository;
 public class ElevadorService {
 
     private ElevadorRepository elevadorRepository;
-    private VeiculoRepository veiculoRepository; // Para validar se o veículo existe antes de ocupar o elevador
+    private VeiculoRepository veiculoRepository;
 
+    /**
+     * Construtor do ElevadorService.
+     * @param elevadorRepository O repositório dos elevadores.
+     * @param veiculoRepository O repositório de veículos (para validar existência do veículo).
+     */
     public ElevadorService(ElevadorRepository elevadorRepository, VeiculoRepository veiculoRepository) {
         this.elevadorRepository = Objects.requireNonNull(elevadorRepository, "ElevadorRepository não pode ser nulo.");
         this.veiculoRepository = Objects.requireNonNull(veiculoRepository, "VeiculoRepository não pode ser nulo.");
@@ -34,11 +39,12 @@ public class ElevadorService {
      * @param idOs ID da Ordem de Serviço para a qual o elevador será alocado.
      * @param idVeiculo ID do veículo a ser colocado no elevador.
      * @param servicosNaOs A lista de Servicos contidos na Ordem de Serviço (para verificar necessidade de alinhamento).
-     * @return O Elevador alocado, ou Optional.empty() se nenhum elevador estiver disponível.
-     * @throws IllegalArgumentException Se o veículo não for encontrado.
-     * @throws IllegalStateException Se não houver elevadores disponíveis para a necessidade.
+     * @param idElevadorEscolhido ID do elevador que a CAMADA DE VIEW ESCOLHEU para alocar (se aplicável, 0 se não).
+     * @return O Elevador alocado.
+     * @throws IllegalArgumentException Se o veículo não for encontrado, o elevador escolhido não existir, ou for incompatível.
+     * @throws IllegalStateException Se não houver elevadores disponíveis para a necessidade ou se já estiver ocupado.
      */
-    public Optional<Elevador> alocarElevador(int idOs, int idVeiculo, List<Servico> servicosNaOs)
+    public Elevador alocarElevador(int idOs, int idVeiculo, List<Servico> servicosNaOs, int idElevadorEscolhido) // Parâmetro idElevadorEscolhido
                                                throws IllegalArgumentException, IllegalStateException {
         Objects.requireNonNull(servicosNaOs, "Lista de serviços não pode ser nula.");
 
@@ -47,10 +53,17 @@ public class ElevadorService {
         if (veiculoOpt.isEmpty()) {
             throw new IllegalArgumentException("Veículo com ID " + idVeiculo + " não encontrado.");
         }
+        
+        // Verificar se o veículo já está em algum elevador
+        if (elevadorRepository.listarTodosElevadores().stream()
+                              .anyMatch(e -> e.getIdVeiculoAtual().isPresent() && e.getIdVeiculoAtual().get() == idVeiculo)) {
+            throw new IllegalStateException("O veículo com ID " + idVeiculo + " já está ocupando um elevador.");
+        }
+
 
         // 2. Verificar se a OS precisa de elevador de alinhamento
         boolean osRequerAlinhamento = servicosNaOs.stream()
-                                                    .anyMatch(Servico::requerPrioridade); // Usa o requerPrioridade do Servico
+                                                    .anyMatch(Servico::requerPrioridade); // Usa Servico.requerPrioridade()
 
         // 3. Buscar elevadores disponíveis
         List<Elevador> disponiveis = elevadorRepository.listarElevadoresDisponiveis();
@@ -59,48 +72,48 @@ public class ElevadorService {
             throw new IllegalStateException("Nenhum elevador disponível no momento.");
         }
 
-        Optional<Elevador> elevadorAlocado = Optional.empty();
+        Optional<Elevador> elevadorParaAlocar = Optional.empty();
 
-        // 4. Lógica de Priorização:
-        if (osRequerAlinhamento) {
-            // Tenta encontrar um elevador de alinhamento disponível
-            elevadorAlocado = disponiveis.stream()
-                                         .filter(Elevador::especializadoEmAlinhamento) // Usa o novo getter
-                                         .findFirst();
-            if (elevadorAlocado.isPresent()) {
-                elevadorAlocado.get().ocupar(idVeiculo);
-                System.out.println("Elevador de alinhamento ID " + elevadorAlocado.get().getId() + " alocado para OS " + idOs + ".");
-                return elevadorAlocado;
-            } else {
-                // Se nenhum elevador de alinhamento disponível, pode-se decidir:
-                // a) Não alocar e avisar que não há elevador especialista.
-                // b) Alocar um elevador geral se a OS puder esperar ou se for temporário.
-                System.out.println("Nenhum elevador de alinhamento disponível. Tentando alocar elevador geral se possível para OS " + idOs + "...");
-                // Prossegue para tentar alocar um elevador geral.
+        // Lógica de seleção do elevador: Prioriza o escolhido pela VIEW, depois a necessidade da OS
+        if (idElevadorEscolhido > 0) { // Se um elevador específico foi escolhido pela UI
+            Optional<Elevador> escolhidoPeloUsuario = elevadorRepository.buscarElevadorPorId(idElevadorEscolhido);
+            if (escolhidoPeloUsuario.isEmpty() || !escolhidoPeloUsuario.get().isDisponivel()) {
+                throw new IllegalArgumentException("Elevador ID " + idElevadorEscolhido + " escolhido não existe ou não está disponível.");
+            }
+            
+            // Validar se o elevador escolhido PELA VIEW atende à necessidade de alinhamento da OS
+            if (osRequerAlinhamento && !escolhidoPeloUsuario.get().temCapacidadeAlinhamento()) { // <<< CORRIGIDO AQUI!
+                throw new IllegalStateException("Elevador ID " + idElevadorEscolhido + " não tem capacidade de alinhamento, mas a OS requer.");
+            }
+            elevadorParaAlocar = escolhidoPeloUsuario;
+
+        } else { // Se NENHUM elevador específico foi escolhido pela UI (idElevadorEscolhido == 0)
+            if (osRequerAlinhamento) {
+                elevadorParaAlocar = disponiveis.stream()
+                                             .filter(Elevador::temCapacidadeAlinhamento) // <<< CORRIGIDO AQUI!
+                                             .findFirst();
+                if (elevadorParaAlocar.isEmpty()) {
+                    throw new IllegalStateException("Nenhum elevador de alinhamento disponível para esta OS. Não foi possível alocar.");
+                }
+            } else { // OS NÃO requer alinhamento
+                 elevadorParaAlocar = disponiveis.stream()
+                                             .filter(e -> !e.temCapacidadeAlinhamento()) // <<< CORRIGIDO AQUI!
+                                             .findFirst();
+                 if(elevadorParaAlocar.isEmpty()){
+                    elevadorParaAlocar = disponiveis.stream().findFirst();
+                 }
+
+                if (elevadorParaAlocar.isEmpty()) {
+                    throw new IllegalStateException("Nenhum elevador disponível para alocar o veículo ID " + idVeiculo + ".");
+                }
             }
         }
-
-        // 5. Se não requerer alinhamento ou se nenhum elevador de alinhamento foi alocado:
-        // Tenta encontrar qualquer elevador geral disponível.
-        if (elevadorAlocado.isEmpty()) {
-             elevadorAlocado = disponiveis.stream()
-                                         .filter(e -> !e.especializadoEmAlinhamento()) // Pega um elevador geral
-                                         .findFirst();
-             if(elevadorAlocado.isEmpty()){ // Se não achou geral, tenta o de alinhamento novamente (agora sem prioridade)
-                elevadorAlocado = disponiveis.stream()
-                                         .findFirst(); // Pega o primeiro disponível de qualquer tipo
-             }
-
-            if (elevadorAlocado.isPresent()) {
-                elevadorAlocado.get().ocupar(idVeiculo);
-                System.out.println("Elevador geral ID " + elevadorAlocado.get().getId() + " alocado para OS " + idOs + ".");
-                return elevadorAlocado;
-            } else {
-                // Se chegou aqui, significa que todos os elevadores estão ocupados.
-                throw new IllegalStateException("Nenhum elevador disponível para alocar o veículo ID " + idVeiculo + ".");
-            }
-        }
-        return elevadorAlocado; // Retorna o elevador que foi alocado (se já foi no passo 4)
+        
+        // Finaliza a alocação no elevador escolhido/selecionado
+        Elevador elevadorAlocado = elevadorParaAlocar.get();
+        elevadorAlocado.ocupar(idVeiculo); // Ocupa o elevador
+        elevadorRepository.persistirEstadoElevadores(); // PERSISTE O ESTADO!
+        return elevadorAlocado;
     }
 
     /**
@@ -111,11 +124,29 @@ public class ElevadorService {
     public boolean liberarElevador(int idElevador) {
         Optional<Elevador> elevadorOpt = elevadorRepository.buscarElevadorPorId(idElevador);
         if (elevadorOpt.isEmpty()) {
-            System.out.println("Elevador com ID " + idElevador + " não encontrado.");
             return false;
         }
         Elevador elevador = elevadorOpt.get();
-        return elevador.liberar(); // Delega a operação de liberação ao objeto Elevador
+        boolean sucesso = elevador.liberar();
+        if (sucesso) {
+            elevadorRepository.persistirEstadoElevadores(); // PERSISTE O ESTADO!
+        }
+        return sucesso;
+    }
+
+    /**
+     * Libera o elevador que o veículo de uma Ordem de Serviço está ocupando.
+     * @param idVeiculo ID do veículo.
+     * @return true se o elevador foi encontrado e liberado, false caso contrário.
+     */
+    public boolean liberarElevadorPorIdVeiculo(int idVeiculo) {
+        Optional<Elevador> elevadorComVeiculo = elevadorRepository.listarTodosElevadores().stream()
+                                                .filter(e -> e.getIdVeiculoAtual().isPresent() && e.getIdVeiculoAtual().get() == idVeiculo)
+                                                .findFirst();
+        if (elevadorComVeiculo.isPresent()) {
+            return liberarElevador(elevadorComVeiculo.get().getId());
+        }
+        return false;
     }
 
     /**

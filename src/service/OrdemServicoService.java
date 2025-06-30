@@ -34,8 +34,8 @@ public class OrdemServicoService {
     private ClienteService clienteService;
     private VeiculoService veiculoService;
     private ServicoService servicoService;
-    // REMOVIDO: private ElevadorService elevadorService;
-    // REMOVIDO: private Scanner scanner;
+    private ElevadorService elevadorService;
+    // REMOVER ATRIBUTO SCANNER AQUI!
 
     /**
      * Construtor do OrdemServicoService.
@@ -44,25 +44,27 @@ public class OrdemServicoService {
      * @param clienteService O serviço de clientes.
      * @param veiculoService O serviço de veículos.
      * @param servicoService O serviço de serviços.
-     * // REMOVIDO: @param elevadorService O serviço de elevadores.
+     * @param elevadorService O serviço de elevadores.
      * // REMOVIDO: @param scanner O scanner para interação com o usuário.
      */
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                UsuarioCRUD usuarioCRUD,
                                ClienteService clienteService,
                                VeiculoService veiculoService,
-                               ServicoService servicoService) {
+                               ServicoService servicoService,
+                               ElevadorService elevadorService) { // REMOVIDO: Parâmetro Scanner
         this.ordemServicoRepository = Objects.requireNonNull(ordemServicoRepository, "OrdemServicoRepository não pode ser nulo.");
         this.usuarioCRUD = Objects.requireNonNull(usuarioCRUD, "UsuarioCRUD não pode ser nulo.");
         this.clienteService = Objects.requireNonNull(clienteService, "ClienteService não pode ser nulo.");
         this.veiculoService = Objects.requireNonNull(veiculoService, "VeiculoService não pode ser nulo.");
         this.servicoService = Objects.requireNonNull(servicoService, "ServicoService não pode ser nulo.");
-        // REMOVIDO: Inicialização de elevadorService e scanner
+        this.elevadorService = Objects.requireNonNull(elevadorService, "ElevadorService não pode ser nulo.");
+        // REMOVIDO: Inicialização do scanner
     }
 
     public OrdemServico criarNovaOrdemServico(int idCliente, int idVeiculo, int idMecanicoResponsavel)
                                               throws IllegalArgumentException {
-        // Validações de existência de Cliente, Veículo e Mecânico
+        // ... (lógica existente, sem System.out.println aqui) ...
         Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(idCliente);
         if (clienteOpt.isEmpty()) { throw new IllegalArgumentException("Cliente com ID " + idCliente + " não encontrado."); }
         Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorId(idVeiculo);
@@ -84,7 +86,7 @@ public class OrdemServicoService {
         );
 
         ordemServicoRepository.adicionarOrdemServico(novaOS);
-        return novaOS;
+        return novaOS; // Não imprime aqui
     }
 
     public void atualizarOrdemServico(OrdemServico ordemParaAtualizar) {
@@ -94,16 +96,17 @@ public class OrdemServicoService {
 
     /**
      * Altera o status de uma Ordem de Serviço.
-     * NOTA: Lógica de alocação/liberação de elevador removida desta classe.
+     * Integra a lógica de alocação/liberação de elevador.
      *
      * @param idOs ID da Ordem de Serviço.
      * @param novoStatus O novo status a ser aplicado.
-     * @param idElevadorParaAlocar (PARÂMETRO REMOVIDO) Optional contendo o ID do elevador.
+     * @param idElevadorParaAlocar Optional contendo o ID do elevador escolhido PELA VIEW (se for alocar).
      * @return A OrdemServico atualizada.
      * @throws IllegalArgumentException Se a OS não for encontrada.
-     * @throws IllegalStateException Se a transição de status não for permitida.
+     * @throws IllegalStateException Se a transição de status não for permitida ou se houver problemas com elevador.
      */
-    public OrdemServico alterarStatusOrdemServico(int idOs, StatusOrdem novoStatus) {
+    public OrdemServico alterarStatusOrdemServico(int idOs, StatusOrdem novoStatus, Optional<Integer> idElevadorParaAlocar) {
+        Objects.requireNonNull(idElevadorParaAlocar, "Optional de idElevadorParaAlocar não pode ser nulo.");
         Optional<OrdemServico> osOpt = ordemServicoRepository.buscarOrdemServicoPorId(idOs);
         if (osOpt.isEmpty()) { throw new IllegalArgumentException("Ordem de Serviço com ID " + idOs + " não encontrada."); }
         OrdemServico os = osOpt.get();
@@ -114,10 +117,51 @@ public class OrdemServicoService {
             throw new IllegalStateException("Não é possível alterar o status de uma OS " + os.getStatus().getDescricao() + " (já está finalizada ou cancelada).");
         }
         
-        // --- REMOVIDA TODA A LÓGICA DE INTEGRAÇÃO COM ELEVADOR AQUI ---
+        // --- LÓGICA DE INTEGRAÇÃO COM ELEVADOR ---
+        // SE ESTÁ MUDANDO PARA UM STATUS DE OCUPAÇÃO (EM_DIAGNOSTICO ou EM_EXECUCAO)
+        if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO)) {
+            // E SE A OS NÃO ESTAVA JÁ NESSES STATUS OU NÃO TEM ELEVADOR ALOCADO AINDA
+            if (!(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
+                // Tenta alocar elevador, precisa de um idElevadorParaAlocar da view
+                if (idElevadorParaAlocar.isEmpty()) {
+                    throw new IllegalArgumentException("É necessário especificar um elevador para alocar a OS para o status " + novoStatus.getDescricao() + ".");
+                }
+                int elevadorId = idElevadorParaAlocar.get();
+                
+                try {
+                    Elevador elevadorAlocado = elevadorService.alocarElevador(os.getId(), os.getIdVeiculo(), os.getServicos(), elevadorId);
+                    os.setIdElevadorAtual(Optional.of(elevadorAlocado.getId())); // Atualiza a OS com o ID do elevador
+                    // Nenhuma System.out.println aqui, a view que imprime o sucesso
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    throw e; // Propaga exceções do ElevadorService
+                }
+            }
+        } 
+        // SE ESTÁ MUDANDO DE UM STATUS DE OCUPAÇÃO PARA UM STATUS QUE LIBERA O ELEVADOR
+        else if ((os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO) &&
+                 (novoStatus == StatusOrdem.FINALIZADA || novoStatus == StatusOrdem.AGUARDANDO_PAGAMENTO ||
+                  novoStatus == StatusOrdem.CANCELADA || novoStatus == StatusOrdem.AGUARDANDO_DIAGNOSTICO || // Incluídos status que liberam
+                  novoStatus == StatusOrdem.AGUARDANDO_LIBERACAO )) { // Incluídos status que liberam
+            
+            // Tenta liberar o elevador, se a OS estava em um
+            if (os.getIdElevadorAtual().isPresent()) { // <<--- VERIFICA SE A OS TEM ELEVADOR ALOCADO
+                boolean liberado = elevadorService.liberarElevador(os.getIdElevadorAtual().get()); // Libera o elevador que a OS está usando
+                if (liberado) {
+                    os.setIdElevadorAtual(Optional.empty()); // Limpa o ID do elevador na OS
+                    // Nenhuma System.out.println aqui
+                } else {
+                    // Aviso: O elevador da OS não pôde ser liberado (já livre, não encontrado)
+                    // Não é um erro crítico que impeça a mudança de status da OS
+                    System.out.println("Aviso: Falha ao liberar elevador ID " + os.getIdElevadorAtual().get() + " para OS " + os.getCodigo() + ". Pode já estar livre ou não encontrado.");
+                }
+            } else {
+                System.out.println("Aviso: OS " + os.getCodigo() + " mudou de status de 'ocupação' mas não estava com elevador alocado. Nenhuma ação necessária.");
+            }
+        }
+        // --- FIM LÓGICA DE INTEGRAÇÃO COM ELEVADOR ---
 
-        os.alterarStatus(novoStatus);
-        atualizarOrdemServico(os);
+        os.alterarStatus(novoStatus); // Altera o status na OS (notifica observadores)
+        atualizarOrdemServico(os); // Persiste a OS modificada
         return os;
     }
     
@@ -223,7 +267,4 @@ public class OrdemServicoService {
         }
         return totalOS;
     }
-
-    // REMOVIDO: Método auxiliar para ler um inteiro válido (pois não pertence a camada de serviço)
-    // private int lerInteiroValido(String prompt) { ... }
 }

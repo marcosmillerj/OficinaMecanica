@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import models.enums.StatusOrdem;
 import observers.IObservavelOrdemServico;
 import observers.IObservadorOrdemServico; 
@@ -31,27 +32,34 @@ public class OrdemServico implements IObservavelOrdemServico {
     private int idCliente;
     private int idMecanicoResponsavel;
     private StatusOrdem status;
+    private Optional<Integer> idElevadorAtual;
     private final List<Servico> servicos;
     private final List<IObservadorOrdemServico> observadores;
     
+    /**
+     * Construtor principal.
+     */
     public OrdemServico(String codigo, LocalDateTime dataAbertura, int idVeiculo,
                         int idCliente, int idMecanicoResponsavel, StatusOrdem status) {
         this.id = proximoId++;
-        this.codigo = codigo;
-        this.dataAbertura = dataAbertura;
+        this.codigo = Objects.requireNonNull(codigo, "Código da OS não pode ser nulo.");
+        this.dataAbertura = Objects.requireNonNull(dataAbertura, "Data de abertura da OS não pode ser nula.");
         this.precoTotal = BigDecimal.ZERO;
         this.idVeiculo = idVeiculo;
         this.idCliente = idCliente;
         this.idMecanicoResponsavel = idMecanicoResponsavel;
-        this.status = status;
+        this.status = Objects.requireNonNull(status, "Status inicial da OS não pode ser nulo.");
+        this.idElevadorAtual = Objects.requireNonNullElse(idElevadorAtual, Optional.empty()); // <<--- INICIALIZA SEM ELEVADOR
         this.servicos = new ArrayList<>();
         this.observadores = new ArrayList<>();
     }
 
-    // Construtor para Gson
+    /**
+     * Construtor para Gson (incluindo o novo atributo idElevadorAtual).
+     */
     public OrdemServico(int id, String codigo, LocalDateTime dataAbertura, BigDecimal precoTotal,
                         int idVeiculo, int idCliente, int idMecanicoResponsavel,
-                        StatusOrdem status, List<Servico> servicos) {
+                        StatusOrdem status, Optional<Integer> idElevadorAtual, List<Servico> servicos) { // <<--- NOVO PARÂMETRO idElevadorAtual
         this.id = id;
         this.codigo = codigo;
         this.dataAbertura = dataAbertura;
@@ -60,9 +68,11 @@ public class OrdemServico implements IObservavelOrdemServico {
         this.idCliente = idCliente;
         this.idMecanicoResponsavel = idMecanicoResponsavel;
         this.status = status;
-        this.servicos = new ArrayList<>(servicos);
+        this.idElevadorAtual = idElevadorAtual; // <<--- INICIALIZA AQUI!
+        this.servicos = (servicos != null) ? new ArrayList<>(servicos) : new ArrayList<>();
         this.observadores = new ArrayList<>();
     }
+
 
     // --- MÉTODOS DO PADRÃO OBSERVER ---
     @Override
@@ -90,12 +100,12 @@ public class OrdemServico implements IObservavelOrdemServico {
     // --- Getters e Setters ---
     public int getId() { return id; }
     public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
+    public void setCodigo(String codigo) { this.codigo = Objects.requireNonNull(codigo, "Código da OS não pode ser nulo."); }
 
     public LocalDateTime getDataAbertura() { return dataAbertura; }
-    public void setDataAbertura(LocalDateTime dataAbertura) { this.dataAbertura = dataAbertura; }
+    public void setDataAbertura(LocalDateTime dataAbertura) { this.dataAbertura = Objects.requireNonNull(dataAbertura, "Data de abertura da OS não pode ser nula."); }
 
-    public BigDecimal getPrecoTotal() { return precoTotal; }
+    public BigDecimal getPrecoTotal() { return precoTotal; } // Preço total (mão de obra + peças)
 
     public int getIdVeiculo() { return idVeiculo; }
     public void setIdVeiculo(int idVeiculo) { this.idVeiculo = idVeiculo; }
@@ -107,8 +117,15 @@ public class OrdemServico implements IObservavelOrdemServico {
     public void setIdMecanicoResponsavel(int idMecanicoResponsavel) { this.idMecanicoResponsavel = idMecanicoResponsavel; }
 
     public StatusOrdem getStatus() { return status; }
-    public void setStatus(StatusOrdem status) { this.status = status; }
+    public void setStatus(StatusOrdem status) { this.status = Objects.requireNonNull(status, "Status não pode ser nulo."); }
 
+    public Optional<Integer> getIdElevadorAtual() { 
+        return Objects.requireNonNullElse(idElevadorAtual, Optional.empty());
+    }
+    public void setIdElevadorAtual(Optional<Integer> idElevadorAtual) {
+        this.idElevadorAtual = Objects.requireNonNull(idElevadorAtual, "ID do elevador atual não pode ser nulo (use Optional.empty()).");
+    }
+    
     public List<Servico> getServicos() {
         return new ArrayList<>(servicos);
     }
@@ -116,26 +133,15 @@ public class OrdemServico implements IObservavelOrdemServico {
     // --- Métodos de Comportamento ---
 
     /**
-     * Calcula o preço total da Ordem de Serviço somando os preços de todos os serviços e peças.
-     * Atualiza o atributo precoTotal da OS.
-     * NOTA: Este método agora precisa de um ItemEstoqueRepository ou ItemEstoqueService
-     * para buscar o preço da peça pelo código. Isso é um desafio na classe model.
-     * A solução mais limpa é que o cálculo real do preço TOTAL DA OS seja feito
-     * na camada OrdemServicoService, que tem acesso aos repositórios/services.
-     * Por enquanto, este método vai somar apenas a mão de obra.
-     * A responsabilidade de somar o valor da peça (buscando no estoque) seria do Service.
-     * @return O valor total calculado (BigDecimal).
+     * Calcula o preço total da Ordem de Serviço somando os preços de mão de obra de todos os serviços.
+     * NÃO INCLUI PREÇO DE PEÇAS AQUI. O preço total final (com peças) é calculado no OrdemServicoService.
+     * @return O valor total de mão de obra calculado (BigDecimal).
      */
     public BigDecimal calcularTotal() {
-        BigDecimal totalMaoDeObra = servicos.stream()
-            .map(Servico::getPrecoMaoDeObra) // ALTERADO: Chama getPrecoMaoDeObra
-            .filter(Objects::nonNull) // Garante que não haja valores nulos
-            .reduce(BigDecimal.ZERO, BigDecimal::add); // Soma BigDecimals
-        
-        // A lógica de somar o preço da peça viria aqui, mas precisaria do ItemEstoqueService
-        // o que não é uma boa prática para uma classe de modelo.
-        // O cálculo total da OS (M.O. + Peças) é melhor no OrdemServicoService.
-        this.precoTotal = totalMaoDeObra;
+        this.precoTotal = servicos.stream()
+            .map(Servico::getPrecoMaoDeObra)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         return this.precoTotal;
     }
 
@@ -148,8 +154,7 @@ public class OrdemServico implements IObservavelOrdemServico {
         if (servico != null) {
             servicos.add(servico);
             calcularTotal(); // Recalcula o total (apenas mão de obra) após adicionar
-            // ALTERADO: servico.getDescricao() para servico.getObservacoes()
-            System.out.println("[LOG:OrdemServico " + this.codigo + "] Serviço '" + servico.getObservacoes() + "' adicionado. Novo total (apenas M.O.): " + this.precoTotal);
+            System.out.println("[LOG:OrdemServico " + this.codigo + "] Serviço '" + servico.getObservacoes() + "' adicionado. Novo total (M.O.): R$ " + String.format("%.2f", this.precoTotal));
         }
     }
 
@@ -163,8 +168,7 @@ public class OrdemServico implements IObservavelOrdemServico {
         boolean removido = servicos.remove(servico);
         if (removido) {
             calcularTotal(); // Recalcula o total (apenas mão de obra) após remover
-            // ALTERADO: servico.getDescricao() para servico.getObservacoes()
-            System.out.println("[LOG:OrdemServico " + this.codigo + "] Serviço '" + servico.getObservacoes() + "' removido. Novo total (apenas M.O.): " + this.precoTotal);
+            System.out.println("[LOG:OrdemServico " + this.codigo + "] Serviço '" + servico.getObservacoes() + "' removido. Novo total (M.O.): R$ " + String.format("%.2f", this.precoTotal));
         }
         return removido;
     }
@@ -178,7 +182,7 @@ public class OrdemServico implements IObservavelOrdemServico {
         if (this.status != novoStatus) {
             this.status = novoStatus;
             System.out.println("\n[LOG:OrdemServico " + this.codigo + "] Status alterado para -> " + novoStatus.getDescricao());
-            notificarObservadores();
+            notificarObservadores(); // CHAMA OS OBSERVADORES AQUI!
         } else {
             System.out.println("\n[LOG:OrdemServico " + this.codigo + "] Status já é " + novoStatus.getDescricao() + ". Nenhuma alteração/notificação.");
         }
@@ -187,17 +191,31 @@ public class OrdemServico implements IObservavelOrdemServico {
     @Override
     public String toString() {
         String servicosResumo = servicos.isEmpty() ? "Nenhum" : servicos.size() + " serviço(s)";
-        // ALTERADO: servico.getDescricao() para servico.getObservacoes()
+        String elevadorInfo = idElevadorAtual.isPresent() ? ", ElevadorID=" + idElevadorAtual.get() : ""; // AGORA EXIBE!
         return "OrdemServico{" +
                "ID=" + id +
                ", Código='" + codigo + '\'' +
                ", Status='" + status.getDescricao() + '\'' +
-               ", Preço Total=" + precoTotal +
+               ", Preço M.O.=" + String.format("%.2f", precoTotal) +
                ", Veículo ID=" + idVeiculo +
                ", Cliente ID=" + idCliente +
                ", Mecânico ID=" + idMecanicoResponsavel +
+               elevadorInfo +
                ", Serviços=" + servicosResumo +
                ", Data Abertura=" + dataAbertura.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) +
                '}';
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OrdemServico that = (OrdemServico) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

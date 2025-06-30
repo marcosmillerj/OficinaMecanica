@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import models.OrdemServico;
+import models.Servico;
 import util.JsonFileHandler;
 
 /**
@@ -34,16 +35,26 @@ public class OrdemServicoRepository {
         // Carrega as ordens de serviço ao iniciar o repositório
         this.ordensDeServico = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID para OrdemServico após o carregamento
-        // Isso evita que novas ordens tenham IDs duplicados com as já carregadas do arquivo.
-        int maxId = 0;
+        // CRÍTICO: Ajustar o próximo ID para OrdemServico E Servico após o carregamento
+        int maxIdOrdemServico = 0;
+        int maxIdServico = 0; // <<--- NOVO: Para rastrear o maior ID de Servico
+
         for (OrdemServico os : this.ordensDeServico) {
-            if (os.getId() > maxId) {
-                maxId = os.getId();
+            if (os.getId() > maxIdOrdemServico) {
+                maxIdOrdemServico = os.getId();
+            }
+            // NOVO: Percorrer os serviços de cada OS para encontrar o maior ID de Servico
+            for (Servico servico : os.getServicos()) {
+                if (servico.getId() > maxIdServico) {
+                    maxIdServico = servico.getId();
+                }
             }
         }
-        OrdemServico.proximoId = maxId + 1; // Ajusta o contador estático na classe OrdemServico
+        OrdemServico.proximoId = maxIdOrdemServico + 1; // Ajusta o contador estático da OrdemServico
+        Servico.proximoId = maxIdServico + 1; // <<--- NOVO: Ajusta o contador estático da Servico!
+
         System.out.println("Contador de ID de OrdemServico ajustado para: " + OrdemServico.proximoId);
+        System.out.println("Contador de ID de Servico ajustado para: " + Servico.proximoId); // MENSAGEM ADICIONAL
     }
 
     /**
@@ -58,13 +69,9 @@ public class OrdemServicoRepository {
 
     /**
      * Atualiza uma ordem de serviço existente na coleção e persiste as alterações.
-     * Utilizado quando um atributo do objeto OrdemServico é modificado.
      * @param ordemParaAtualizar O objeto OrdemServico que foi modificado (referência já existente na lista).
      */
     public void atualizarOrdemServico(OrdemServico ordemParaAtualizar) {
-        // Como você está atualizando uma referência do objeto que já está na lista 'ordensDeServico',
-        // não é necessário "encontrar" e "substituir" aqui. Apenas salve a lista.
-        // O OrdemServicoRepository já contém a referência a esse objeto na sua lista 'ordensDeServico'.
         System.out.println("Ordem de Serviço '" + ordemParaAtualizar.getCodigo() + "' (ID: " + ordemParaAtualizar.getId() + ") atualizada.");
         fileHandler.save(ordensDeServico); // Salva a lista atualizada no JSON
     }
@@ -114,7 +121,7 @@ public class OrdemServicoRepository {
     }
 
     /**
-     * Lista todas as ordens de serviço existentes no sistema.
+     * Lista todas as ordens de serviço existentes no repositório.
      * @return Uma lista (cópia) de todas as ordens de serviço.
      */
     public List<OrdemServico> listarTodasOrdens() {
