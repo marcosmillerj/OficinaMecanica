@@ -23,22 +23,18 @@ import observers.ObservadorPagamento;
  * Representa um pagamento realizado na oficina.
  * Agora atua como um 'Subject' no padrão Observer, notificando interessados ao ser finalizado.
  */
-public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
+public class Pagamento {
 
     public static int proximoId = 1;
 
     private int id;
     private LocalDateTime dataHora;
-    private BigDecimal valor; // BigDecimal para precisão monetária
+    private BigDecimal valor;
     private TipoPagamento tipo;
     private Optional<Integer> idOrdemServico; // Referência por ID para OrdemServico (Optional)
     
-    // REMOVIDO: Atributo para lista de observadores
-    // private final List<IObservadorPagamento> observadores;
-
     /**
      * Construtor principal para criar um novo pagamento.
-     * O pagamento é criado associado a uma Ordem de Serviço, mas ainda não está 'finalizado'.
      * @param idOrdemServico O ID da OrdemDeServiço à qual este pagamento se refere (Optional.empty() se não houver OS).
      */
     public Pagamento(Optional<Integer> idOrdemServico) {
@@ -47,33 +43,26 @@ public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
         this.dataHora = null; // Definido ao finalizar
         this.valor = BigDecimal.ZERO; // Definido ao finalizar
         this.tipo = null; // Definido ao finalizar
-        // REMOVIDO: Inicialização da lista de observadores
-        // this.observadores = new ArrayList<>();
     }
 
     /**
      * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
+     * Garante que `idOrdemServico` sempre seja um `Optional` (nunca `null`).
      * @param id ID do pagamento.
      * @param dataHora Data e hora da finalização do pagamento.
      * @param valor Valor final do pagamento.
      * @param tipo Tipo de pagamento.
      * @param idOrdemServico ID da Ordem de Serviço associada.
      */
-    public Pagamento(int id, LocalDateTime dataHora, BigDecimal valor, TipoPagamento tipo, Optional<Integer> idOrdemServico) { // Construtor para Gson
+    public Pagamento(int id, LocalDateTime dataHora, BigDecimal valor, TipoPagamento tipo, Optional<Integer> idOrdemServico) {
         this.id = id;
         this.dataHora = dataHora;
         this.valor = valor;
         this.tipo = tipo;
-        this.idOrdemServico = idOrdemServico;
-        // REMOVIDO: Inicialização da lista de observadores
-        // this.observadores = new ArrayList<>();
+        // <<< CORREÇÃO AQUI: Garante que idOrdemServico não seja null, mesmo que o Gson passe null
+        this.idOrdemServico = Objects.requireNonNullElse(idOrdemServico, Optional.empty()); 
     }
 
-
-    // --- REMOVIDOS MÉTODOS DO OBSERVER ---
-    // @Override public void adicionarObservador(IObservadorPagamento obs) { ... }
-    // @Override public void removerObservador(IObservadorPagamento obs) { ... }
-    // @Override public void notificarObservadores() { ... }
 
     // --- Getters e Setters ---
     public int getId() { return id; }
@@ -92,7 +81,14 @@ public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
     public TipoPagamento getTipo() { return tipo; }
     public void setTipo(TipoPagamento tipo) { this.tipo = Objects.requireNonNull(tipo, "Tipo de pagamento não pode ser nulo."); }
 
-    public Optional<Integer> getIdOrdemServico() { return idOrdemServico; }
+    /**
+     * Retorna o Optional<Integer> do ID da Ordem de Serviço.
+     * GARANTE QUE NUNCA RETORNE NULL, SEMPRE UM OPTIONAL (VAZIO OU COM VALOR).
+     * @return Optional<Integer> do ID da OS, ou Optional.empty() se não houver OS.
+     */
+    public Optional<Integer> getIdOrdemServico() { 
+        return Objects.requireNonNullElse(idOrdemServico, Optional.empty()); // <<< CORREÇÃO AQUI!
+    }
     public void setIdOrdemServico(Optional<Integer> idOrdemServico) {
         this.idOrdemServico = Objects.requireNonNull(idOrdemServico, "ID da Ordem de Serviço não pode ser nulo (use Optional.empty()).");
     }
@@ -100,7 +96,7 @@ public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
     /**
      * Finaliza o pagamento, definindo seu valor, data/hora e tipo.
      * @param valorFinal O valor final pago.
-     * @param tipoFinal O tipo de pagamento (DINHEIRO, CARTAO_CREDITO, etc.).
+     * @param tipoFinal O tipo de pagamento.
      * @return Uma mensagem de confirmação da finalização.
      */
     public String finalizar(BigDecimal valorFinal, TipoPagamento tipoFinal) {
@@ -109,13 +105,12 @@ public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
         this.setTipo(tipoFinal);
 
         String mensagem = "Pagamento de R$" + String.format("%.2f", valorFinal) +
-                          " finalizado via " + tipoFinal.getPagamento() + // <<--- AGORA USA getPagamento()
+                          " finalizado via " + tipoFinal.getPagamento() +
                           " em " + this.dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
                           ". ID: " + this.id +
-                          (this.idOrdemServico.isPresent() ? ", OS: " + this.idOrdemServico.get() : "");
+                          (this.getIdOrdemServico().isPresent() ? ", OS: " + this.getIdOrdemServico().get() : ""); // Usa o getter defensivo
 
         System.out.println(mensagem);
-        // REMOVIDO: notificarObservadores();
         return mensagem;
     }
 
@@ -127,8 +122,8 @@ public class Pagamento { // NÃO IMPLEMENTA MAIS IObservavelPagamento
         System.out.println("ID: " + this.id);
         System.out.println("Valor: R$" + String.format("%.2f", this.valor));
         System.out.println("Data/Hora: " + (this.dataHora != null ? this.dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : "N/A"));
-        System.out.println("Forma: " + (this.tipo != null ? this.tipo.getPagamento() : "N/A")); // <<--- AGORA USA getPagamento()
-        System.out.println("OS Relacionada: " + (this.idOrdemServico.isPresent() ? this.idOrdemServico.get() : "N/A"));
+        System.out.println("Forma: " + (this.tipo != null ? this.tipo.getPagamento() : "N/A"));
+        System.out.println("OS Relacionada: " + (this.getIdOrdemServico().isPresent() ? this.getIdOrdemServico().get() : "N/A")); // Usa o getter defensivo
         System.out.println("-----------------------------");
     }
 

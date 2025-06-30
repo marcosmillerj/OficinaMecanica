@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "isDisponivel": false,
+    "isDisponivel": true,
     "capacidadeAlinhamento": false
   },
   {
@@ -11,7 +11,7 @@
   },
   {
     "id": 3,
-    "isDisponivel": false,
+    "isDisponivel": true,
     "capacidadeAlinhamento": true
   }
 ]

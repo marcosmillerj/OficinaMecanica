@@ -19,5 +19,12 @@
     "modelo": "palio bolha",
     "cor": "preto",
     "idCliente": 1
+  },
+  {
+    "id": 4,
+    "placa": "iih8999",
+    "modelo": "ka",
+    "cor": "azul",
+    "idCliente": 3
   }
 ]

@@ -69,8 +69,8 @@ public class Agendamento {
     public void setIdCliente(int idCliente) { this.idCliente = idCliente; }
     public int getIdVeiculo() { return idVeiculo; }
     public void setIdVeiculo(int idVeiculo) { this.idVeiculo = idVeiculo; }
-    public BigDecimal getValor() { return valor; } // NOVO GETTER
-    public void setValor(BigDecimal valor) { // NOVO SETTER
+    public BigDecimal getValor() { return valor; }
+    public void setValor(BigDecimal valor) {
         this.valor = Objects.requireNonNull(valor, "Valor do agendamento não pode ser nulo.");
         if (valor.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Valor do agendamento não pode ser negativo.");
@@ -80,13 +80,6 @@ public class Agendamento {
     public void setStatus(StatusAgendamento status) { this.status = Objects.requireNonNull(status, "Status não pode ser nulo."); }
 
 
-    // --- Métodos de Comportamento ---
-    /**
-     * Reagenda o agendamento para uma nova data e hora.
-     * O agendamento não pode estar CANCELADO ou REALIZADO.
-     * @param novaDataHora Nova data e hora para o agendamento.
-     * @return true se o agendamento foi reagendado com sucesso, false caso contrário.
-     */
     public boolean reagendar(LocalDateTime novaDataHora){
         Objects.requireNonNull(novaDataHora, "Nova data e hora não podem ser nulas para reagendamento.");
         if(status == StatusAgendamento.CANCELADO || status == StatusAgendamento.REALIZADO || status == StatusAgendamento.FALTOU){
@@ -98,29 +91,23 @@ public class Agendamento {
             return false;
         }
         this.dataHora = novaDataHora;
-        this.status = StatusAgendamento.PENDENTE; // Reagendamento volta para PENDENTE
+        this.status = StatusAgendamento.PENDENTE;
         System.out.println("Agendamento ID " + id + " reagendado para " + novaDataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".");
         return true;
     }
     
-    /**
-     * Cancela o agendamento. Retém 20% do valor.
-     * @return O valor retido (20% do valor total do agendamento).
-     */
+
     public BigDecimal cancelar(){
         if(status == StatusAgendamento.REALIZADO){
             System.out.println("Não é possível cancelar um agendamento já Realizado.");
-            return BigDecimal.ZERO; // Retorna zero se não puder cancelar
+            return BigDecimal.ZERO;
         }
         this.status = StatusAgendamento.CANCELADO;
-        BigDecimal valorRetido = this.valor.multiply(new BigDecimal("0.20")); // 20% do valor
+        BigDecimal valorRetido = this.valor.multiply(new BigDecimal("0.20"));
         System.out.println("Agendamento ID " + id + " cancelado. Valor retido: R$ " + String.format("%.2f", valorRetido));
         return valorRetido;
     }
     
-    /**
-     * Confirma o agendamento.
-     */
     public void confirmar(){
         if(status == StatusAgendamento.REALIZADO || status == StatusAgendamento.CANCELADO){
             System.out.println("Não é possível confirmar um agendamento já " + status.getDescricao() + ".");
@@ -130,42 +117,6 @@ public class Agendamento {
         System.out.println("Agendamento ID " + id + " confirmado.");
     }
 
-    /**
-     * Marca o agendamento como REALIZADO.
-     * @return true se o status foi atualizado para REALIZADO, false caso contrário.
-     */
-    public boolean marcarComoRealizado() {
-        if (status == StatusAgendamento.REALIZADO || status == StatusAgendamento.CANCELADO || status == StatusAgendamento.FALTOU) {
-            System.out.println("Não é possível marcar como realizado um agendamento com status " + status.getDescricao() + ".");
-            return false;
-        }
-        this.status = StatusAgendamento.REALIZADO;
-        System.out.println("Agendamento ID " + id + " marcado como REALIZADO.");
-        return true;
-    }
-
-    /**
-     * Marca o agendamento como FALTOU (cliente não compareceu).
-     * @return true se o status foi atualizado para FALTOU, false caso contrário.
-     */
-    public boolean marcarComoFaltou() {
-        if (status == StatusAgendamento.REALIZADO || status == StatusAgendamento.CANCELADO) {
-            System.out.println("Não é possível marcar como faltou um agendamento com status " + status.getDescricao() + ".");
-            return false;
-        }
-        this.status = StatusAgendamento.FALTOU;
-        System.out.println("Agendamento ID " + id + " marcado como FALTOU.");
-        return true;
-    }
-    
-    /**
-     * Verifica se o agendamento está vencido (data/hora no passado e status PENDENTE ou CONFIRMADO).
-     * @return true se o agendamento está vencido, false caso contrário.
-     */
-    public boolean estaVencido(){
-        return LocalDateTime.now().isAfter(this.dataHora) &&
-                (status == StatusAgendamento.PENDENTE || status == StatusAgendamento.CONFIRMADO);
-    }
     
     @Override
     public String toString() {
@@ -174,12 +125,11 @@ public class Agendamento {
                ", Data/Hora='" + dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + '\'' +
                ", ClienteID=" + idCliente +
                ", VeiculoID=" + idVeiculo +
-               ", Valor=R$ " + String.format("%.2f", valor) + '\'' + // Formata o valor
+               ", Valor=R$ " + String.format("%.2f", valor) + '\'' +
                ", Status='" + status.getDescricao() + '\'' +
                '}';
     }
 
-    // Adição de equals e hashCode para garantir que Agendamento possa ser comparado por ID
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

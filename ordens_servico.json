@@ -1,14 +1,220 @@
 [
   {
     "id": 1,
-    "codigo": "OS-250630012129-db12",
-    "dataAbertura": "2025-06-30T01:21:29.878368808",
-    "precoTotal": 0,
+    "codigo": "OS-202506280900-ABC1",
+    "dataAbertura": "2025-06-28T09:00:00",
+    "precoTotal": 0.00,
     "idVeiculo": 1,
     "idCliente": 1,
-    "idMecanicoResponsavel": 5,
-    "status": "AGUARDANDO_PAGAMENTO",
+    "idMecanicoResponsavel": 2,
+    "status": "AGUARDANDO_DIAGNOSTICO",
+    "idElevadorAtual": null,
     "servicos": [],
+    "observadores": []
+  },
+  {
+    "id": 2,
+    "codigo": "OS-202506281030-DEF2",
+    "dataAbertura": "2025-06-28T10:30:00",
+    "precoTotal": 150.00,
+    "idVeiculo": 2,
+    "idCliente": 2,
+    "idMecanicoResponsavel": 3,
+    "status": "EM_DIAGNOSTICO",
+    "idElevadorAtual": 1,
+    "servicos": [
+      {
+        "id": 1,
+        "precoMaoDeObra": 150.00,
+        "setor": "MOTOR",
+        "codigoPeca": null,
+        "quantidadePeca": 0,
+        "requerPrioridade": false,
+        "observacoes": "Diagnóstico de falha no motor"
+      }
+    ],
+    "observadores": []
+  },
+  {
+    "id": 3,
+    "codigo": "OS-202506281145-GHI3",
+    "dataAbertura": "2025-06-28T11:45:00",
+    "precoTotal": 220.00,
+    "idVeiculo": 3,
+    "idCliente": 1,
+    "idMecanicoResponsavel": 2,
+    "status": "AGUARDANDO_LIBERACAO",
+    "idElevadorAtual": 2,
+    "servicos": [
+      {
+        "id": 2,
+        "precoMaoDeObra": 80.00,
+        "setor": "PNEUS_RODAS",
+        "codigoPeca": "P101",                    
+        "quantidadePeca": 4,
+        "requerPrioridade": true,
+        "observacoes": "Alinhamento e balanceamento com troca de 4 pneus"
+      },
+      {
+        "id": 3,
+        "precoMaoDeObra": 140.00,
+        "setor": "SUSPENSAO",
+        "codigoPeca": "SHK001",                  
+        "quantidadePeca": 2,
+        "requerPrioridade": false,
+        "observacoes": "Troca de amortecedores dianteiros"
+      }
+    ],
+    "observadores": []
+  },
+  {
+    "id": 4,
+    "codigo": "OS-202506290800-JKL4",
+    "dataAbertura": "2025-06-29T08:00:00",
+    "precoTotal": 350.00,
+    "idVeiculo": 1,
+    "idCliente": 3,
+    "idMecanicoResponsavel": 3,
+    "status": "EM_EXECUCAO",
+    "idElevadorAtual": 3,
+    "servicos": [
+      {
+        "id": 4,
+        "precoMaoDeObra": 200.00,
+        "setor": "MOTOR",
+        "codigoPeca": "OL001",                    
+        "quantidadePeca": 4,
+        "requerPrioridade": false,
+        "observacoes": "Revisão de 40.000km com troca de fluidos"
+      },
+      {
+        "id": 5,
+        "precoMaoDeObra": 150.00,
+        "setor": "ELETRICA",
+        "codigoPeca": null,
+        "quantidadePeca": 0,
+        "requerPrioridade": false,
+        "observacoes": "Diagnóstico elétrico e correção de fiação"
+      }
+    ],
+    "observadores": []
+  },
+  {
+    "id": 5,
+    "codigo": "OS-202506290930-MNO5",
+    "dataAbertura": "2025-06-29T09:30:00",
+    "precoTotal": 180.00,
+    "idVeiculo": 4,
+    "idCliente": 2,
+    "idMecanicoResponsavel": 2,
+    "status": "AGUARDANDO_PAGAMENTO",
+    "idElevadorAtual": null,
+    "servicos": [
+      {
+        "id": 6,
+        "precoMaoDeObra": 180.00,
+        "setor": "FREIOS",
+        "codigoPeca": "PSTLFRECOM",               
+        "quantidadePeca": 1,
+        "requerPrioridade": false,
+        "observacoes": "Troca de pastilhas e retifica de discos"
+      }
+    ],
+    "observadores": []
+  },
+  {
+    "id": 6,
+    "codigo": "OS-202506291100-PQR6",
+    "dataAbertura": "2025-06-29T11:00:00",
+    "precoTotal": 0.00,
+    "idVeiculo": 5,
+    "idCliente": 3,
+    "idMecanicoResponsavel": 3,
+    "status": "CANCELADA",
+    "idElevadorAtual": null,
+    "servicos": [],
+    "observadores": []
+  },
+  {
+    "id": 7,
+    "codigo": "OS-202506300915-STU7",
+    "dataAbertura": "2025-06-30T09:15:00",
+    "precoTotal": 40.00,
+    "idVeiculo": 2,
+    "idCliente": 1,
+    "idMecanicoResponsavel": 2,
+    "status": "AGUARDANDO_DIAGNOSTICO",
+    "idElevadorAtual": null,
+    "servicos": [
+      {
+        "id": 7,
+        "precoMaoDeObra": 40.00,
+        "setor": "DIAGNOSTICO",
+        "codigoPeca": null,
+        "quantidadePeca": 0,
+        "requerPrioridade": false,
+        "observacoes": "Verificação de ruído estranho na suspensão"
+      }
+    ],
+    "observadores": []
+  },
+  {
+    "id": 8,
+    "codigo": "OS-202506301000-VWX8",
+    "dataAbertura": "2025-06-30T10:00:00",
+    "precoTotal": 550.00,
+    "idVeiculo": 3,
+    "idCliente": 2,
+    "idMecanicoResponsavel": 3,
+    "status": "FINALIZADA",
+    "idElevadorAtual": null,
+    "servicos": [
+      {
+        "id": 8,
+        "precoMaoDeObra": 550.00,
+        "setor": "MOTOR",
+        "codigoPeca": "KITEMBR",                
+        "quantidadePeca": 1,
+        "requerPrioridade": false,
+        "observacoes": "Troca de Kit Embreagem"
+      }
+    ],
+    "observadores": []
+  },
+  {
+    "id": 9,
+    "codigo": "OS-202506301130-YZA9",
+    "dataAbertura": "2025-06-30T11:30:00",
+    "precoTotal": 0.00,
+    "idVeiculo": 1,
+    "idCliente": 3,
+    "idMecanicoResponsavel": 2,
+    "status": "AGUARDANDO_DIAGNOSTICO",
+    "idElevadorAtual": null,
+    "servicos": [],
+    "observadores": []
+  },
+  {
+    "id": 10,
+    "codigo": "OS-202506301300-BCD0",
+    "dataAbertura": "2025-06-30T13:00:00",
+    "precoTotal": 75.00,
+    "idVeiculo": 4,
+    "idCliente": 1,
+    "idMecanicoResponsavel": 3,
+    "status": "EM_DIAGNOSTICO",
+    "idElevadorAtual": null,
+    "servicos": [
+      {
+        "id": 9,
+        "precoMaoDeObra": 75.00,
+        "setor": "ELETRICA",
+        "codigoPeca": "CBVUNOMIL",       
+        "quantidadePeca": 1,
+        "requerPrioridade": false,
+        "observacoes": "Troca de cabo de vela"
+      }
+    ],
     "observadores": []
   }
 ]

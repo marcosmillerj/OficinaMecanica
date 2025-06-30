@@ -391,7 +391,6 @@ public class CompGerenciarOS {
             System.err.println("Erro ao atualizar status: " + e.getMessage());
         }
     }
-
     // --- NOVO MÉTODO PARA DELEGAR PARA CompGerenciarServico ---
     private void gerenciarServicosDeOrdem() {
         System.out.println("\n--- GERENCIAR SERVIÇOS DE UMA ORDEM DE SERVIÇO ESPECÍFICA ---");

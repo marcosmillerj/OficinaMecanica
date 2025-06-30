@@ -1,10 +1,18 @@
 [
   {
     "id": 1,
-    "dataHora": "2025-12-12T12:12:00",
+    "dataHora": "2025-12-13T12:00:00",
     "idCliente": 1,
     "idVeiculo": 1,
     "valor": 50,
+    "status": "CANCELADO"
+  },
+  {
+    "id": 2,
+    "dataHora": "2025-12-23T12:00:00",
+    "idCliente": 3,
+    "idVeiculo": 4,
+    "valor": 90,
     "status": "PENDENTE"
   }
 ]

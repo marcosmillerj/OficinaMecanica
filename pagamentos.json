@@ -1,9 +1,9 @@
 [
   {
     "id": 1,
-    "dataHora": "2025-06-29T19:01:15.420265348",
-    "valor": 300,
-    "tipo": "CARTAO_DEBITO",
+    "dataHora": "2025-06-30T15:29:46.528831935",
+    "valor": 320,
+    "tipo": "CARTAO_CREDITO",
     "idOrdemServico": 1
   }
 ]

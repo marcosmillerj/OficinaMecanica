@@ -31,7 +31,7 @@ import service.VeiculoService;
  *
  * @author marcos_miller
  */
-public class CompOSEspecializada { // Não implementa IObservadorOrdemServico nesta versão
+public class CompOSEspecializada {
 
     private OrdemServicoService ordemServicoService;
     private UsuarioService usuarioService;
@@ -39,21 +39,21 @@ public class CompOSEspecializada { // Não implementa IObservadorOrdemServico ne
     private VeiculoService veiculoService;
     private ItemEstoqueService itemEstoqueService;
     private ServicoService servicoService;
-    private ElevadorService elevadorService; // ATRIBUTO AGORA INCLUÍDO E INICIALIZADO
+    private ElevadorService elevadorService;
     private Scanner scanner;
     private Usuario usuarioLogado;
 
     public CompOSEspecializada(OrdemServicoService ordemServicoService, UsuarioService usuarioService,
                                ClienteService clienteService, VeiculoService veiculoService,
                                ItemEstoqueService itemEstoqueService, ServicoService servicoService,
-                               ElevadorService elevadorService, Scanner scanner) { // CONSTRUTOR COMPLETO
+                               ElevadorService elevadorService, Scanner scanner) {
         this.ordemServicoService = ordemServicoService;
         this.usuarioService = usuarioService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.itemEstoqueService = itemEstoqueService;
         this.servicoService = servicoService;
-        this.elevadorService = elevadorService; // INICIALIZA ELEVADORSERVICE
+        this.elevadorService = elevadorService;
         this.scanner = scanner;
         this.usuarioLogado = util.UserSession.getInstance().getLoggedInUser();
     }
@@ -93,7 +93,7 @@ public class CompOSEspecializada { // Não implementa IObservadorOrdemServico ne
     private void processarOpcao(int opcao) {
         switch (opcao) {
             case 1:
-                atualizarStatusDeOrdemDeServico();
+                atualizarStatusOrdemServico();
                 break;
             case 0:
                 System.out.println("Saindo da visualização de Ordens de Serviço.");
@@ -174,7 +174,7 @@ public class CompOSEspecializada { // Não implementa IObservadorOrdemServico ne
      * Permite ao usuário atualizar o status de uma Ordem de Serviço.
      * Esta é a funcionalidade que integra a escolha do elevador.
      */
-    private void atualizarStatusDeOrdemDeServico() {
+    private void atualizarStatusOrdemServico() {
         System.out.println("\n--- ATUALIZAR STATUS DE ORDEM DE SERVIÇO ---");
         System.out.print("Digite o ID da Ordem de Serviço para alterar o status: ");
         int idOs = -1;

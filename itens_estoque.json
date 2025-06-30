@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1,
+    "codigo": "OL5W30L",
+    "nome": "Óleo de Motor 5W30 (Litro)",
+    "quantidade": 50,
+    "precoUnitario": 35.50
+  },
+  {
+    "id": 2,
+    "codigo": "FLTOLUNI",
+    "nome": "Filtro de Óleo Universal",
+    "quantidade": 120,
+    "precoUnitario": 22.90
+  },
+  {
+    "id": 3,
+    "codigo": "P101",
+    "nome": "Pneu 175/70 R13",
+    "quantidade": 60,
+    "precoUnitario": 280.00
+  },
+  {
+    "id": 4,
+    "codigo": "SHK001",
+    "nome": "Amortecedor Dianteiro (Unid.)",
+    "quantidade": 30,
+    "precoUnitario": 180.00
+  },
+  {
+    "id": 5,
+    "codigo": "OL001",
+    "nome": "Óleo Sintético 5W40 (Litro)",
+    "quantidade": 100,
+    "precoUnitario": 60.00
+  },
+  {
+    "id": 6,
+    "codigo": "PSTLFRECOM",
+    "nome": "Pastilha de Freio Comum (Jogo)",
+    "quantidade": 40,
+    "precoUnitario": 120.00
+  },
+  {
+    "id": 7,
+    "codigo": "KITEMBR",
+    "nome": "Kit Embreagem Completo",
+    "quantidade": 8,
+    "precoUnitario": 550.00
+  },
+  {
+    "id": 8,
+    "codigo": "CBVUNOMIL",
+    "nome": "Cabo de Vela Uno Mille (Jogo)",
+    "quantidade": 10,
+    "precoUnitario": 75.00
+  },
+  {
+    "id": 9,
+    "codigo": "DISC-FRE-TR",
+    "nome": "Disco de Freio Traseiro",
+    "quantidade": 25,
+    "precoUnitario": 90.00
+  },
+  {
+    "id": 10,
+    "codigo": "BTR70AH",
+    "nome": "Bateria 70Ah Selada",
+    "quantidade": 15,
+    "precoUnitario": 400.00
+  },
+  {
+    "id": 11,
+    "codigo": "CORREIA-ALT",
+    "nome": "Correia do Alternador",
+    "quantidade": 35,
+    "precoUnitario": 55.00
+  }
+]
