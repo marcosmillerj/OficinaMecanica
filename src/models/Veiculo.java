@@ -13,16 +13,13 @@ import models.enums.StatusOrdem;
  * @author camila_barbosa
  */
 public class Veiculo {
-    public static int proximoId = 1; // Contador estático para gerar IDs únicos
+    public static int proximoId = 1; 
 
-    private int id; // ID único do veículo
+    private int id;
     private String placa;
     private String modelo;
     private String cor;
-    private int idCliente; // ALTERADO: De Cliente para int (referência por ID)
-    // REMOVIDO: O atributo 'status: StatusOrdem' do Veiculo.
-    // Um veículo não tem um "status de ordem" por si só;
-    // ele pode estar em uma Ordem de Serviço que tem um status.
+    private int idCliente;
 
     /**
      * Construtor para criar um novo veículo.
@@ -31,12 +28,12 @@ public class Veiculo {
      * @param cor A cor do veículo (não pode ser nula).
      * @param idCliente O ID do cliente proprietário do veículo.
      */
-    public Veiculo (String placa, String modelo, String cor, int idCliente){ // ALTERADO: Remove StatusOrdem, recebe idCliente
+    public Veiculo (String placa, String modelo, String cor, int idCliente){ 
         this.id = proximoId++;
         this.placa = Objects.requireNonNull(placa, "Placa não pode ser nula.");
         this.modelo = Objects.requireNonNull(modelo, "Modelo não pode ser nulo.");
         this.cor = Objects.requireNonNull(cor, "Cor não pode ser nula.");
-        this.idCliente = idCliente; // Atribui o ID do cliente
+        this.idCliente = idCliente;
     }
 
     /**
@@ -47,7 +44,7 @@ public class Veiculo {
      * @param cor Cor do veículo.
      * @param idCliente ID do cliente proprietário.
      */
-    public Veiculo(int id, String placa, String modelo, String cor, int idCliente) { // ALTERADO: Remove StatusOrdem, recebe idCliente
+    public Veiculo(int id, String placa, String modelo, String cor, int idCliente) { 
         this.id = id;
         this.placa = Objects.requireNonNull(placa, "Placa não pode ser nula.");
         this.modelo = Objects.requireNonNull(modelo, "Modelo não pode ser nulo.");
@@ -80,22 +77,14 @@ public class Veiculo {
         this.cor = Objects.requireNonNull(cor, "Cor não pode ser nula.");
     }
     
-    // Getter para o ID do cliente
-    public int getIdCliente(){ // ALTERADO: Retorna int (ID)
+    public int getIdCliente(){
         return idCliente;
     }
-    // Setter para o ID do cliente
-    public void setIdCliente(int idCliente){ // ALTERADO: Recebe int (ID)
+    
+    public void setIdCliente(int idCliente){
         this.idCliente = idCliente;
     }
     
-    // REMOVIDOS getters e setters para 'status'
-
-    // --- Métodos de Comportamento ---
-    // O método 'verificarStatus()' não faz mais sentido aqui, pois o status foi removido do veículo.
-    // O status é da Ordem de Serviço, não do veículo em si.
-    // public StatusOrdem verificarStatus(){ return this.status; } // REMOVER
-
     @Override
     public String toString() {
         return "Veiculo {" +
@@ -103,21 +92,20 @@ public class Veiculo {
                 ", placa='" + placa + '\'' +
                 ", modelo='" + modelo + '\'' +
                 ", cor='" + cor + '\'' +
-                ", clienteID=" + idCliente + // Exibe o ID do cliente
+                ", clienteID=" + idCliente + 
                 '}';
     }
 
-    // Adição de equals e hashCode para garantir que Veiculo possa ser comparado por ID ou placa
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Veiculo veiculo = (Veiculo) o;
-        return id == veiculo.id; // Ou: return placa.equalsIgnoreCase(veiculo.placa); se placa for sua chave única
+        return id == veiculo.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id); // Ou Objects.hash(placa);
+        return Objects.hash(id);
     }
 }
