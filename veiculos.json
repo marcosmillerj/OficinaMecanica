@@ -5,5 +5,12 @@
     "modelo": "palio",
     "cor": "preto",
     "idCliente": 1
+  },
+  {
+    "id": 2,
+    "placa": "iij1213",
+    "modelo": "renegade",
+    "cor": "preto",
+    "idCliente": 2
   }
 ]

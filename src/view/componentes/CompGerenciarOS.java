@@ -9,7 +9,9 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import models.Cliente;
+import models.Elevador;
 import models.ItemEstoque;
 import models.OrdemServico;
 import models.Servico;
@@ -18,6 +20,7 @@ import models.Veiculo;
 import models.enums.StatusOrdem;
 import models.enums.TipoUsuario;
 import service.ClienteService;
+import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.ServicoService;
@@ -37,11 +40,12 @@ public class CompGerenciarOS {
     private ServicoService servicoService;     // NOVO ATRIBUTO! Para passar ao CompGerenciarServico
     private ItemEstoqueService itemEstoqueService; // NOVO ATRIBUTO! Para passar ao CompGerenciarServico e para ver detalhes
     private Scanner scanner;
+    private ElevadorService elevadorService;
 
     public CompGerenciarOS(OrdemServicoService ordemServicoService, ClienteService clienteService,
                            VeiculoService veiculoService, UsuarioService usuarioService,
                            ServicoService servicoService, ItemEstoqueService itemEstoqueService,
-                           Scanner scanner) {
+                           Scanner scanner, ElevadorService elevadorService) {
         this.ordemServicoService = ordemServicoService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
@@ -49,6 +53,7 @@ public class CompGerenciarOS {
         this.servicoService = servicoService;
         this.itemEstoqueService = itemEstoqueService;
         this.scanner = scanner;
+        this.elevadorService = elevadorService;
     }
 
     /**
@@ -86,7 +91,7 @@ public class CompGerenciarOS {
             case 1: criarNovaOrdemServicoIntegrada(); break;
             case 2: listarTodasOrdensDeServico(); break;
             case 3: atualizarStatusOrdemServico(); break;
-            case 4: gerenciarServicosDeOrdem(); break; // CHAMA O MÉTODO QUE DELEGA PARA CompGerenciarServico
+            case 4: gerenciarServicosDeOrdem(); break;
             case 5: verDetalhesOrdemServico(); break;
             case 0: System.out.println("Saindo do Gerenciamento de Ordens de Serviço."); break;
             default: System.out.println("Opção inválida. Tente novamente."); break;
@@ -268,8 +273,8 @@ public class CompGerenciarOS {
 
     // --- Métodos de Atualização de Status (Para o Menu de OS) ---
     private void atualizarStatusOrdemServico() {
-        System.out.println("\n--- ATUALIZAR STATUS DA ORDEM DE SERVIÇO ---");
-        System.out.print("Digite o ID da Ordem de Serviço: ");
+        System.out.println("\n--- ATUALIZAR STATUS DE ORDEM DE SERVIÇO ---");
+        System.out.print("Digite o ID da Ordem de Serviço para alterar o status: ");
         int idOs = -1;
         try {
             idOs = scanner.nextInt();
@@ -286,7 +291,7 @@ public class CompGerenciarOS {
             return;
         }
         OrdemServico os = osOpt.get();
-        System.out.println("OS atual: " + os.getCodigo() + " - Status: " + os.getStatus().getDescricao());
+        System.out.println("OS Selecionada: " + os.getCodigo() + " - Status Atual: " + os.getStatus().getDescricao());
 
         System.out.println("Selecione o novo status:");
         StatusOrdem[] statuses = StatusOrdem.values();
@@ -312,9 +317,76 @@ public class CompGerenciarOS {
             return;
         }
 
+        // --- LÓGICA DE INTERAÇÃO COM ELEVADOR (PERTENCE AQUI NA VIEW) ---
+        Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
+
+        // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
+        if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) && 
+            !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
+            
+            System.out.println("\n[SISTEMA ELEVADOR] Alocação necessária para OS " + os.getCodigo() + "...");
+            
+            // 1. Verificar se a OS requer elevador de alinhamento
+            boolean osRequerAlinhamento = os.getServicos().stream()
+                                            .anyMatch(Servico::requerPrioridade);
+
+            List<Elevador> elevadoresDisponiveis = elevadorService.listarElevadoresDisponiveis();
+
+            if (elevadoresDisponiveis.isEmpty()) {
+                System.err.println("Nenhum elevador disponível no momento. Não será possível alocar.");
+                return; // Aborta a atualização de status se elevador é necessário mas não há
+            }
+
+            // --- DECLARAÇÃO DE elevadoresFiltrados FORA DO IF/ELSE ---
+            List<Elevador> elevadoresFiltrados;
+
+            if (osRequerAlinhamento) {
+                elevadoresFiltrados = elevadoresDisponiveis.stream()
+                                                            .filter(Elevador::temCapacidadeAlinhamento)
+                                                            .collect(Collectors.toList());
+                System.out.println("OS requer elevador de Alinhamento. Elevadores disponíveis para Alinhamento:");
+            } else { // OS NÃO requer alinhamento
+                elevadoresFiltrados = elevadoresDisponiveis.stream()
+                                                    .filter(e -> !e.temCapacidadeAlinhamento())
+                                                    .collect(Collectors.toList());
+                if(elevadoresFiltrados.isEmpty()){
+                    elevadoresFiltrados.addAll(elevadoresDisponiveis);
+                    System.out.println("Nenhum elevador geral disponível. Usando elevador de alinhamento se disponível.");
+                } else {
+                    System.out.println("OS não requer elevador de Alinhamento. Elevadores Gerais disponíveis:");
+                }
+            }
+            
+            // AQUI O USUÁRIO ESCOLHE O ELEVADOR
+            for (int i = 0; i < elevadoresFiltrados.size(); i++) { // <<< ERRO AQUI!
+                System.out.println((i + 1) + ". " + elevadoresFiltrados.get(i).toString());
+            }
+            int escolha = -1;
+            try {
+                escolha = scanner.nextInt();
+                scanner.nextLine();
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Abortando alocação.");
+                scanner.nextLine();
+                return;
+            }
+
+            if (escolha > 0 && escolha <= elevadoresFiltrados.size()) {
+                idElevadorParaAlocar = Optional.of(elevadoresFiltrados.get(escolha - 1).getId());
+            } else {
+                System.err.println("Opção de elevador inválida. Abortando alocação.");
+                return;
+            }
+        }
+        // NÃO HÁ else if para liberação aqui, pois o service cuida da liberação sem input do user
+        // A liberação acontece no OrdemServicoService, que é chamado abaixo.
+        // --- FIM DA LÓGICA DE INTERAÇÃO COM ELEVADOR NA VIEW ---
+
         try {
-            ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus);
+            // Agora, passa o Optional<Integer> idElevadorParaAlocar para o serviço
+            ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus, idElevadorParaAlocar);
             System.out.println("Status da OS " + os.getCodigo() + " atualizado para " + novoStatus.getDescricao() + " com sucesso!");
+
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println("Erro ao atualizar status: " + e.getMessage());
         }

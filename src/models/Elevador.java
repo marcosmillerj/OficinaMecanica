@@ -4,6 +4,7 @@
  */
 package models;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -12,39 +13,58 @@ import java.util.Optional;
  */
 public class Elevador {
     
-    private int id;
-    private boolean isDisponivel;
-    private boolean especializadoEmAlinhamento;
-
+    private int id; // ID único do elevador (definido no ElevadorRepository)
+    private boolean isDisponivel; // Indica se o elevador está livre ou ocupado
+    private boolean capacidadeAlinhamento; // Atributo renomeado
+    
     // ID do veículo atualmente no elevador (Optional.empty() se livre).
-    // O estado do elevador (quem o ocupa) NÃO É PERSISTIDO em JSON automaticamente,
-    // ele será reiniciado a cada execução do sistema.
+    // O estado do elevador (quem o ocupa) AGORA SERÁ PERSISTIDO em JSON.
     private Optional<Integer> idVeiculoAtual; 
 
     /**
-     * Construtor para criar uma instância de Elevador.
+     * Construtor principal para criar uma instância de Elevador.
+     * Usado na primeira inicialização do repositório.
      * @param id O ID único do elevador.
-     * @param especializadoEmAlinhamento Indica se este elevador tem capacidade para alinhamento.
+     * @param capacidadeAlinhamento Indica se este elevador tem capacidade para alinhamento.
      */
-    public Elevador(int id, boolean especializadoEmAlinhamento) {
+    public Elevador(int id, boolean capacidadeAlinhamento) {
         this.id = id;
-        this.isDisponivel = true;
-        this.especializadoEmAlinhamento = especializadoEmAlinhamento;
-        this.idVeiculoAtual = Optional.empty();
+        this.isDisponivel = true; // Elevador começa disponível por padrão
+        this.capacidadeAlinhamento = capacidadeAlinhamento;
+        this.idVeiculoAtual = Optional.empty(); // Nenhum veículo inicialmente
     }
 
+    /**
+     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
+     * Garante que `idVeiculoAtual` sempre seja um `Optional` (nunca `null`).
+     * @param id ID do elevador.
+     * @param isDisponivel Status de disponibilidade do elevador.
+     * @param capacidadeAlinhamento Capacidade de alinhamento do elevador.
+     * @param idVeiculoAtual ID do veículo atualmente no elevador (Optional<Integer>).
+     */
+    public Elevador(int id, boolean isDisponivel, boolean capacidadeAlinhamento, Optional<Integer> idVeiculoAtual) {
+        this.id = id;
+        this.isDisponivel = isDisponivel;
+        this.capacidadeAlinhamento = capacidadeAlinhamento;
+        // <<< CORREÇÃO AQUI: Garante que idVeiculoAtual não seja null, mesmo que o Gson passe null
+        this.idVeiculoAtual = Objects.requireNonNullElse(idVeiculoAtual, Optional.empty()); 
+    }
+
+
     // --- Getters ---
-    public int getId() 
-        { return id; }
+    public int getId() { return id; }
+    public boolean isDisponivel() { return isDisponivel; }
+    public boolean temCapacidadeAlinhamento() { return capacidadeAlinhamento; }
     
-    public boolean isDisponivel() 
-        { return isDisponivel; }
-    
-    public boolean especializadoEmAlinhamento() 
-        { return especializadoEmAlinhamento; }
-    
-    public Optional<Integer> getIdVeiculoAtual() 
-        { return idVeiculoAtual; }
+    /**
+     * Retorna o Optional<Integer> do ID do veículo atual.
+     * GARANTE QUE NUNCA RETORNE NULL, SEMPRE UM OPTIONAL (VAZIO OU COM VALOR).
+     * Isso evita NullPointerExceptions em cadeia.
+     * @return Optional<Integer> do ID do veículo, ou Optional.empty() se não houver veículo.
+     */
+    public Optional<Integer> getIdVeiculoAtual() { 
+        return Objects.requireNonNullElse(idVeiculoAtual, Optional.empty()); // <<< CORREÇÃO AQUI!
+    }
 
     /**
      * Ocupa o elevador com um veículo.
@@ -55,7 +75,7 @@ public class Elevador {
         if (isDisponivel) {
             this.isDisponivel = false;
             this.idVeiculoAtual = Optional.of(idVeiculo);
-            System.out.println("[Elevador ID " + id + "] Ocupado com Veículo ID " + idVeiculo + ". Capacidade Alinhamento: " + especializadoEmAlinhamento + ".");
+            System.out.println("[Elevador ID " + id + "] Ocupado com Veículo ID " + idVeiculo + ". Capacidade Alinhamento: " + temCapacidadeAlinhamento() + ".");
             return true;
         }
         System.out.println("[Elevador ID " + id + "] Já está ocupado. Não pode ocupar Veículo ID " + idVeiculo + ".");
@@ -68,7 +88,8 @@ public class Elevador {
      */
     public boolean liberar() {
         if (!isDisponivel) {
-            System.out.println("[Elevador ID " + id + "] Liberado. Veículo ID " + idVeiculoAtual.orElse(-1) + " saiu.");
+            // Usa o getter defensivo para evitar NPE se por algum motivo idVeiculoAtual interno for null
+            System.out.println("[Elevador ID " + id + "] Liberado. Veículo ID " + getIdVeiculoAtual().orElse(-1) + " saiu."); 
             this.isDisponivel = true;
             this.idVeiculoAtual = Optional.empty();
             return true;
@@ -79,8 +100,9 @@ public class Elevador {
 
     @Override
     public String toString() {
-        String status = isDisponivel ? "Disponível" : "Ocupado com Veículo ID " + idVeiculoAtual.orElse(-1);
-        String capacidade = especializadoEmAlinhamento ? " (Alinhamento)" : " (Geral)";
+        // Usa o getter defensivo para evitar NPE
+        String status = isDisponivel ? "Disponível" : "Ocupado com Veículo ID " + getIdVeiculoAtual().orElse(-1); 
+        String capacidade = temCapacidadeAlinhamento() ? " (Alinhamento)" : " (Geral)";
         return "Elevador {ID: " + id + " | Status: " + status + capacidade + "}";
     }
 }

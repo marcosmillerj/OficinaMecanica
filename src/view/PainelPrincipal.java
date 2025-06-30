@@ -166,9 +166,7 @@ public class PainelPrincipal {
     private void exibirMenuOSEspecializadas() {
         CompOSEspecializada compOSEspecializada = new CompOSEspecializada(
             ordemServicoService, usuarioService, clienteService, veiculoService,
-            itemEstoqueService, servicoService, 
-            // REMOVIDO: elevadorService, 
-            scanner
+            itemEstoqueService, servicoService, elevadorService, scanner
         );
         compOSEspecializada.exibirMenu();
     }

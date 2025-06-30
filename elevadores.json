@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "isDisponivel": false,
+    "capacidadeAlinhamento": false
+  },
+  {
+    "id": 2,
+    "isDisponivel": true,
+    "capacidadeAlinhamento": false
+  },
+  {
+    "id": 3,
+    "isDisponivel": false,
+    "capacidadeAlinhamento": true
+  }
+]

@@ -85,6 +85,8 @@ public class PagamentoService {
         // Delega ao método 'finalizar' do modelo Pagamento
         pagamento.finalizar(valorFinal, tipoFinal);
         pagamentoRepository.atualizarPagamento(pagamento); // Persiste o pagamento finalizado
+        
+        Optional<Integer> idElevadorParaAlocar = Optional.empty();
 
         // Opcional: Atualizar o status da Ordem de Serviço para FINALIZADA
         if (pagamento.getIdOrdemServico().isPresent()) {
@@ -92,7 +94,7 @@ public class PagamentoService {
             try {
                 // Chama o OrdemServicoService para mudar o status da OS para FINALIZADA
                 // Passa Optional.empty() para idElevadorParaAlocar, pois a liberação já ocorreu ao mudar o status da OS antes.
-                ordemServicoService.alterarStatusOrdemServico(idOs, StatusOrdem.FINALIZADA);
+                ordemServicoService.alterarStatusOrdemServico(idOs, StatusOrdem.FINALIZADA, idElevadorParaAlocar);
                 System.out.println("Status da OS " + idOs + " alterado para FINALIZADA após pagamento.");
             } catch (IllegalArgumentException | IllegalStateException e) {
                 System.err.println("Aviso: Falha ao atualizar status da OS " + idOs + " após pagamento: " + e.getMessage());

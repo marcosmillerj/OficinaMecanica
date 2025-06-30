@@ -1,23 +1,14 @@
 [
   {
     "id": 1,
-    "codigo": "OS-250629185655-ac43",
-    "dataAbertura": "2025-06-29T18:56:55.356683466",
-    "precoTotal": 324,
+    "codigo": "OS-250630012129-db12",
+    "dataAbertura": "2025-06-30T01:21:29.878368808",
+    "precoTotal": 0,
     "idVeiculo": 1,
     "idCliente": 1,
     "idMecanicoResponsavel": 5,
-    "status": "FINALIZADA",
-    "servicos": [
-      {
-        "id": 1,
-        "precoMaoDeObra": 324,
-        "setor": "FREIOS",
-        "quantidadePeca": 0,
-        "requerPrioridade": false,
-        "observacoes": "freio ta ruim"
-      }
-    ],
+    "status": "AGUARDANDO_PAGAMENTO",
+    "servicos": [],
     "observadores": []
   }
 ]
