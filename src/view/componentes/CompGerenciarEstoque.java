@@ -72,14 +72,13 @@ public class CompGerenciarEstoque {
 
     private void adicionarItem() {
         System.out.println("\n--- Adicionar Novo Item ao Estoque ---");
-        System.out.print("Código do Item (Ex: VELA-001): "); // NOVO: Solicitar o código
+        System.out.print("Código do Item (Ex: VELA-001): ");
         String codigo = scanner.nextLine();
         System.out.print("Nome do Item: "); String nome = scanner.nextLine();
         System.out.print("Quantidade Inicial: "); int quantidade = lerInteiroValido();
         System.out.print("Preço Unitário (Ex: 12.50): "); BigDecimal precoUnitario = lerBigDecimalValido();
 
         try {
-            // AGORA PASSA O CÓDIGO!
             ItemEstoque novoItem = itemEstoqueService.adicionarItem(codigo, nome, quantidade, precoUnitario);
             System.out.println("Item '" + novoItem.getNome() + "' adicionado com sucesso ao estoque!");
         } catch (IllegalStateException | IllegalArgumentException e) {
@@ -107,11 +106,11 @@ public class CompGerenciarEstoque {
             return;
         }
         ItemEstoque itemExistente = itemOpt.get();
-        System.out.println("Item encontrado: " + itemExistente.getNome() + " (Código: " + itemExistente.getCodigo() + ")"); // Exibir código
+        System.out.println("Item encontrado: " + itemExistente.getNome() + " (Código: " + itemExistente.getCodigo() + ")");
 
         System.out.println("Deixe em branco para manter o valor atual.");
 
-        System.out.print("Novo Código (" + itemExistente.getCodigo() + "): "); // NOVO: Pedir novo código
+        System.out.print("Novo Código (" + itemExistente.getCodigo() + "): ");
         String novoCodigo = scanner.nextLine();
         if (novoCodigo.isEmpty()) { novoCodigo = itemExistente.getCodigo(); }
 
@@ -127,7 +126,6 @@ public class CompGerenciarEstoque {
         BigDecimal novoPreco = precoStr.isEmpty() ? itemExistente.getPrecoUnitario() : new BigDecimal(precoStr);
 
         try {
-            // AGORA PASSA O NOVO CÓDIGO!
             boolean sucesso = itemEstoqueService.atualizarItem(id, novoCodigo, novoNome, novaQuantidade, novoPreco);
             if (sucesso) { System.out.println("Item atualizado com sucesso!"); }
             else { System.out.println("Falha ao atualizar item."); }
@@ -176,8 +174,10 @@ public class CompGerenciarEstoque {
             System.err.println("Erro ao remover item: " + e.getMessage());
         }
     }
+    
+        // --- Métodos Auxiliares de Leitura de Input ---
 
-    // --- Métodos Auxiliares de Leitura de Input ---
+
     private int lerInteiroValido() {
         while (true) {
             try {

@@ -37,8 +37,8 @@ public class CompGerenciarOS {
     private ClienteService clienteService;
     private VeiculoService veiculoService;
     private UsuarioService usuarioService;
-    private ServicoService servicoService;     // NOVO ATRIBUTO! Para passar ao CompGerenciarServico
-    private ItemEstoqueService itemEstoqueService; // NOVO ATRIBUTO! Para passar ao CompGerenciarServico e para ver detalhes
+    private ServicoService servicoService;
+    private ItemEstoqueService itemEstoqueService;
     private Scanner scanner;
     private ElevadorService elevadorService;
 
@@ -107,8 +107,6 @@ public class CompGerenciarOS {
         Cliente cliente = null;
         Veiculo veiculo = null;
         Usuario mecanicoResponsavel = null;
-
-        // --- 1. Seleção/Criação do Cliente ---
         System.out.print("Cliente já cadastrado no sistema? (S/N): ");
         String respCliente = scanner.nextLine().trim().toUpperCase();
         if (respCliente.equals("S")) {
@@ -132,7 +130,6 @@ public class CompGerenciarOS {
             return;
         }
 
-        // --- 2. Seleção/Criação do Veículo ---
         System.out.print("Veículo já cadastrado no sistema? (S/N): ");
         String respVeiculo = scanner.nextLine().trim().toUpperCase();
         if (respVeiculo.equals("S")) {
@@ -156,7 +153,6 @@ public class CompGerenciarOS {
             return;
         }
 
-        // --- 3. Seleção do Mecânico Responsável ---
         Optional<Usuario> mecanicoOpt = solicitarMecanicoResponsavel();
         if (mecanicoOpt.isPresent()) {
             mecanicoResponsavel = mecanicoOpt.get();
@@ -165,7 +161,6 @@ public class CompGerenciarOS {
             return;
         }
 
-        // --- Tentar Criar a Ordem de Serviço ---
         try {
             OrdemServico novaOS = ordemServicoService.criarNovaOrdemServico(
                 cliente.getId(),
@@ -178,7 +173,6 @@ public class CompGerenciarOS {
         }
     }
 
-    // --- Métodos Auxiliares para Coleta/Busca de Cliente ---
     private Optional<Cliente> solicitarClienteExistente() {
         System.out.print("Digite o Email do Cliente: ");
         String email = scanner.nextLine();
@@ -201,7 +195,6 @@ public class CompGerenciarOS {
         }
     }
 
-    // --- Métodos Auxiliares para Coleta/Busca de Veículo ---
     private Optional<Veiculo> solicitarVeiculoExistente() {
         System.out.print("Digite a Placa do Veículo: ");
         String placa = scanner.nextLine();
@@ -225,7 +218,6 @@ public class CompGerenciarOS {
         }
     }
 
-    // --- Métodos Auxiliares para Seleção de Mecânico ---
     private Optional<Usuario> solicitarMecanicoResponsavel() {
         System.out.println("\n--- SELECIONAR MECÂNICO RESPONSÁVEL ---");
         List<Usuario> mecanicos = usuarioService.listarUsuarios().stream()
@@ -260,7 +252,6 @@ public class CompGerenciarOS {
         }
     }
 
-    // --- Métodos de Listagem (Para o Menu de OS) ---
     private void listarTodasOrdensDeServico() {
         System.out.println("\n--- LISTA DE ORDENS DE SERVIÇO ---");
         List<OrdemServico> ordens = ordemServicoService.listarTodasOrdens();
@@ -271,7 +262,6 @@ public class CompGerenciarOS {
         }
     }
 
-    // --- Métodos de Atualização de Status (Para o Menu de OS) ---
     private void atualizarStatusOrdemServico() {
         System.out.println("\n--- ATUALIZAR STATUS DE ORDEM DE SERVIÇO ---");
         System.out.print("Digite o ID da Ordem de Serviço para alterar o status: ");
@@ -317,16 +307,13 @@ public class CompGerenciarOS {
             return;
         }
 
-        // --- LÓGICA DE INTERAÇÃO COM ELEVADOR (PERTENCE AQUI NA VIEW) ---
-        Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
+        Optional<Integer> idElevadorParaAlocar = Optional.empty();
 
-        // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
         if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) && 
             !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
             
             System.out.println("\n[SISTEMA ELEVADOR] Alocação necessária para OS " + os.getCodigo() + "...");
             
-            // 1. Verificar se a OS requer elevador de alinhamento
             boolean osRequerAlinhamento = os.getServicos().stream()
                                             .anyMatch(Servico::requerPrioridade);
 
@@ -334,10 +321,9 @@ public class CompGerenciarOS {
 
             if (elevadoresDisponiveis.isEmpty()) {
                 System.err.println("Nenhum elevador disponível no momento. Não será possível alocar.");
-                return; // Aborta a atualização de status se elevador é necessário mas não há
+                return;
             }
 
-            // --- DECLARAÇÃO DE elevadoresFiltrados FORA DO IF/ELSE ---
             List<Elevador> elevadoresFiltrados;
 
             if (osRequerAlinhamento) {
@@ -345,7 +331,7 @@ public class CompGerenciarOS {
                                                             .filter(Elevador::temCapacidadeAlinhamento)
                                                             .collect(Collectors.toList());
                 System.out.println("OS requer elevador de Alinhamento. Elevadores disponíveis para Alinhamento:");
-            } else { // OS NÃO requer alinhamento
+            } else {
                 elevadoresFiltrados = elevadoresDisponiveis.stream()
                                                     .filter(e -> !e.temCapacidadeAlinhamento())
                                                     .collect(Collectors.toList());
@@ -357,7 +343,6 @@ public class CompGerenciarOS {
                 }
             }
             
-            // AQUI O USUÁRIO ESCOLHE O ELEVADOR
             for (int i = 0; i < elevadoresFiltrados.size(); i++) { // <<< ERRO AQUI!
                 System.out.println((i + 1) + ". " + elevadoresFiltrados.get(i).toString());
             }
@@ -378,12 +363,8 @@ public class CompGerenciarOS {
                 return;
             }
         }
-        // NÃO HÁ else if para liberação aqui, pois o service cuida da liberação sem input do user
-        // A liberação acontece no OrdemServicoService, que é chamado abaixo.
-        // --- FIM DA LÓGICA DE INTERAÇÃO COM ELEVADOR NA VIEW ---
 
         try {
-            // Agora, passa o Optional<Integer> idElevadorParaAlocar para o serviço
             ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus, idElevadorParaAlocar);
             System.out.println("Status da OS " + os.getCodigo() + " atualizado para " + novoStatus.getDescricao() + " com sucesso!");
 
@@ -391,7 +372,6 @@ public class CompGerenciarOS {
             System.err.println("Erro ao atualizar status: " + e.getMessage());
         }
     }
-    // --- NOVO MÉTODO PARA DELEGAR PARA CompGerenciarServico ---
     private void gerenciarServicosDeOrdem() {
         System.out.println("\n--- GERENCIAR SERVIÇOS DE UMA ORDEM DE SERVIÇO ESPECÍFICA ---");
         System.out.print("Digite o ID da Ordem de Serviço para gerenciar seus serviços: ");
@@ -413,21 +393,17 @@ public class CompGerenciarOS {
         OrdemServico osSelecionada = osOpt.get();
         System.out.println("OS Selecionada: " + osSelecionada.getCodigo() + " - Status: " + osSelecionada.getStatus().getDescricao());
 
-        // CHAMA O CompGerenciarServico, passando a OS e os Services necessários
         CompGerenciarServico compGerenciarServico = new CompGerenciarServico(
-            osSelecionada,       // A Ordem de Serviço de contexto
-            servicoService,      // Para gerenciar serviços do sistema
-            itemEstoqueService,  // Para seleção de peças
-            ordemServicoService, // Para adicionar/remover/atualizar na OS
-            scanner              // Scanner
+            osSelecionada,
+            servicoService,
+            itemEstoqueService,
+            ordemServicoService,
+            scanner 
         );
-        compGerenciarServico.exibirMenu(); // Entra no menu de gerenciamento de serviços daquela OS
+        compGerenciarServico.exibirMenu();
         System.out.println("\n--- Retornando ao Gerenciamento de Ordens de Serviço ---");
     }
 
-    // --- O MÉTODO verDetalhesOrdemServico() (EXISTENTE) ---
-    // Este método exibe os detalhes completos de uma OS (incluindo seus serviços e referências)
-    // Ele será mantido aqui no CompGerenciarOS.
     private void verDetalhesOrdemServico() {
         System.out.println("\n--- DETALHES DA ORDEM DE SERVIÇO ---");
         System.out.print("Digite o ID da Ordem de Serviço: ");
@@ -447,9 +423,8 @@ public class CompGerenciarOS {
             return;
         }
         OrdemServico os = osOpt.get();
-        System.out.println("\n" + os.toString()); // Exibe o toString básico da OS
+        System.out.println("\n" + os.toString());
 
-        // Detalhes adicionais (requer buscar Cliente, Veiculo, Mecanico)
         Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(os.getIdCliente());
         Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorId(os.getIdVeiculo());
         Optional<Usuario> mecanicoOpt = usuarioService.buscarUsuarioPorId(os.getIdMecanicoResponsavel());
@@ -458,7 +433,6 @@ public class CompGerenciarOS {
         System.out.println("  Veículo: " + (veiculoOpt.isPresent() ? veiculoOpt.get().getPlaca() + " (" + veiculoOpt.get().getModelo() + ")" : "Desconhecido"));
         System.out.println("  Mecânico: " + (mecanicoOpt.isPresent() ? mecanicoOpt.get().getNome() : "Desconhecido"));
 
-        // Listar detalhes dos serviços (requer buscar ItemEstoque para peças)
         List<Servico> servicosNaOS = os.getServicos();
         if (servicosNaOS.isEmpty()) {
             System.out.println("  Serviços: Nenhum serviço adicionado.");
@@ -466,22 +440,21 @@ public class CompGerenciarOS {
             System.out.println("  Serviços Detalhados:");
             for (Servico servico : servicosNaOS) {
                 String pecaInfo = "Sem peça";
-                // Corrigido: servico.getIdItemEstoquePeca() não existe mais, usar servico.getCodigoPeca()
-                if (servico.getCodigoPeca() != null && !servico.getCodigoPeca().isEmpty()) { // Usar .isEmpty() para String
-                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca()); // Busca por CÓDIGO
+                if (servico.getCodigoPeca() != null && !servico.getCodigoPeca().isEmpty()) { 
+                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca());
                     pecaInfo = pecaOpt.isPresent() ? pecaOpt.get().getNome() : "Peça Desconhecida";
                 }
-                // Corrigido: servico.getDescricao() não existe mais, usar servico.getObservacoes()
-                // Corrigido: servico.getPreco() retorna precoMaoDeObra, usar getPrecoMaoDeObra()
                 System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Prioridade: %b - Peça: %s%n",
                                 servico.getId(), servico.getObservacoes(), servico.getSetor().getDescricao(),
-                                servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo); // Usar getObservacoes e requerPrioridade
+                                servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo);
             }
         }
         System.out.println("---------------------------------------------");
     }
+    
+        // --- Métodos Auxiliares de Leitura de Input ---
 
-    // --- Métodos Auxiliares de Leitura de Input (EXISTENTES) ---
+
     private int lerInteiroValido() {
         while (true) {
             try {
@@ -505,6 +478,4 @@ public class CompGerenciarOS {
             }
         }
     }
-    // Removidos todos os métodos auxiliares de serviço que foram movidos para CompGerenciarServico
-    // (solicitarServicoExistenteDoSistema, solicitarDadosNovoServicoParaSistema, solicitarSetorServico)
 }

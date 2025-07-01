@@ -119,8 +119,7 @@ public class MenuMecanico {
         String mensagem = scanner.nextLine();
 
         try {
-            // Por agora, vamos simular a notificação com uma mensagem para o console
-            itemEstoqueService.informarFaltaDeItem(codigoPeca, mensagem); // Chamada hipotética
+            itemEstoqueService.informarFaltaDeItem(codigoPeca, mensagem); // Chamada hipotética para o mvp
             System.out.println("Notificação de falta de peça enviada para o gerente (simulado).");
         } catch (IllegalArgumentException e) {
             System.err.println("Erro ao informar falta de peça: " + e.getMessage());

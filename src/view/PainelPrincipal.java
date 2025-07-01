@@ -102,7 +102,6 @@ public class PainelPrincipal {
             System.out.println("Bem-vindo(a), " + usuarioLogado.getNome() + "!");
             System.out.println("---------------------------------------------");
 
-            // 1. Exibir e Processar o Componente de Ponto
             int opcaoPonto = compPonto.exibirStatusEPedirAcao();
             if (opcaoPonto == 8 || opcaoPonto == 9) {
                 compPonto.processarAcaoPonto(opcaoPonto, usuarioLogado);
@@ -111,14 +110,9 @@ public class PainelPrincipal {
             }
             System.out.println("---------------------------------------------");
 
-            // 2. Exibir a Lista de O.S. Especializadas
-            // IMPORTANTE: Se CompOSEspecializada ainda precisar de ElevadorService,
-            // e o OrdemServicoService NÃO MAIS tiver ElevadorService, precisaremos decidir.
-            // Por agora, vamos ASSUMIR que CompOSEspecializada e OrdemServicoService não o usam mais.
             exibirMenuOSEspecializadas(); 
             System.out.println("---------------------------------------------");
 
-            // 3. DIRECIONAR PARA O MENU DE FUNCIONALIDADES DO USUÁRIO
             switch (usuarioLogado.getTipo()) {
                 case ATENDENTE:
                     System.out.println("\n--- ABRINDO MENU DO ATENDENTE ---");
@@ -131,7 +125,6 @@ public class PainelPrincipal {
                     break;
                 case MECANICO:
                     System.out.println("\n--- ABRINDO MENU DO MECÂNICO ---");
-                    // MenuMecanico agora SEM ElevadorService
                     MenuMecanico menuMecanico = new MenuMecanico(
                         itemEstoqueService, ordemServicoService, servicoService, usuarioService, scanner,
                         elevadorService
@@ -140,11 +133,9 @@ public class PainelPrincipal {
                     break;
                 case GERENTE:
                     System.out.println("\n--- ABRINDO MENU DO GERENTE ---");
-                    // MenuGerente agora SEM ElevadorService
                     MenuGerente menuGerente = new MenuGerente(
                         usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
                         itemEstoqueService, servicoService, relatorioService
-                        // REMOVIDO: elevadorService
                     );
                     menuGerente.exibirMenu();
                     break;
@@ -155,14 +146,9 @@ public class PainelPrincipal {
 
             UserSession.getInstance().logout(); 
             System.out.println("Saindo do Painel " + usuarioLogado.getTipo().getDescricao() + ". Até mais!");
-        } while (false); // Loop externo do PainelPrincipal - ajustado no último turno para ser um loop
-                         // Se o PainelPrincipal tiver um loop do-while, esta linha é `while (opcao != 0);` no final do método.
-                         // Pelo que está no código atual, ele TEM um loop do-while.
-        // A sua versão atual do PainelPrincipal tinha um do-while no exibirPainel().
-        // Não vamos mexer no loop.
+        } while (false);
     }
 
-    // Método que chama o CompOSEspecializada, agora SEM ElevadorService
     private void exibirMenuOSEspecializadas() {
         CompOSEspecializada compOSEspecializada = new CompOSEspecializada(
             ordemServicoService, usuarioService, clienteService, veiculoService,

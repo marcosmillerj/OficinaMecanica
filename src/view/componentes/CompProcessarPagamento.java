@@ -22,7 +22,7 @@ import service.PagamentoService;
 public class CompProcessarPagamento {
 
     private PagamentoService pagamentoService;
-    private OrdemServicoService ordemServicoService; // Para buscar a OS e o valor
+    private OrdemServicoService ordemServicoService;
     private Scanner scanner;
 
     public CompProcessarPagamento(PagamentoService pagamentoService, OrdemServicoService ordemServicoService, Scanner scanner) {
@@ -36,7 +36,7 @@ public class CompProcessarPagamento {
         do {
             System.out.println("\n===== Processar Pagamentos =====");
             System.out.println("1. Iniciar Novo Pagamento");
-            System.out.println("2. Finalizar Pagamento Pendente"); // Para pagamentos que foram iniciados mas não finalizados
+            System.out.println("2. Finalizar Pagamento Pendente");
             System.out.println("3. Listar Todos os Pagamentos");
             System.out.println("0. Voltar ao Menu Anterior");
             System.out.print("Escolha uma opção: ");
@@ -79,14 +79,13 @@ public class CompProcessarPagamento {
         }
 
         try {
-            // Busca a OS para exibir o valor e verificar o status
             Optional<OrdemServico> osOpt = ordemServicoService.buscarOrdemServicoPorId(idOs);
             if (osOpt.isEmpty()) {
                 System.out.println("Ordem de Serviço com ID " + idOs + " não encontrada.");
                 return;
             }
             OrdemServico os = osOpt.get();
-            BigDecimal valorTotalOS = ordemServicoService.calcularPrecoTotalFinalOS(os); // Calcula o valor total real da OS
+            BigDecimal valorTotalOS = ordemServicoService.calcularPrecoTotalFinalOS(os);
 
             System.out.println("OS " + os.getCodigo() + " - Status: " + os.getStatus().getDescricao());
             System.out.println("Valor total da OS: R$ " + String.format("%.2f", valorTotalOS));
@@ -119,12 +118,11 @@ public class CompProcessarPagamento {
         }
         Pagamento pagamento = pagamentoOpt.get();
         
-        if (pagamento.getDataHora() != null) { // Já foi finalizado
+        if (pagamento.getDataHora() != null) {
             System.out.println("Pagamento ID " + idPagamento + " já foi finalizado em " + pagamento.getDataHora().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + ".");
             return;
         }
 
-        // Recupera a OS para exibir o valor total
         Optional<OrdemServico> osOpt = pagamento.getIdOrdemServico().isPresent() ?
                                         ordemServicoService.buscarOrdemServicoPorId(pagamento.getIdOrdemServico().get()) : Optional.empty();
         BigDecimal valorTotalDevido = BigDecimal.ZERO;
@@ -194,6 +192,7 @@ public class CompProcessarPagamento {
     }
 
     // --- Métodos Auxiliares de Leitura de Input ---
+    
     private int lerInteiroValido() {
         while (true) {
             try {
@@ -215,7 +214,6 @@ public class CompProcessarPagamento {
                 return new BigDecimal(input);
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
-                // NÃO CHAME scanner.nextLine() AQUI! O input já foi lido no prompt.
             }
         }
     }

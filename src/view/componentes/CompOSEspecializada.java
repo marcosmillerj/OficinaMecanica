@@ -61,7 +61,7 @@ public class CompOSEspecializada {
 
     public void exibirMenu() {
         int opcao;
-        exibirOrdens(); // Apenas uma vez, não dentro do loop
+        exibirOrdens();
 
         do {
             System.out.println("\n--- Opções de Ordens de Serviço ---");
@@ -80,14 +80,7 @@ public class CompOSEspecializada {
 
             processarOpcao(opcao);
 
-            // Mensagem para demonstrar a NÃO atualização automática (versão SEM Observer)
-            if (opcao != 0 && opcao != -1) {
-                System.out.println("\n(A lista acima NÃO foi atualizada automaticamente. Saia do menu e entre novamente para ver a mudança.)");
-            }
-
         } while (opcao != 0);
-
-        // Não desregistra observadores, pois não os tem nesta versão.
     }
     
     private void processarOpcao(int opcao) {
@@ -219,16 +212,13 @@ public class CompOSEspecializada {
             return;
         }
 
-        // --- LÓGICA DE INTERAÇÃO COM ELEVADOR (PERTENCE AQUI NA VIEW) ---
-        Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
+        Optional<Integer> idElevadorParaAlocar = Optional.empty();
 
-        // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
         if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) && 
             !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
             
             System.out.println("\n[SISTEMA ELEVADOR] Alocação necessária para OS " + os.getCodigo() + "...");
             
-            // 1. Verificar se a OS requer elevador de alinhamento
             boolean osRequerAlinhamento = os.getServicos().stream()
                                             .anyMatch(Servico::requerPrioridade);
 
@@ -236,10 +226,9 @@ public class CompOSEspecializada {
 
             if (elevadoresDisponiveis.isEmpty()) {
                 System.err.println("Nenhum elevador disponível no momento. Não será possível alocar.");
-                return; // Aborta a atualização de status se elevador é necessário mas não há
+                return;
             }
 
-            // --- DECLARAÇÃO DE elevadoresFiltrados FORA DO IF/ELSE ---
             List<Elevador> elevadoresFiltrados;
 
             if (osRequerAlinhamento) {
@@ -247,7 +236,7 @@ public class CompOSEspecializada {
                                                             .filter(Elevador::temCapacidadeAlinhamento)
                                                             .collect(Collectors.toList());
                 System.out.println("OS requer elevador de Alinhamento. Elevadores disponíveis para Alinhamento:");
-            } else { // OS NÃO requer alinhamento
+            } else {
                 elevadoresFiltrados = elevadoresDisponiveis.stream()
                                                     .filter(e -> !e.temCapacidadeAlinhamento())
                                                     .collect(Collectors.toList());
@@ -259,8 +248,7 @@ public class CompOSEspecializada {
                 }
             }
             
-            // AQUI O USUÁRIO ESCOLHE O ELEVADOR
-            for (int i = 0; i < elevadoresFiltrados.size(); i++) { // <<< ERRO AQUI!
+            for (int i = 0; i < elevadoresFiltrados.size(); i++) {
                 System.out.println((i + 1) + ". " + elevadoresFiltrados.get(i).toString());
             }
             int escolha = -1;
@@ -280,12 +268,8 @@ public class CompOSEspecializada {
                 return;
             }
         }
-        // NÃO HÁ else if para liberação aqui, pois o service cuida da liberação sem input do user
-        // A liberação acontece no OrdemServicoService, que é chamado abaixo.
-        // --- FIM DA LÓGICA DE INTERAÇÃO COM ELEVADOR NA VIEW ---
 
         try {
-            // Agora, passa o Optional<Integer> idElevadorParaAlocar para o serviço
             ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus, idElevadorParaAlocar);
             System.out.println("Status da OS " + os.getCodigo() + " atualizado para " + novoStatus.getDescricao() + " com sucesso!");
 
@@ -295,6 +279,7 @@ public class CompOSEspecializada {
     }
 
     // --- Métodos Auxiliares de Leitura de Input ---
+    
     private int lerInteiroValido(String prompt) {
         while (true) {
             System.out.print(prompt);

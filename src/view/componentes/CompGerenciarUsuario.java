@@ -32,7 +32,6 @@ public class CompGerenciarUsuario {
         System.out.println("Menu de Gerenciamento de Usuários iniciado.");
     }
     
-    // Método principal para exibir o menu e gerenciar as opções
     public void exibirMenu() {
         int opcao;
         do {
@@ -75,7 +74,6 @@ public class CompGerenciarUsuario {
         } while (opcao != 0);
     }
 
-    // Método para adicionar um novo usuário (agora chamando o Service e com TipoUsuario)
     private void adicionarUsuario() {
         System.out.println("\n--- Adicionar Novo Usuário ---");
         System.out.print("Nome: ");
@@ -91,7 +89,6 @@ public class CompGerenciarUsuario {
         System.out.print("Senha: ");
         String senha = scanner.nextLine();
 
-        // NOVO: Seleção do Tipo de Usuário (usando o enum TipoUsuario)
         System.out.println("Selecione o Tipo de Usuário:");
         TipoUsuario[] tipos = TipoUsuario.values();
         for (int i = 0; i < tipos.length; i++) {
@@ -110,48 +107,43 @@ public class CompGerenciarUsuario {
 
         TipoUsuario tipoSelecionado = null;
         try {
-            // Converte a opção numérica para o valor do enum
-            tipoSelecionado = tipos[tipoOpcao - 1]; // ordinal() é base 0, opções são base 1
+            tipoSelecionado = tipos[tipoOpcao - 1];
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("Erro: Opção de tipo inválida. Abortando adição.");
             return;
         }
 
         try {
-            // A view agora passa os dados brutos para o service
             Usuario novoUsuario = usuarioService.adicionarUsuario(nome, cpf, endereco, email, telefone, senha, tipoSelecionado);
             System.out.println("Usuário '" + novoUsuario.getNome() + "' (ID: " + novoUsuario.getId() + ") adicionado com sucesso!");
         } catch (IllegalArgumentException | IllegalStateException e) {
-            // A view trata as exceções que vêm do service (ou do model, via service)
             System.err.println("Erro ao adicionar usuário: " + e.getMessage());
         }
     }
     
-    // Método para listar todos os usuários (chama o Service)
     private void listarUsuarios() {
         System.out.println("\n--- Lista de Usuários ---");
-        List<Usuario> usuarios = usuarioService.listarUsuarios(); // Chama o service
+        List<Usuario> usuarios = usuarioService.listarUsuarios();
         if (usuarios.isEmpty()) {
             System.out.println("Nenhum usuário cadastrado.");
         } else {
             for (Usuario u : usuarios) {
-                System.out.println(u.toString()); // Usa o toString() que já inclui o tipo
+                System.out.println(u.toString());
             }
         }
     }
 
-    // Método para atualizar um usuário (agora busca por CPF e chama o Service)
     private void atualizarUsuario() {
         System.out.println("\n--- Atualizar Usuário ---");
         System.out.print("Digite o CPF do usuário a ser atualizado: ");
         String cpfBusca = scanner.nextLine();
 
-        Optional<Usuario> usuarioExistenteOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca); // Chama o Service
+        Optional<Usuario> usuarioExistenteOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca);
         if (usuarioExistenteOpt.isEmpty()) {
             System.out.println("Usuário com CPF " + cpfBusca + " não encontrado.");
             return;
         }
-        Usuario usuarioExistente = usuarioExistenteOpt.get(); // Obtém o objeto Usuario
+        Usuario usuarioExistente = usuarioExistenteOpt.get();
 
         System.out.println("Usuário encontrado: " + usuarioExistente.getNome() + " (Tipo: " + usuarioExistente.getTipo().getDescricao() + ")");
         System.out.println("Deixe em branco para manter o valor atual.");
@@ -172,7 +164,6 @@ public class CompGerenciarUsuario {
         String novoTelefone = scanner.nextLine();
         if (novoTelefone.isEmpty()) { novoTelefone = usuarioExistente.getTelefone(); }
 
-        // Seleção do Novo Tipo de Usuário
         System.out.println("Selecione o Novo Tipo de Usuário (Atual: " + usuarioExistente.getTipo().getDescricao() + "):");
         TipoUsuario[] tipos = TipoUsuario.values();
         for (int i = 0; i < tipos.length; i++) {
@@ -188,19 +179,16 @@ public class CompGerenciarUsuario {
             scanner.nextLine();
             return;
         }
-        // Valida se a opção é válida e, se não for, mantém o tipo existente
         TipoUsuario novoTipoSelecionado = null;
         try {
             novoTipoSelecionado = tipos[novoTipoOpcao - 1];
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("Erro: Opção de tipo inválida. Mantendo tipo atual: " + usuarioExistente.getTipo().getDescricao());
-            novoTipoSelecionado = usuarioExistente.getTipo(); // Mantém o tipo antigo
+            novoTipoSelecionado = usuarioExistente.getTipo();
         }
 
 
         try {
-            // Passa o ID do usuário (que obtivemos após a busca por CPF) para o Service
-            // O Service é que usará o ID para encontrar o objeto na lista do CRUD
             boolean sucesso = usuarioService.atualizarUsuario(usuarioExistente.getId(), novoNome, novoEndereco, novoEmail, novoTelefone, novoTipoSelecionado);
             if (sucesso) {
                 System.out.println("Usuário atualizado com sucesso!");
@@ -209,24 +197,22 @@ public class CompGerenciarUsuario {
             }
         } catch (IllegalStateException e) {
             System.err.println("Erro ao atualizar usuário: " + e.getMessage()); 
-        } catch (IllegalArgumentException e) { // Captura erros de formato (se houver, do model)
+        } catch (IllegalArgumentException e) {
             System.err.println("Erro de formato ao atualizar usuário: " + e.getMessage());
         }
     }
 
-    // Método para remover um usuário (agora busca por CPF e chama o Service)
     private void removerUsuario() {
         System.out.println("\n--- Remover Usuário ---");
         System.out.print("Digite o CPF do usuário a ser removido: ");
         String cpfBusca = scanner.nextLine();
 
-        Optional<Usuario> usuarioParaRemoverOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca); // Chama o Service
+        Optional<Usuario> usuarioParaRemoverOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca);
         if (usuarioParaRemoverOpt.isEmpty()) {
             System.out.println("Usuário com CPF " + cpfBusca + " não encontrado.");
             return;
         }
 
-        // Se encontrou o usuário, usa o ID dele para remover
         boolean sucesso = usuarioService.removerUsuario(usuarioParaRemoverOpt.get().getId());
         if (sucesso) {
             System.out.println("Usuário removido com sucesso!");

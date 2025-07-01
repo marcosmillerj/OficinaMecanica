@@ -18,10 +18,9 @@ import util.UserSession;
  */
 public class CompPonto {
 
-    private RegistroPontoService pontoService; // Dependência do serviço de ponto
-    private Scanner scanner;                   // Scanner injetado para entrada do usuário
+    private RegistroPontoService pontoService;
+    private Scanner scanner;
 
-    // Formatador para exibir a data e hora do ponto
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd/MM");
 
     /**
@@ -39,11 +38,11 @@ public class CompPonto {
      * @return A opção numérica escolhida pelo usuário (8 para entrada, 9 para saída, ou outra para ignorar).
      */
     public int exibirStatusEPedirAcao() {
-        Usuario usuarioLogado = UserSession.getInstance().getLoggedInUser(); // Obtém o usuário logado da sessão
+        Usuario usuarioLogado = UserSession.getInstance().getLoggedInUser();
 
         if (usuarioLogado == null) {
             System.err.println("Erro: Nenhum usuário logado na sessão para exibir o ponto.");
-            return -1; // Retorna um valor inválido
+            return -1;
         }
 
         System.out.println("\n--- Status do Ponto de " + usuarioLogado.getNome() + " ---");
@@ -71,11 +70,11 @@ public class CompPonto {
 
         try {
             int opcaoPonto = scanner.nextInt();
-            scanner.nextLine(); // Consome a nova linha
+            scanner.nextLine();
             return opcaoPonto;
         } catch (java.util.InputMismatchException e) {
-            scanner.nextLine(); // Limpa o buffer em caso de entrada inválida
-            return -1; // Retorna um valor que indica que a opção não é de ponto
+            scanner.nextLine();
+            return -1;
         }
     }
 

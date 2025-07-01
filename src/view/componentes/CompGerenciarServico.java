@@ -23,10 +23,10 @@ import service.ServicoService;
  */
 public class CompGerenciarServico {
 
-    private OrdemServico ordemDeServicoContexto; // A Ordem de Serviço que este componente está manipulando
-    private ServicoService servicoService;       // Serviço para auxiliar na criação de instico de Servico
-    private ItemEstoqueService itemEstoqueService; // Para seleção de peças
-    private OrdemServicoService ordemServicoService; // Para adicionar/remover/atualizar na OS (persiste a OS)
+    private OrdemServico ordemDeServicoContexto;
+    private ServicoService servicoService;
+    private ItemEstoqueService itemEstoqueService;
+    private OrdemServicoService ordemServicoService;
     private Scanner scanner;
 
     /**
@@ -85,23 +85,16 @@ public class CompGerenciarServico {
         }
     }
 
-    // --- Métodos de Manipulação de Serviço na Ordem de Serviço Específica ---
-
     private void adicionarServicoAOrdem() {
         System.out.println("\n--- ADICIONAR SERVIÇO À OS " + ordemDeServicoContexto.getCodigo() + " ---");
         
-        // NUNCA MAIS PERGUNTA "Serviço já existe", SEMPRE CRIA UM NOVO SERVIÇO PARA ESSA OS
-        // A lógica de serviço não ter um "catálogo global" está embutida aqui.
-        // O serviço é criado especificamente para esta OS.
-        
-        Optional<Servico> novoServicoOpt = solicitarDadosNovoServicoParaOS(); // Cria novo serviço (instância)
+        Optional<Servico> novoServicoOpt = solicitarDadosNovoServicoParaOS();
         if (novoServicoOpt.isEmpty()) {
             System.out.println("Criação do serviço falhou. Abortando adição à OS.");
             return;
         }
         Servico servicoAAcionar = novoServicoOpt.get();
 
-        // Adicionar o Serviço à OS usando o OrdemServicoService
         try {
             ordemServicoService.adicionarServicoNaOrdem(ordemDeServicoContexto.getId(), servicoAAcionar);
             System.out.println("Serviço '" + servicoAAcionar.getObservacoes() + "' adicionado à OS " + ordemDeServicoContexto.getCodigo() + " com sucesso!");
@@ -112,7 +105,7 @@ public class CompGerenciarServico {
 
     private void removerServicoDaOrdem() {
         System.out.println("\n--- REMOVER SERVIÇO DA OS " + ordemDeServicoContexto.getCodigo() + " ---");
-        List<Servico> servicosNaOS = ordemDeServicoContexto.getServicos(); // Pega a lista de serviços da OS em contexto
+        List<Servico> servicosNaOS = ordemDeServicoContexto.getServicos(); 
 
         if (servicosNaOS.isEmpty()) {
             System.out.println("Esta Ordem de Serviço não possui serviços para remover.");
@@ -172,14 +165,14 @@ public class CompGerenciarServico {
         if (novasObservacoes.isEmpty()) { novasObservacoes = servicoAAtualizar.getObservacoes(); }
 
         System.out.print("Preço Mão de Obra (Atual: " + servicoAAtualizar.getPrecoMaoDeObra() + "): "); String precoStr = scanner.nextLine();
-        BigDecimal novoPreco = precoStr.isEmpty() ? servicoAAtualizar.getPrecoMaoDeObra() : lerBigDecimalValido(precoStr); // Usa auxiliar para BigDecimal
+        BigDecimal novoPreco = precoStr.isEmpty() ? servicoAAtualizar.getPrecoMaoDeObra() : lerBigDecimalValido(precoStr);
         SetorServico novoSetor = solicitarSetorServico(servicoAAtualizar.getSetor());
         
         System.out.print("Código da Peça de Estoque (Atual: " + (servicoAAtualizar.getCodigoPeca() != null ? servicoAAtualizar.getCodigoPeca() : "Nenhuma") + ", deixe em branco para manter, '0' para remover): ");
         String novoCodigoPeca = scanner.nextLine();
-        if (novoCodigoPeca.isEmpty()) { // Mantém o atual
+        if (novoCodigoPeca.isEmpty()) {
             novoCodigoPeca = servicoAAtualizar.getCodigoPeca();
-        } else if (novoCodigoPeca.equals("0")) { // Remove a peça
+        } else if (novoCodigoPeca.equals("0")) {
             novoCodigoPeca = null;
         }
         
@@ -187,18 +180,12 @@ public class CompGerenciarServico {
         String qtdPecaStr = scanner.nextLine();
         int novaQuantidadePeca = qtdPecaStr.isEmpty() ? servicoAAtualizar.getQuantidadePeca() : Integer.parseInt(qtdPecaStr);
 
-        // Requer Prioridade é definido pelo Setor, não é perguntado ao usuário
-        boolean novoRequerPrioridade = (novoSetor == SetorServico.PNEUS_RODAS); // Lógica do sistema
+        boolean novoRequerPrioridade = (novoSetor == SetorServico.PNEUS_RODAS);
 
         try {
-            // Chama o ServicoService para ATUALIZAR A INSTÂNCIA do serviço
-            // O ServicoService vai validar e atualizar o objeto servicoAAtualizar (que é referência na OS)
             boolean sucessoServicoAtualizado = servicoService.atualizarInstanciaServico(
                 servicoAAtualizar.getId(), novoPreco, novoSetor, novoCodigoPeca, novaQuantidadePeca, novasObservacoes
             );
-            
-            // Depois de atualizar o objeto Servico em memória, precisamos persistir a Ordem de Serviço
-            // para que a mudança no Servico seja salva no JSON da OS.
             ordemServicoService.atualizarOrdemServico(ordemDeServicoContexto);
             
             if (sucessoServicoAtualizado) {
@@ -224,7 +211,6 @@ public class CompGerenciarServico {
                     Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca());
                     pecaInfo = pecaOpt.isPresent() ? pecaOpt.get().getNome() : "Peça Desconhecida";
                 }
-                // Usando servico.getObservacoes() e servico.requerPrioridade()
                 System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Prioridade: %b - Peça: %s%n",
                                 servico.getId(), servico.getObservacoes(), servico.getSetor().getDescricao(),
                                 servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo);
@@ -233,8 +219,8 @@ public class CompGerenciarServico {
         System.out.println("---------------------------------------------");
     }
 
-
     // --- Métodos Auxiliares de Leitura de Input ---
+    
     private int lerInteiroValido() {
         while (true) {
             try {
@@ -248,34 +234,30 @@ public class CompGerenciarServico {
         }
     }
 
-    private BigDecimal lerBigDecimalValido(String input) { // Recebe o input para tentar parsear
+    private BigDecimal lerBigDecimalValido(String input) {
         while (true) {
             try {
                 return new BigDecimal(input);
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
-                input = scanner.nextLine(); // Pede nova entrada se a primeira falhou
+                input = scanner.nextLine();
             }
         }
     }
 
-    // --- Métodos Auxiliares para Coleta/Criação de Serviço (NOVO) ---
-    // Este método cria uma nova instância de Serviço, sem adicioná-lo ao ServicoRepository.
     private Optional<Servico> solicitarDadosNovoServicoParaOS() {
         System.out.println("--- CRIAR NOVO SERVIÇO PARA ESTA ORDEM DE SERVIÇO ---");
         System.out.print("Descrição/Observações do Serviço: "); String observacoes = scanner.nextLine();
         System.out.print("Preço da Mão de Obra (Ex: 123.45): "); BigDecimal precoMaoDeObra = lerBigDecimalValido(scanner.nextLine());
-        SetorServico setor = solicitarSetorServico(null); // Solicita setor, sem padrão inicial
+        SetorServico setor = solicitarSetorServico(null);
         
         System.out.print("Código da Peça de Estoque associada (deixe em branco para nenhuma): "); String codigoPeca = scanner.nextLine();
         
         System.out.print("Quantidade da Peça usada: "); int quantidadePeca = lerInteiroValido();
 
-        // O 'requerPrioridade' é definido automaticamente pelo setor
         boolean requerPrioridade = (setor == SetorServico.PNEUS_RODAS); 
 
         try {
-            // O ServicoService.criarInstanciaServico APENAS CRIA E VALIDA, não persiste no repo de serviços.
             Servico novoServico = servicoService.criarInstanciaServico(precoMaoDeObra, setor, codigoPeca, quantidadePeca, observacoes);
             System.out.println("Serviço pronto para ser adicionado à OS.");
             return Optional.of(novoServico);
@@ -285,7 +267,6 @@ public class CompGerenciarServico {
         }
     }
 
-    // Métodos Auxiliares para Seleção de Setor de Serviço (EXISTENTES, mas movidos para cá)
     private SetorServico solicitarSetorServico(SetorServico setorAtual) {
         System.out.println("Selecione o Setor do Serviço" + (setorAtual != null ? " (Atual: " + setorAtual.getDescricao() + ")" : "") + ":");
         SetorServico[] setores = SetorServico.values();

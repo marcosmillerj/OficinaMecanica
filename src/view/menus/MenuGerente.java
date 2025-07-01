@@ -59,7 +59,7 @@ public class MenuGerente {
     public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
                        VeiculoService veiculoService, ItemEstoqueService itemEstoqueService,
-                       ServicoService servicoService, RelatorioService relatorioService) { // <<< CONSTRUTOR SEM ElevadorService
+                       ServicoService servicoService, RelatorioService relatorioService) {
         this.usuarioCRUD = usuarioCRUD;
         this.scanner = scanner;
         this.usuarioService = usuarioService;
@@ -112,19 +112,19 @@ public class MenuGerente {
                 compGerenciarUsuario.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 2: // Gerenciar Estoque
+            case 2:
                 System.out.println("\n--- Abrindo Gerenciamento de Estoque ---");
                 CompGerenciarEstoque compGerenciarEstoque = new CompGerenciarEstoque(this.itemEstoqueService, this.scanner);
                 compGerenciarEstoque.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 3: // Acessar Relatórios Financeiros
+            case 3:
                 System.out.println("\n--- Acessando Relatórios ---");
                 CompGerenciarRelatorio compGerarRelatorios = new CompGerenciarRelatorio(this.relatorioService, this.scanner);
                 compGerarRelatorios.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 4: // Gerenciar Ordens de Serviço
+            case 4:
                 System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
                 CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
                     this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
@@ -134,7 +134,7 @@ public class MenuGerente {
                 compGerenciarOS.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 5: // Gerenciar Clientes (TESTE COMPARATOR)
+            case 5:
                 gerenciarClientes();
                 break;
             case 0:
@@ -146,7 +146,8 @@ public class MenuGerente {
         }
     }
 
-    // --- MÉTODOS PARA GERENCIAR CLIENTES E DEMONSTRAR COMPARATOR (MANTIDOS) ---
+    // --- MÉTODOS PARA GERENCIAR CLIENTES E DEMONSTRAR COMPARATOR ---
+    
     private void gerenciarClientes() {
         int opcao;
         do {

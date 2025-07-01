@@ -34,7 +34,7 @@ public class MenuAtendente {
     private UsuarioService usuarioService;
     private VeiculoService veiculoService;
     private AgendamentoService agendamentoService;
-    private PagamentoService pagamentoService; // NOVO ATRIBUTO!
+    private PagamentoService pagamentoService;
     private Scanner scanner;
     private Usuario atendenteLogado;
 
@@ -57,7 +57,7 @@ public class MenuAtendente {
                          ServicoService servicoService, UsuarioService usuarioService,
                          VeiculoService veiculoService, Scanner scanner,
                          AgendamentoService agendamentoService,
-                         PagamentoService pagamentoService) { // NOVO PARÂMETRO!
+                         PagamentoService pagamentoService) {
         this.clienteService = clienteService;
         this.itemEstoqueService = itemEstoqueService;
         this.ordemServicoService = ordemServicoService;
@@ -67,7 +67,7 @@ public class MenuAtendente {
         this.veiculoService = veiculoService;
         this.scanner = scanner;
         this.agendamentoService = agendamentoService;
-        this.pagamentoService = pagamentoService; // Inicializa o PagamentoService
+        this.pagamentoService = pagamentoService;
         this.atendenteLogado = util.UserSession.getInstance().getLoggedInUser();
 
         if (this.atendenteLogado == null || this.atendenteLogado.getTipo() != models.enums.TipoUsuario.ATENDENTE) {
@@ -85,7 +85,7 @@ public class MenuAtendente {
             System.out.println("\n===== Menu do Atendente =====");
             System.out.println("1. Consultar Estoque");
             System.out.println("2. Criar Agendamento");
-            System.out.println("3. Realizar Pagamento"); // AGORA FUNCIONAL
+            System.out.println("3. Realizar Pagamento");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -125,9 +125,9 @@ public class MenuAtendente {
             case 3:
                 System.out.println("\n--- Realizando Pagamento ---");
                 CompProcessarPagamento compProcessarPagamento = new CompProcessarPagamento(
-                    pagamentoService, ordemServicoService, scanner // Passa dependências para o componente de pagamento
+                    pagamentoService, ordemServicoService, scanner
                 );
-                compProcessarPagamento.exibirMenu(); // Abre o menu de processamento de pagamento
+                compProcessarPagamento.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Atendente ---");
                 break;
             case 0:
