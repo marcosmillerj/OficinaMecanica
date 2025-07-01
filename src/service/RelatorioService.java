@@ -43,10 +43,7 @@ public class RelatorioService {
     private final UsuarioCRUD usuarioCRUD;
     private final ServicoService servicoService;
     private final RelatorioRepository relatorioRepository;
-
     private final OrdemServicoService ordemServicoService;
-
-    // Formato padrão para datas em relatórios
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -184,7 +181,7 @@ public class RelatorioService {
                 try {
                     precoTotalFinal = ordemServicoService.calcularPrecoTotalFinalOS(os);
                 } catch (IllegalArgumentException e) {
-                    precoTotalFinal = new BigDecimal("-1.00"); // Indica erro no cálculo
+                    precoTotalFinal = new BigDecimal("-1.00");
                 }
 
                 conteudoRelatorio.add(String.format("%-5d | %-15s | %-25s | %-20s | %-20s | %-20s | R$ %-17.2f",

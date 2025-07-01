@@ -16,7 +16,7 @@ public class ItemEstoque {
     public static int proximoId = 1;
 
     private int id;
-    private String codigo; // NOVO ATRIBUTO: Código real da peça (Ex: "VELA-NGK-BP6ES")
+    private String codigo;
     private String nome;
     private int quantidade;
     private BigDecimal precoUnitario;
@@ -28,12 +28,12 @@ public class ItemEstoque {
      * @param quantidade A quantidade em estoque (não pode ser negativa).
      * @param precoUnitario O preço unitário do item (não pode ser nulo ou negativo).
      */
-    public ItemEstoque(String codigo, String nome, int quantidade, BigDecimal precoUnitario) { // NOVO PARÂMETRO 'codigo'
+    public ItemEstoque(String codigo, String nome, int quantidade, BigDecimal precoUnitario) {
         this.id = proximoId++;
         this.codigo = Objects.requireNonNull(codigo, "Código do item não pode ser nulo.");
         this.nome = Objects.requireNonNull(nome, "Nome do item não pode ser nulo.");
-        setQuantidade(quantidade); // Usa setter para validação
-        setPrecoUnitario(precoUnitario); // Usa setter para validação
+        setQuantidade(quantidade);
+        setPrecoUnitario(precoUnitario);
     }
 
     /**
@@ -44,7 +44,7 @@ public class ItemEstoque {
      * @param quantidade Quantidade em estoque.
      * @param precoUnitario Preço unitário do item.
      */
-    public ItemEstoque(int id, String codigo, String nome, int quantidade, BigDecimal precoUnitario) { // NOVO PARÂMETRO 'codigo'
+    public ItemEstoque(int id, String codigo, String nome, int quantidade, BigDecimal precoUnitario) {
         this.id = id;
         this.codigo = Objects.requireNonNull(codigo, "Código do item não pode ser nulo.");
         this.nome = Objects.requireNonNull(nome, "Nome do item não pode ser nulo.");
@@ -55,8 +55,8 @@ public class ItemEstoque {
     // --- Getters e Setters ---
     public int getId() { return id; }
 
-    public String getCodigo() { return codigo; } // NOVO GETTER
-    public void setCodigo(String codigo) { this.codigo = Objects.requireNonNull(codigo, "Código do item não pode ser nulo."); } // NOVO SETTER
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = Objects.requireNonNull(codigo, "Código do item não pode ser nulo."); }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = Objects.requireNonNull(nome, "Nome do item não pode ser nulo."); }
@@ -85,11 +85,11 @@ public class ItemEstoque {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ItemEstoque that = (ItemEstoque) o;
-        return id == that.id; // Ou: return codigo.equalsIgnoreCase(that.codigo); se Código for sua chave única
+        return id == that.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id); // Ou Objects.hash(codigo.toLowerCase());
+        return Objects.hash(id);
     }
 }

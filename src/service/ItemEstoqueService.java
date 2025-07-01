@@ -17,7 +17,7 @@ import repository.ItemEstoqueRepository;
  */
 public class ItemEstoqueService {
 
-    private ItemEstoqueRepository itemEstoqueRepository; // Dependência do repositório de estoque
+    private ItemEstoqueRepository itemEstoqueRepository;
 
     public ItemEstoqueService(ItemEstoqueRepository itemEstoqueRepository) {
         this.itemEstoqueRepository = itemEstoqueRepository;
@@ -33,19 +33,17 @@ public class ItemEstoqueService {
      * @throws IllegalStateException Se um item com o mesmo código já existe.
      * @throws IllegalArgumentException Se dados de entrada forem inválidos (quantidade/preço negativo).
      */
-    public ItemEstoque adicionarItem(String codigo, String nome, int quantidade, BigDecimal precoUnitario) throws IllegalStateException, IllegalArgumentException { // 'codigo' como parâmetro
+    public ItemEstoque adicionarItem(String codigo, String nome, int quantidade, BigDecimal precoUnitario) throws IllegalStateException, IllegalArgumentException {
         Objects.requireNonNull(codigo, "Código do item não pode ser nulo.");
         Objects.requireNonNull(nome, "Nome do item não pode ser nulo.");
         Objects.requireNonNull(precoUnitario, "Preço unitário não pode ser nulo.");
 
-        // ALTERADO: Validação de unicidade pelo CÓDIGO, não pelo nome
         if (itemEstoqueRepository.buscarItemPorCodigo(codigo).isPresent()) {
             throw new IllegalStateException("Erro: Item com código '" + codigo + "' já cadastrado no estoque.");
         }
         
-        // Validações de quantidade e preço já são feitas no construtor/setters do ItemEstoque
-        ItemEstoque novoItem = new ItemEstoque(codigo, nome, quantidade, precoUnitario); // Passa o código para o construtor
-        itemEstoqueRepository.adicionarItem(novoItem); // Delega ao repositório
+        ItemEstoque novoItem = new ItemEstoque(codigo, nome, quantidade, precoUnitario);
+        itemEstoqueRepository.adicionarItem(novoItem);
         return novoItem;
     }
 
@@ -60,18 +58,17 @@ public class ItemEstoqueService {
      * @throws IllegalStateException Se o novo código já pertencer a outro item.
      * @throws IllegalArgumentException Se dados de entrada forem inválidos.
      */
-    public boolean atualizarItem(int id, String novoCodigo, String novoNome, int novaQuantidade, BigDecimal novoPreco) throws IllegalStateException, IllegalArgumentException { // NOVO PARÂMETRO 'novoCodigo'
+    public boolean atualizarItem(int id, String novoCodigo, String novoNome, int novaQuantidade, BigDecimal novoPreco) throws IllegalStateException, IllegalArgumentException {
         Objects.requireNonNull(novoCodigo, "Novo código do item não pode ser nulo.");
         Objects.requireNonNull(novoNome, "Novo nome do item não pode ser nulo.");
         Objects.requireNonNull(novoPreco, "Novo preço unitário não pode ser nulo.");
 
         Optional<ItemEstoque> itemOpt = itemEstoqueRepository.buscarItemPorId(id);
         if (itemOpt.isEmpty()) {
-            return false; // Item não encontrado
+            return false;
         }
         ItemEstoque itemParaAtualizar = itemOpt.get();
 
-        // ALTERADO: Validação de unicidade de CÓDIGO se for alterado e pertencer a outro item
         if (!itemParaAtualizar.getCodigo().equalsIgnoreCase(novoCodigo)) {
             Optional<ItemEstoque> existentePorCodigo = itemEstoqueRepository.buscarItemPorCodigo(novoCodigo);
             if (existentePorCodigo.isPresent() && existentePorCodigo.get().getId() != id) {
@@ -79,13 +76,12 @@ public class ItemEstoqueService {
             }
         }
         
-        // As validações de quantidade e preço negativo são feitas nos setters do ItemEstoque
-        itemParaAtualizar.setCodigo(novoCodigo); // Atualiza o código
+        itemParaAtualizar.setCodigo(novoCodigo);
         itemParaAtualizar.setNome(novoNome);
         itemParaAtualizar.setQuantidade(novaQuantidade);
         itemParaAtualizar.setPrecoUnitario(novoPreco);
 
-        itemEstoqueRepository.atualizarItem(itemParaAtualizar); // Delega ao repositório (agora espera ItemEstoque)
+        itemEstoqueRepository.atualizarItem(itemParaAtualizar);
         return true;
     }
 
@@ -103,7 +99,7 @@ public class ItemEstoqueService {
 
         Optional<ItemEstoque> itemOpt = itemEstoqueRepository.buscarItemPorId(id);
         if (itemOpt.isEmpty()) {
-            return false; // Item não encontrado
+            return false;
         }
         ItemEstoque item = itemOpt.get();
 
@@ -112,7 +108,7 @@ public class ItemEstoqueService {
         }
 
         item.setQuantidade(item.getQuantidade() - quantidadeBaixa);
-        itemEstoqueRepository.atualizarItem(item); // Delega ao repositório
+        itemEstoqueRepository.atualizarItem(item);
         System.out.println("Baixa de " + quantidadeBaixa + " unidades do item '" + item.getNome() + "' realizada. Novo estoque: " + item.getQuantidade());
         return true;
     }
@@ -131,12 +127,12 @@ public class ItemEstoqueService {
 
         Optional<ItemEstoque> itemOpt = itemEstoqueRepository.buscarItemPorId(id);
         if (itemOpt.isEmpty()) {
-            return false; // Item não encontrado
+            return false;
         }
         ItemEstoque item = itemOpt.get();
 
         item.setQuantidade(item.getQuantidade() + quantidadeAdicao);
-        itemEstoqueRepository.atualizarItem(item); // Delega ao repositório
+        itemEstoqueRepository.atualizarItem(item);
         System.out.println("Adição de " + quantidadeAdicao + " unidades do item '" + item.getNome() + "' realizada. Novo estoque: " + item.getQuantidade());
         return true;
     }
@@ -149,26 +145,21 @@ public class ItemEstoqueService {
      * @throws IllegalArgumentException Se o item não for encontrado.
      */
     public void informarFaltaDeItem(String codigoItem, String mensagem) throws IllegalArgumentException {
-        // Lógica de negócio: Verificar se o item existe
         Optional<ItemEstoque> itemOpt = itemEstoqueRepository.buscarItemPorCodigo(codigoItem);
         if (itemOpt.isEmpty()) {
             throw new IllegalArgumentException("Item com código '" + codigoItem + "' não encontrado no estoque.");
         }
         ItemEstoque item = itemOpt.get();
 
-        // --- SIMULAÇÃO DA NOTIFICAÇÃO ---
         System.out.println("\n[NOTIFICAÇÃO GERENTE] Item '" + item.getNome() + "' (código: " + codigoItem + ") precisa de atenção. Mensagem: '" + mensagem + "'");
         System.out.println("Status atual: Quantidade = " + item.getQuantidade());
-        // Em um sistema real, aqui você dispararia um evento, enviaria um email, etc.
-        // Se tivéssemos um Observer para o Gerente, ele seria notificado aqui.
     }
 
-    // Métodos de busca e listagem
     public Optional<ItemEstoque> buscarItemPorId(int id) {
         return itemEstoqueRepository.buscarItemPorId(id);
     }
 
-    public Optional<ItemEstoque> buscarItemPorCodigo(String codigo) { // NOVO: Busca por CÓDIGO
+    public Optional<ItemEstoque> buscarItemPorCodigo(String codigo) {
         return itemEstoqueRepository.buscarItemPorCodigo(codigo);
     }
 
@@ -177,10 +168,10 @@ public class ItemEstoqueService {
     }
 
     public List<ItemEstoque> listarTodosItens() {
-        return itemEstoqueRepository.listarItens(); // Delega para o repositório
+        return itemEstoqueRepository.listarItens();
     }
 
     public boolean removerItem(int id) {
-        return itemEstoqueRepository.removerItem(id); // Delega para o repositório
+        return itemEstoqueRepository.removerItem(id);
     }
 }

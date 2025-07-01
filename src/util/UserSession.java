@@ -12,12 +12,7 @@ import models.Usuario;
  */
 public class UserSession {
 
-    // 1. A única instância da classe (privada e estática)
-    // Isso garante que 'instance' seja a única referência para um objeto UserSession.
     private static UserSession instance;
-
-    // 2. O atributo para armazenar o usuário logado
-    // Será preenchido após um login bem-sucedido.
     private Usuario loggedInUser;
 
     /**
@@ -26,7 +21,6 @@ public class UserSession {
      * Isso reforça o padrão Singleton.
      */
     private UserSession() {
-        // Inicializa como null, pois nenhum usuário está logado no início.
         this.loggedInUser = null;
     }
 
@@ -37,12 +31,9 @@ public class UserSession {
      * @return A única instância de UserSession.
      */
     public static UserSession getInstance() {
-        // Verifica se a instância é nula (primeira vez que está sendo acessada)
         if (instance == null) {
-            // Se for nula, cria a única instância da classe
             instance = new UserSession();
         }
-        // Retorna a instância existente
         return instance;
     }
 

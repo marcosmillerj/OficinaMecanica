@@ -13,15 +13,15 @@ import models.enums.SetorServico;
  * @author camila_barbosa
  */
 public class Servico {
-    public static int proximoId = 1; // ID único para CADA instância de serviço criada
+    public static int proximoId = 1;
 
     private int id;
-    private BigDecimal precoMaoDeObra; // Preço da mão de obra para este serviço específico
-    private SetorServico setor; // O setor a que este serviço pertence
-    private String codigoPeca; // Código da peça de estoque associada (Ex: "VELA-NGK")
-    private int quantidadePeca; // Quantidade da peça usada (ex: 4 velas)
-    private boolean requerPrioridade; // Indica se este serviço requer prioridade de elevador (alinhamento)
-    private String observacoes; // Observações/descrição detalhada desta instância de serviço (seria a "descrição" de antes)
+    private BigDecimal precoMaoDeObra;
+    private SetorServico setor;
+    private String codigoPeca;
+    private int quantidadePeca;
+    private boolean requerPrioridade;
+    private String observacoes;
 
     /**
      * Construtor principal para criar uma instância de Serviço para uma OS.
@@ -34,8 +34,8 @@ public class Servico {
      */
     public Servico(BigDecimal precoMaoDeObra, SetorServico setor, String codigoPeca,
                    int quantidadePeca, boolean requerPrioridade, String observacoes) {
-        this.id = proximoId++; // Atribui um ID único a esta instância
-        setPrecoMaoDeObra(precoMaoDeObra); // Usa setter para validação
+        this.id = proximoId++;
+        setPrecoMaoDeObra(precoMaoDeObra);
         this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo.");
         this.codigoPeca = (codigoPeca != null && !codigoPeca.isEmpty()) ? codigoPeca : null;
         this.quantidadePeca = quantidadePeca;
@@ -91,10 +91,7 @@ public class Servico {
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = (observacoes != null && !observacoes.isEmpty()) ? observacoes : null; }
 
-    // O método getPreco() retornará apenas o precoMaoDeObra, como decidido.
-    // O cálculo do preço total com peças será feito no OrdemServicoService,
-    // que terá acesso ao ItemEstoqueService para buscar o preço da peça.
-    public BigDecimal getPreco() { return precoMaoDeObra; } // Retorna apenas o preço da mão de obra
+    public BigDecimal getPreco() { return precoMaoDeObra; }
 
     @Override
     public String toString() {
@@ -104,12 +101,12 @@ public class Servico {
 
         return String.format("Serviço [ID:%d | Descrição: %s | M.O.: R$ %.2f | Setor: %s %s%s]",
                 id,
-                (observacoes != null ? observacoes : "Sem descrição"), // Exibe observações
+                (observacoes != null ? observacoes : "Sem descrição"),
                 precoMaoDeObra,
                 setor.getDescricao(),
                 pecaInfo,
                 prioridadeInfo,
-                obsInfo // Observações são a descrição principal
+                obsInfo
         );
     }
     
@@ -118,7 +115,7 @@ public class Servico {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Servico servico = (Servico) o;
-        return id == servico.id; // Serviços são identificados por seu ID único
+        return id == servico.id;
     }
 
     @Override

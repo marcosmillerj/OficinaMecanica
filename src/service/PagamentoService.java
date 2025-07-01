@@ -21,7 +21,7 @@ import repository.PagamentoRepository;
 public class PagamentoService {
 
     private PagamentoRepository pagamentoRepository;
-    private OrdemServicoService ordemServicoService; // PARA USAR O ORDEMSERVICOSERVICE para atualizar a OS
+    private OrdemServicoService ordemServicoService;
 
     public PagamentoService(PagamentoRepository pagamentoRepository, OrdemServicoService ordemServicoService) {
         this.pagamentoRepository = Objects.requireNonNull(pagamentoRepository, "PagamentoRepository não pode ser nulo.");
@@ -47,14 +47,12 @@ public class PagamentoService {
             throw new IllegalStateException("Não é possível iniciar pagamento para OS " + os.getCodigo() + ". Status atual: " + os.getStatus().getDescricao() + ".");
         }
         
-        // Verifica se já existe um pagamento para esta OS (para evitar múltiplos pagamentos)
         if (!pagamentoRepository.listarPagamentosPorOrdemServico(idOrdemServico).isEmpty()) {
             throw new IllegalStateException("Já existe um pagamento registrado para a OS " + os.getCodigo() + ".");
         }
 
-        Pagamento novoPagamento = new Pagamento(Optional.of(idOrdemServico)); // Cria o pagamento associado à OS
-        // Não finaliza aqui, a finalização é um passo separado.
-        pagamentoRepository.adicionarPagamento(novoPagamento); // Persiste o pagamento inicial
+        Pagamento novoPagamento = new Pagamento(Optional.of(idOrdemServico));
+        pagamentoRepository.adicionarPagamento(novoPagamento);
         System.out.println("Processo de pagamento ID " + novoPagamento.getId() + " iniciado para OS " + os.getCodigo() + ".");
         return novoPagamento;
     }
@@ -78,22 +76,18 @@ public class PagamentoService {
         }
         Pagamento pagamento = pagamentoOpt.get();
 
-        if (pagamento.getDataHora() != null) { // Se dataHora não é nula, significa que já foi finalizado
+        if (pagamento.getDataHora() != null) {
             throw new IllegalStateException("Pagamento ID " + idPagamento + " já foi finalizado.");
         }
 
-        // Delega ao método 'finalizar' do modelo Pagamento
         pagamento.finalizar(valorFinal, tipoFinal);
-        pagamentoRepository.atualizarPagamento(pagamento); // Persiste o pagamento finalizado
+        pagamentoRepository.atualizarPagamento(pagamento);
         
         Optional<Integer> idElevadorParaAlocar = Optional.empty();
 
-        // Opcional: Atualizar o status da Ordem de Serviço para FINALIZADA
         if (pagamento.getIdOrdemServico().isPresent()) {
             int idOs = pagamento.getIdOrdemServico().get();
             try {
-                // Chama o OrdemServicoService para mudar o status da OS para FINALIZADA
-                // Passa Optional.empty() para idElevadorParaAlocar, pois a liberação já ocorreu ao mudar o status da OS antes.
                 ordemServicoService.alterarStatusOrdemServico(idOs, StatusOrdem.FINALIZADA, idElevadorParaAlocar);
                 System.out.println("Status da OS " + idOs + " alterado para FINALIZADA após pagamento.");
             } catch (IllegalArgumentException | IllegalStateException e) {

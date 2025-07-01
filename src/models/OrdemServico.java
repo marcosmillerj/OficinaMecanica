@@ -49,7 +49,7 @@ public class OrdemServico implements IObservavelOrdemServico {
         this.idCliente = idCliente;
         this.idMecanicoResponsavel = idMecanicoResponsavel;
         this.status = Objects.requireNonNull(status, "Status inicial da OS não pode ser nulo.");
-        this.idElevadorAtual = Objects.requireNonNullElse(idElevadorAtual, Optional.empty()); // <<--- INICIALIZA SEM ELEVADOR
+        this.idElevadorAtual = Objects.requireNonNullElse(idElevadorAtual, Optional.empty());
         this.servicos = new ArrayList<>();
         this.observadores = new ArrayList<>();
     }
@@ -59,7 +59,7 @@ public class OrdemServico implements IObservavelOrdemServico {
      */
     public OrdemServico(int id, String codigo, LocalDateTime dataAbertura, BigDecimal precoTotal,
                         int idVeiculo, int idCliente, int idMecanicoResponsavel,
-                        StatusOrdem status, Optional<Integer> idElevadorAtual, List<Servico> servicos) { // <<--- NOVO PARÂMETRO idElevadorAtual
+                        StatusOrdem status, Optional<Integer> idElevadorAtual, List<Servico> servicos) {
         this.id = id;
         this.codigo = codigo;
         this.dataAbertura = dataAbertura;
@@ -105,7 +105,7 @@ public class OrdemServico implements IObservavelOrdemServico {
     public LocalDateTime getDataAbertura() { return dataAbertura; }
     public void setDataAbertura(LocalDateTime dataAbertura) { this.dataAbertura = Objects.requireNonNull(dataAbertura, "Data de abertura da OS não pode ser nula."); }
 
-    public BigDecimal getPrecoTotal() { return precoTotal; } // Preço total (mão de obra + peças)
+    public BigDecimal getPrecoTotal() { return precoTotal; }
 
     public int getIdVeiculo() { return idVeiculo; }
     public void setIdVeiculo(int idVeiculo) { this.idVeiculo = idVeiculo; }
@@ -153,7 +153,7 @@ public class OrdemServico implements IObservavelOrdemServico {
     public void adicionarServico(Servico servico) {
         if (servico != null) {
             servicos.add(servico);
-            calcularTotal(); // Recalcula o total (apenas mão de obra) após adicionar
+            calcularTotal();
             System.out.println("[LOG:OrdemServico " + this.codigo + "] Serviço '" + servico.getObservacoes() + "' adicionado. Novo total (M.O.): R$ " + String.format("%.2f", this.precoTotal));
         }
     }
@@ -167,7 +167,7 @@ public class OrdemServico implements IObservavelOrdemServico {
     public boolean removerServico(Servico servico) {
         boolean removido = servicos.remove(servico);
         if (removido) {
-            calcularTotal(); // Recalcula o total (apenas mão de obra) após remover
+            calcularTotal(); 
             System.out.println("[LOG:OrdemServico " + this.codigo + "] Serviço '" + servico.getObservacoes() + "' removido. Novo total (M.O.): R$ " + String.format("%.2f", this.precoTotal));
         }
         return removido;
@@ -182,7 +182,7 @@ public class OrdemServico implements IObservavelOrdemServico {
         if (this.status != novoStatus) {
             this.status = novoStatus;
             System.out.println("\n[LOG:OrdemServico " + this.codigo + "] Status alterado para -> " + novoStatus.getDescricao());
-            notificarObservadores(); // CHAMA OS OBSERVADORES AQUI!
+            notificarObservadores();
         } else {
             System.out.println("\n[LOG:OrdemServico " + this.codigo + "] Status já é " + novoStatus.getDescricao() + ". Nenhuma alteração/notificação.");
         }
@@ -191,7 +191,7 @@ public class OrdemServico implements IObservavelOrdemServico {
     @Override
     public String toString() {
         String servicosResumo = servicos.isEmpty() ? "Nenhum" : servicos.size() + " serviço(s)";
-        String elevadorInfo = idElevadorAtual.isPresent() ? ", ElevadorID=" + idElevadorAtual.get() : ""; // AGORA EXIBE!
+        String elevadorInfo = idElevadorAtual.isPresent() ? ", ElevadorID=" + idElevadorAtual.get() : "";
         return "OrdemServico{" +
                "ID=" + id +
                ", Código='" + codigo + '\'' +

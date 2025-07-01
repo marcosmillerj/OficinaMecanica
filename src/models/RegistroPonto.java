@@ -11,14 +11,12 @@ import java.time.LocalDateTime;
  * @author marcos_miller
  */
 public class RegistroPonto {
-    // Contador estático para gerar IDs únicos para cada registro de ponto.
-    // Assim como Usuario.proximoId, ele precisa ser ajustado ao carregar dados.
     public static int proximoId = 1;
 
-    private int id; // ID único do registro de ponto
-    private int idUsuario; // ID do usuário que registrou o ponto
-    private LocalDateTime dataHoraEntrada; // Data e hora da entrada registrada
-    private LocalDateTime dataHoraSaida; // Data e hora da saída registrada (pode ser null se ainda não saiu)
+    private int id;
+    private int idUsuario;
+    private LocalDateTime dataHoraEntrada;
+    private LocalDateTime dataHoraSaida;
 
     /**
      * Construtor para registrar uma nova entrada de ponto.
@@ -27,14 +25,12 @@ public class RegistroPonto {
      * @param idUsuario O ID do usuário que está registrando a entrada.
      */
     public RegistroPonto(int idUsuario) {
-        this.id = proximoId++; // Atribui um ID único e incrementa
+        this.id = proximoId++;
         this.idUsuario = idUsuario;
-        this.dataHoraEntrada = LocalDateTime.now(); // Registra a data e hora atual como entrada
-        this.dataHoraSaida = null; // Saída ainda não registrada
+        this.dataHoraEntrada = LocalDateTime.now();
+        this.dataHoraSaida = null;
     }
 
-    // Construtor usado principalmente pelo Gson ao carregar do JSON,
-    // ou para reconstruir um objeto completo com todos os dados.
     public RegistroPonto(int id, int idUsuario, LocalDateTime dataHoraEntrada, LocalDateTime dataHoraSaida) {
         this.id = id;
         this.idUsuario = idUsuario;
@@ -60,8 +56,6 @@ public class RegistroPonto {
         return dataHoraSaida;
     }
 
-    // --- Setters ---
-    // (A maioria dos setters não é necessária para um registro, exceto para 'dataHoraSaida')
 
     /**
      * Define a data e hora de saída para este registro de ponto.

@@ -18,30 +18,25 @@ import util.JsonFileHandler;
  */
 public class PagamentoRepository {
 
-    private List<Pagamento> pagamentos; // A lista de todos os pagamentos em memória
-    private JsonFileHandler<Pagamento> fileHandler; // O handler para salvar/carregar JSON
+    private List<Pagamento> pagamentos;
+    private JsonFileHandler<Pagamento> fileHandler;
 
     /**
      * Construtor do PagamentoRepository.
-     * Ao ser instanciado, tenta carregar os pagamentos do arquivo JSON.
+     * 
      */
     public PagamentoRepository() {
-        // Define o tipo para o JsonFileHandler: uma Lista de Pagamento
         Type typeOfListOfPagamentos = new TypeToken<List<Pagamento>>() {}.getType();
-        // Inicializa o fileHandler com o nome do arquivo específico para pagamentos
         this.fileHandler = new JsonFileHandler<>("pagamentos.json", typeOfListOfPagamentos);
-
-        // Carrega os pagamentos ao iniciar o repositório
         this.pagamentos = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID para Pagamento após o carregamento
         int maxId = 0;
         for (Pagamento pagamento : this.pagamentos) {
             if (pagamento.getId() > maxId) {
                 maxId = pagamento.getId();
             }
         }
-        Pagamento.proximoId = maxId + 1; // Ajusta o contador estático na classe Pagamento
+        Pagamento.proximoId = maxId + 1;
         System.out.println("Contador de ID de Pagamento ajustado para: " + Pagamento.proximoId);
     }
 
@@ -52,7 +47,7 @@ public class PagamentoRepository {
     public void adicionarPagamento(Pagamento pagamento) {
         pagamentos.add(pagamento);
         System.out.println("Pagamento ID " + pagamento.getId() + " adicionado ao repositório para OS ID " + pagamento.getIdOrdemServico().orElse(0) + ".");
-        fileHandler.save(pagamentos); // Salva a lista atualizada no JSON
+        fileHandler.save(pagamentos);
     }
 
     /**
@@ -61,25 +56,8 @@ public class PagamentoRepository {
      * @param pagamentoParaAtualizar O objeto Pagamento que foi modificado.
      */
     public void atualizarPagamento(Pagamento pagamentoParaAtualizar) {
-        // Se a referência já está na lista, basta salvar.
         System.out.println("Pagamento ID " + pagamentoParaAtualizar.getId() + " para OS ID " + pagamentoParaAtualizar.getIdOrdemServico().orElse(0) + " atualizado no repositório.");
-        fileHandler.save(pagamentos); // Salva a lista atualizada no JSON
-    }
-
-    /**
-     * Remove um pagamento da coleção em memória pelo seu ID e persiste as alterações.
-     * @param id O ID do Pagamento a ser removido.
-     * @return true se o pagamento foi removido, false caso contrário.
-     */
-    public boolean removerPagamento(int id) {
-        boolean removido = pagamentos.removeIf(pagamento -> pagamento.getId() == id);
-        if (removido) {
-            System.out.println("Pagamento com ID " + id + " removido do repositório.");
-            fileHandler.save(pagamentos);
-        } else {
-            System.out.println("Pagamento com ID " + id + " não encontrado para remoção no repositório.");
-        }
-        return removido;
+        fileHandler.save(pagamentos);
     }
 
     /**
@@ -101,7 +79,7 @@ public class PagamentoRepository {
      * @return Uma lista (cópia) de todos os pagamentos.
      */
     public List<Pagamento> listarTodosPagamentos() {
-        return new ArrayList<>(pagamentos); // Retorna uma nova lista para encapsulamento
+        return new ArrayList<>(pagamentos);
     }
 
     /**

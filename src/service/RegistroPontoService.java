@@ -17,7 +17,7 @@ import repository.PontoRepository;
  */
 public class RegistroPontoService {
 
-    private PontoRepository pontoRepository; // Dependência do repositório de ponto
+    private PontoRepository pontoRepository;
 
     /**
      * Construtor do RegistroPontoService.
@@ -34,16 +34,13 @@ public class RegistroPontoService {
      * @throws IllegalStateException Se o usuário já tiver uma entrada de ponto em aberto.
      */
     public RegistroPonto registrarEntrada(Usuario usuario) throws IllegalStateException {
-        // 1. Validação de Negócio: Verificar se já existe uma entrada em aberto para este usuário
         Optional<RegistroPonto> pontoAberto = pontoRepository.buscarUltimoPontoAbertoPorUsuario(usuario.getId());
         if (pontoAberto.isPresent()) {
             throw new IllegalStateException("Erro: Usuário já possui uma entrada de ponto em aberto.");
         }
 
-        // 2. Criação do Modelo: Cria um novo objeto RegistroPonto para a entrada
-        RegistroPonto novoRegistro = new RegistroPonto(usuario.getId()); // O construtor já define a hora atual
+        RegistroPonto novoRegistro = new RegistroPonto(usuario.getId());
 
-        // 3. Persistência: Adiciona o novo registro ao repositório
         pontoRepository.adicionarRegistro(novoRegistro);
         System.out.println("Ponto de entrada registrado para " + usuario.getNome() + " às " + novoRegistro.getDataHoraEntrada().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM")));
         return novoRegistro;
@@ -56,17 +53,13 @@ public class RegistroPontoService {
      * @throws IllegalStateException Se o usuário não tiver uma entrada de ponto em aberto.
      */
     public RegistroPonto registrarSaida(Usuario usuario) throws IllegalStateException {
-        // 1. Validação de Negócio: Buscar a entrada de ponto em aberto
         Optional<RegistroPonto> pontoAberto = pontoRepository.buscarUltimoPontoAbertoPorUsuario(usuario.getId());
         if (pontoAberto.isEmpty()) {
             throw new IllegalStateException("Erro: Não há registro de entrada de ponto em aberto para este usuário.");
         }
 
         RegistroPonto registroParaAtualizar = pontoAberto.get();
-        // 2. Atualização do Modelo: Define a data e hora de saída no registro existente
         registroParaAtualizar.setDataHoraSaida(LocalDateTime.now());
-
-        // 3. Persistência: Atualiza o registro no repositório (salva a lista)
         pontoRepository.atualizarRegistro(registroParaAtualizar);
         System.out.println("Ponto de saída registrado para " + usuario.getNome() + " às " + registroParaAtualizar.getDataHoraSaida().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM")));
         return registroParaAtualizar;
@@ -79,14 +72,5 @@ public class RegistroPontoService {
      */
     public Optional<RegistroPonto> obterStatusPontoAtual(Usuario usuario) {
         return pontoRepository.buscarUltimoPontoAbertoPorUsuario(usuario.getId());
-    }
-
-    /**
-     * Lista o histórico de registros de ponto para um usuário.
-     * @param usuario O usuário para listar o histórico.
-     * @return Uma lista dos registros de ponto do usuário.
-     */
-    public List<RegistroPonto> listarHistorico(Usuario usuario) {
-        return pontoRepository.listarRegistrosPorUsuario(usuario.getId());
     }
 }

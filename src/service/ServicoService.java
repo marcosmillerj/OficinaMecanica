@@ -45,7 +45,6 @@ public class ServicoService {
                                          throws IllegalArgumentException {
         Objects.requireNonNull(precoMaoDeObra, "Preço de mão de obra não pode ser nulo.");
         Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo.");
-        // Observacoes pode ser nulo, não precisa de requireNonNull
 
         if (precoMaoDeObra.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Preço de mão de obra não pode ser negativo.");
@@ -54,26 +53,17 @@ public class ServicoService {
             throw new IllegalArgumentException("Quantidade de peça não pode ser negativa.");
         }
 
-        // 1. Validação de existência da peça, se códigoPeca for fornecido
         if (codigoPeca != null && !codigoPeca.isEmpty()) {
             if (itemEstoqueRepository.buscarItemPorCodigo(codigoPeca).isEmpty()) {
                 throw new IllegalArgumentException("Erro: Peça de estoque com código '" + codigoPeca + "' não encontrada.");
             }
-        } else { // Se não tem código de peça, quantidade de peça deve ser 0
+        } else {
             quantidadePeca = 0;
         }
 
-        // 2. Determinar se 'requerPrioridade' automaticamente com base no setor
-        boolean requerPrioridade = (setor == SetorServico.PNEUS_RODAS); // Exemplo: apenas PNEUS_RODAS requer
+        boolean requerPrioridade = (setor == SetorServico.PNEUS_RODAS);
 
-        // 3. Cria e retorna a instância de Serviço
         Servico novoServico = new Servico(precoMaoDeObra, setor, codigoPeca, quantidadePeca, requerPrioridade, observacoes);
-        
-        // Importante: Este serviço NÃO é adicionado ao ServicoRepository aqui.
-        // Ele será adicionado à OrdemServico, e a OrdemServico que será persistida.
-        // Se você precisar que Servicos sejam listados 'globalmente' no ServicoRepository,
-        // então teríamos um método adicionarServico(Servico) no ServicoRepository
-        // e adicionaríamos aqui. Mas sua visão é que eles são específicos da OS.
         System.out.println("Instância de Serviço ID " + novoServico.getId() + " criada para OS. Observações: " + novoServico.getObservacoes());
         return novoServico;
     }
@@ -94,33 +84,24 @@ public class ServicoService {
                                              throws IllegalArgumentException {
         Objects.requireNonNull(novoPrecoMaoDeObra, "Novo preço de mão de obra não pode ser nulo.");
         Objects.requireNonNull(novoSetor, "Novo setor do serviço não pode ser nulo.");
-
-        // Buscar a instância de Serviço para atualizar (assumindo que ela já existe em algum lugar)
-        // Nota: Se Servicos só existem dentro de OSs e não no ServicoRepository, essa busca é mais complexa.
-        // Para este serviço, vamos assumir que ele pode buscar no repositório de Servicos (se Servicos também fossem persistidos globalmente).
-        // Por agora, este método seria chamado COM UM OBJETO Servico QUE JÁ ESTÁ NA OS.
-        // Ele vai validar os dados e atualizar o objeto. A persistência da OS será feita por OrdemServicoService.
         
-        Optional<Servico> servicoOpt = servicoRepository.buscarServicoPorId(id); // Busca no repositório (se Servico for globalmente persistido)
+        Optional<Servico> servicoOpt = servicoRepository.buscarServicoPorId(id);
         if(servicoOpt.isEmpty()){
             System.err.println("Serviço ID " + id + " não encontrado para atualização de instância. (Ele deve estar na OS).");
             return false;
         }
-        Servico servicoParaAtualizar = servicoOpt.get(); // Objeto para atualizar
+        Servico servicoParaAtualizar = servicoOpt.get();
 
-        // 1. Validação de peça, se códigoPeca for fornecido
         if (novoCodigoPeca != null && !novoCodigoPeca.isEmpty()) {
             if (itemEstoqueRepository.buscarItemPorCodigo(novoCodigoPeca).isEmpty()) {
                 throw new IllegalArgumentException("Erro: Nova peça de estoque com código '" + novoCodigoPeca + "' não encontrada.");
             }
         } else {
-            novaQuantidadePeca = 0; // Se não tem código, quantidade é 0
+            novaQuantidadePeca = 0;
         }
 
-        // 2. Determinar se 'requerPrioridade' automaticamente
         boolean novoRequerPrioridade = (novoSetor == SetorServico.PNEUS_RODAS);
 
-        // 3. Atualizar os atributos do objeto Servico
         servicoParaAtualizar.setPrecoMaoDeObra(novoPrecoMaoDeObra);
         servicoParaAtualizar.setSetor(novoSetor);
         servicoParaAtualizar.setCodigoPeca(novoCodigoPeca);
@@ -128,23 +109,16 @@ public class ServicoService {
         servicoParaAtualizar.setRequerPrioridade(novoRequerPrioridade);
         servicoParaAtualizar.setObservacoes(novoObservacoes);
 
-        // A persistência deste Servico será feita quando a OrdemServico que o contém for atualizada.
-        // Se Servico for persistido globalmente, descomentar a linha abaixo.
-        // servicoRepository.atualizarServico(servicoParaAtualizar); 
         System.out.println("Instância de Serviço ID " + id + " atualizada. Observações: " + servicoParaAtualizar.getObservacoes());
         return true;
     }
 
-    // Métodos de busca e listagem (delegam para o ServicoRepository)
     public Optional<Servico> buscarServicoPorId(int id) {
         return servicoRepository.buscarServicoPorId(id);
     }
 
-    // REMOVIDOS buscarServicoPorCodigo e buscarServicoPorNome
-    // Pois Serviços são instâncias únicas e não têm códigos/nomes globais.
-
     public List<Servico> listarTodosServicos() {
-        return servicoRepository.listarTodosServicos(); // Lista todas as instâncias de serviço já criadas e persistidas
+        return servicoRepository.listarTodosServicos();
     }
 
     public boolean removerServico(int id) {

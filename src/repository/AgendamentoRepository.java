@@ -18,30 +18,25 @@ import util.JsonFileHandler;
  */
 public class AgendamentoRepository {
 
-    private List<Agendamento> agendamentos; // A lista de todos os agendamentos em memória
-    private JsonFileHandler<Agendamento> fileHandler; // O handler para salvar/carregar JSON
+    private List<Agendamento> agendamentos;
+    private JsonFileHandler<Agendamento> fileHandler;
 
     /**
      * Construtor do AgendamentoRepository.
-     * Ao ser instanciado, tenta carregar os agendamentos do arquivo JSON.
+     * 
      */
     public AgendamentoRepository() {
-        // Define o tipo para o JsonFileHandler: uma Lista de Agendamento
         Type typeOfListOfAgendamentos = new TypeToken<List<Agendamento>>() {}.getType();
-        // Inicializa o fileHandler com o nome do arquivo específico para agendamentos
         this.fileHandler = new JsonFileHandler<>("agendamentos.json", typeOfListOfAgendamentos);
-
-        // Carrega os agendamentos ao iniciar o repositório
         this.agendamentos = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID para Agendamento após o carregamento
         int maxId = 0;
         for (Agendamento agendamento : this.agendamentos) {
             if (agendamento.getId() > maxId) {
                 maxId = agendamento.getId();
             }
         }
-        Agendamento.proximoId = maxId + 1; // Ajusta o contador estático na classe Agendamento
+        Agendamento.proximoId = maxId + 1;
         System.out.println("Contador de ID de Agendamento ajustado para: " + Agendamento.proximoId);
     }
 
@@ -52,7 +47,7 @@ public class AgendamentoRepository {
     public void adicionarAgendamento(Agendamento agendamento) {
         agendamentos.add(agendamento);
         System.out.println("Agendamento ID " + agendamento.getId() + " adicionado ao repositório para Cliente ID " + agendamento.getIdCliente() + ".");
-        fileHandler.save(agendamentos); // Salva a lista atualizada no JSON
+        fileHandler.save(agendamentos);
     }
 
     /**
@@ -61,27 +56,10 @@ public class AgendamentoRepository {
      * @param agendamentoParaAtualizar O objeto Agendamento que foi modificado.
      */
     public void atualizarAgendamento(Agendamento agendamentoParaAtualizar) {
-        // Como o objeto agendamentoParaAtualizar já é uma referência da lista 'agendamentos',
-        // basta salvar a lista inteira para persistir as alterações.
         System.out.println("Agendamento ID " + agendamentoParaAtualizar.getId() + " para Cliente ID " + agendamentoParaAtualizar.getIdCliente() + " atualizado no repositório.");
-        fileHandler.save(agendamentos); // Salva a lista atualizada no JSON
+        fileHandler.save(agendamentos);
     }
 
-    /**
-     * Remove um agendamento da coleção em memória pelo seu ID e persiste as alterações.
-     * @param id O ID do Agendamento a ser removido.
-     * @return true se o agendamento foi removido, false caso contrário.
-     */
-    public boolean removerAgendamento(int id) {
-        boolean removido = agendamentos.removeIf(agendamento -> agendamento.getId() == id);
-        if (removido) {
-            System.out.println("Agendamento com ID " + id + " removido do repositório.");
-            fileHandler.save(agendamentos);
-        } else {
-            System.out.println("Agendamento com ID " + id + " não encontrado para remoção no repositório.");
-        }
-        return removido;
-    }
 
     /**
      * Busca um agendamento pelo seu ID.
@@ -102,23 +80,9 @@ public class AgendamentoRepository {
      * @return Uma lista (cópia) de todos os agendamentos.
      */
     public List<Agendamento> listarTodosAgendamentos() {
-        return new ArrayList<>(agendamentos); // Retorna uma nova lista para encapsulamento
+        return new ArrayList<>(agendamentos);
     }
 
-    /**
-     * Lista agendamentos por ID do cliente.
-     * @param idCliente ID do cliente.
-     * @return Lista de agendamentos para o cliente.
-     */
-    public List<Agendamento> listarAgendamentosPorCliente(int idCliente) {
-        List<Agendamento> agendamentosFiltrados = new ArrayList<>();
-        for (Agendamento a : agendamentos) {
-            if (a.getIdCliente() == idCliente) {
-                agendamentosFiltrados.add(a);
-            }
-        }
-        return agendamentosFiltrados;
-    }
     
     /**
      * Lista agendamentos por ID do veículo.

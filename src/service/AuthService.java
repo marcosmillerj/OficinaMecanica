@@ -50,12 +50,10 @@ public class AuthService {
             System.out.print("Senha: ");
             String senha = scanner.nextLine();
 
-            // Busca o usuário pelo email usando o UsuarioCRUD (método que retorna Optional)
             Optional<Usuario> usuarioEncontrado = usuarioCRUD.buscarUsuarioPorEmail(email);
 
-            if (usuarioEncontrado.isPresent()) { // Verifica se o usuário foi encontrado
+            if (usuarioEncontrado.isPresent()) {
                 Usuario usuario = usuarioEncontrado.get();
-                // Usa o método fazerLogin da classe Usuario para validar as credenciais (email e senha)
                 if (usuario.fazerLogin(email, senha)) {
                     System.out.println("Credenciais verificadas. Prosseguindo...");
                     return usuario; 

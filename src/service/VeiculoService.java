@@ -18,7 +18,7 @@ import repository.VeiculoRepository;
 public class VeiculoService {
 
     private VeiculoRepository veiculoRepository;
-    private ClienteRepository clienteRepository; // Dependência para verificar o cliente proprietário
+    private ClienteRepository clienteRepository;
 
     public VeiculoService(VeiculoRepository veiculoRepository, ClienteRepository clienteRepository) {
         this.veiculoRepository = veiculoRepository;
@@ -40,18 +40,16 @@ public class VeiculoService {
         Objects.requireNonNull(modelo, "Modelo do veículo não pode ser nulo.");
         Objects.requireNonNull(cor, "Cor do veículo não pode ser nula.");
 
-        // Validação de unicidade da placa
         if (veiculoRepository.buscarVeiculoPorPlaca(placa).isPresent()) {
             throw new IllegalStateException("Erro: Placa '" + placa + "' já cadastrada.");
         }
 
-        // Validação de existência do cliente proprietário
         if (clienteRepository.buscarClientePorId(idCliente).isEmpty()) {
             throw new IllegalArgumentException("Erro: Cliente com ID " + idCliente + " não encontrado para associar ao veículo.");
         }
 
         Veiculo novoVeiculo = new Veiculo(placa, modelo, cor, idCliente);
-        veiculoRepository.adicionarVeiculo(novoVeiculo); // Delega ao repositório para adicionar e salvar
+        veiculoRepository.adicionarVeiculo(novoVeiculo);
         return novoVeiculo;
     }
     
@@ -71,12 +69,11 @@ public class VeiculoService {
 
         Optional<Veiculo> veiculoOpt = veiculoRepository.buscarVeiculoPorId(idVeiculo);
         if (veiculoOpt.isEmpty()) {
-            return false; // Veículo não encontrado
+            return false;
         }
         Veiculo veiculoParaAtualizar = veiculoOpt.get();
 
-        // Validação de unicidade da placa se for alterada e pertencer a outro veículo
-        if (!veiculoParaAtualizar.getPlaca().equalsIgnoreCase(novaPlaca)) { // Ignora case para placa
+        if (!veiculoParaAtualizar.getPlaca().equalsIgnoreCase(novaPlaca)) {
             Optional<Veiculo> existentePorPlaca = veiculoRepository.buscarVeiculoPorPlaca(novaPlaca);
             if (existentePorPlaca.isPresent() && existentePorPlaca.get().getId() != idVeiculo) {
                 throw new IllegalStateException("Erro: Nova placa '" + novaPlaca + "' já cadastrada para outro veículo.");
@@ -86,7 +83,7 @@ public class VeiculoService {
         veiculoParaAtualizar.setPlaca(novaPlaca);
         veiculoParaAtualizar.setModelo(novoModelo);
         veiculoParaAtualizar.setCor(novaCor);
-        veiculoRepository.atualizarVeiculo(veiculoParaAtualizar); // Delega ao repositório para atualizar e salvar
+        veiculoRepository.atualizarVeiculo(veiculoParaAtualizar);
         return true;
     }
 

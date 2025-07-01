@@ -18,31 +18,25 @@ import util.JsonFileHandler;
  */
 public class ClienteRepository {
 
-    private List<Cliente> clientes; // A lista de todos os clientes em memória
-    private JsonFileHandler<Cliente> fileHandler; // O handler para salvar/carregar JSON
+    private List<Cliente> clientes;
+    private JsonFileHandler<Cliente> fileHandler;
 
     /**
      * Construtor do ClienteRepository.
      * Ao ser instanciado, tenta carregar os clientes do arquivo JSON.
      */
     public ClienteRepository() {
-        // Define o tipo para o JsonFileHandler: uma Lista de Cliente
         Type typeOfListOfClientes = new TypeToken<List<Cliente>>() {}.getType();
-        // Inicializa o fileHandler com o nome do arquivo específico para clientes
         this.fileHandler = new JsonFileHandler<>("clientes.json", typeOfListOfClientes);
-
-        // Carrega os clientes ao iniciar o repositório
         this.clientes = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID para Cliente após o carregamento
-        // Isso evita que novos clientes tenham IDs duplicados com os já carregados do arquivo.
         int maxId = 0;
         for (Cliente cliente : this.clientes) {
             if (cliente.getId() > maxId) {
                 maxId = cliente.getId();
             }
         }
-        Cliente.proximoId = maxId + 1; // Ajusta o contador estático na classe Cliente
+        Cliente.proximoId = maxId + 1;
         System.out.println("Contador de ID de Cliente ajustado para: " + Cliente.proximoId);
     }
 
@@ -53,7 +47,7 @@ public class ClienteRepository {
     public void adicionarCliente(Cliente cliente) {
         clientes.add(cliente);
         System.out.println("Cliente '" + cliente.getNome() + "' (ID: " + cliente.getId() + ") adicionado ao repositório.");
-        fileHandler.save(clientes); // Salva a lista atualizada no JSON
+        fileHandler.save(clientes);
     }
 
     /**
@@ -62,10 +56,8 @@ public class ClienteRepository {
      * @param clienteParaAtualizar O objeto Cliente que foi modificado.
      */
     public void atualizarCliente(Cliente clienteParaAtualizar) {
-        // Como o objeto clienteParaAtualizar já é uma referência da lista 'clientes',
-        // basta salvar a lista inteira para persistir as alterações.
         System.out.println("Cliente '" + clienteParaAtualizar.getNome() + "' (ID: " + clienteParaAtualizar.getId() + ") atualizado no repositório.");
-        fileHandler.save(clientes); // Salva a lista atualizada no JSON
+        fileHandler.save(clientes);
     }
 
     /**
@@ -105,7 +97,7 @@ public class ClienteRepository {
      */
     public Optional<Cliente> buscarClientePorEmail(String email) {
         for (Cliente c : clientes) {
-            if (c.getEmail().equalsIgnoreCase(email)) { // Comparação case-insensitive
+            if (c.getEmail().equalsIgnoreCase(email)) {
                 return Optional.of(c);
             }
         }
@@ -131,6 +123,6 @@ public class ClienteRepository {
      * @return Uma lista (cópia) de todos os clientes.
      */
     public List<Cliente> listarTodosClientes() {
-        return new ArrayList<>(clientes); // Retorna uma nova lista para encapsulamento
+        return new ArrayList<>(clientes);
     }
 }

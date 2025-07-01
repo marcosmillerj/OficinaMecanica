@@ -18,26 +18,25 @@ import util.JsonFileHandler;
  */
 public class ServicoRepository {
 
-    private List<Servico> servicos; // A lista de todos os serviços (instâncias) em memória
-    private JsonFileHandler<Servico> fileHandler; // O handler para salvar/carregar JSON
+    private List<Servico> servicos;
+    private JsonFileHandler<Servico> fileHandler;
 
     /**
      * Construtor do ServicoRepository.
-     * Ao ser instanciado, tenta carregar os serviços do arquivo JSON.
+     *
      */
     public ServicoRepository() {
         Type typeOfListOfServicos = new TypeToken<List<Servico>>() {}.getType();
-        this.fileHandler = new JsonFileHandler<>("servicos.json", typeOfListOfServicos); // Nome do arquivo
+        this.fileHandler = new JsonFileHandler<>("servicos.json", typeOfListOfServicos);
         this.servicos = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID para Servico após o carregamento
         int maxId = 0;
         for (Servico servico : this.servicos) {
             if (servico.getId() > maxId) {
                 maxId = servico.getId();
             }
         }
-        Servico.proximoId = maxId + 1; // Ajusta o contador estático na classe Servico
+        Servico.proximoId = maxId + 1;
         System.out.println("Contador de ID de Servico ajustado para: " + Servico.proximoId);
     }
 
@@ -48,7 +47,7 @@ public class ServicoRepository {
     public void adicionarServico(Servico servico) {
         servicos.add(servico);
         System.out.println("Serviço ID " + servico.getId() + " ('" + servico.getObservacoes() + "') adicionado ao repositório.");
-        fileHandler.save(servicos); // Salva a lista atualizada no JSON
+        fileHandler.save(servicos);
     }
 
     /**
@@ -57,10 +56,8 @@ public class ServicoRepository {
      * @param servicoParaAtualizar O objeto Servico que foi modificado (referência já existente na lista).
      */
     public void atualizarServico(Servico servicoParaAtualizar) {
-        // Não é necessário buscar e substituir, pois o objeto já é uma referência na lista.
-        // Apenas persista a lista.
         System.out.println("Serviço ID " + servicoParaAtualizar.getId() + " ('" + servicoParaAtualizar.getObservacoes() + "') atualizado no repositório.");
-        fileHandler.save(servicos); // Salva a lista atualizada no JSON
+        fileHandler.save(servicos);
     }
     
     /**
@@ -98,6 +95,6 @@ public class ServicoRepository {
      * @return Uma lista (cópia) de todos os serviços.
      */
     public List<Servico> listarTodosServicos() {
-        return new ArrayList<>(servicos); // Retorna uma nova lista para encapsulamento
+        return new ArrayList<>(servicos); 
     }
 }

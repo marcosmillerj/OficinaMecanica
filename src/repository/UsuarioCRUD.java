@@ -20,7 +20,6 @@ import util.JsonFileHandler;
 public class UsuarioCRUD {
 
     private List<Usuario> usuarios = new ArrayList<>();
-    // Instância do seu JsonFileHandler para Usuario, responsável por salvar/carregar
     private JsonFileHandler<Usuario> fileHandler;
 
     /**
@@ -28,15 +27,11 @@ public class UsuarioCRUD {
      * Ao ser instanciado, tenta carregar a lista de usuários de um arquivo JSON existente.
      */
     public UsuarioCRUD() {
-        // Define o tipo para o JsonFileHandler. Essencial para desserialização genérica de List<Usuario>!
         Type typeOfListOfUsers = new TypeToken<List<Usuario>>() {}.getType();
-        // Inicializa o fileHandler com o nome do arquivo e o tipo da lista
         this.fileHandler = new JsonFileHandler<>("usuarios.json", typeOfListOfUsers);
 
-        // Carrega os usuários ao iniciar o CRUD
-        this.usuarios = fileHandler.load(); // A lista de usuários é carregada pelo handler
+        this.usuarios = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID após o carregamento para evitar IDs duplicados
         int maxId = 0;
         for (Usuario usuario : this.usuarios) {
             if (usuario.getId() > maxId) {
@@ -54,7 +49,7 @@ public class UsuarioCRUD {
     public void adicionarUsuario(Usuario usuario) {
         usuarios.add(usuario);
         System.out.println("Usuário " + usuario.getNome() + " (ID: " + usuario.getId() + ") adicionado com sucesso.");
-        fileHandler.save(usuarios); // Salva a lista atualizada após adicionar
+        fileHandler.save(usuarios);
     }
 
     /**
@@ -66,7 +61,7 @@ public class UsuarioCRUD {
         boolean removido = usuarios.removeIf(usuario -> usuario.getId() == id);
         if (removido) {
             System.out.println("Usuário com ID " + id + " removido com sucesso.");
-            fileHandler.save(usuarios); // Salva a lista atualizada após remover
+            fileHandler.save(usuarios);
         } else {
             System.out.println("Usuário com ID " + id + " não encontrado para remoção.");
         }
@@ -85,7 +80,6 @@ public class UsuarioCRUD {
      * @return true se o usuário foi atualizado, false caso contrário.
      */
     public boolean atualizarUsuario(int id, String novoNome, String novoEndereco, String novoEmail, String novoTelefone) {
-        // Encontra o usuário pelo ID
         Optional<Usuario> usuarioOpt = buscarUsuarioPorIdOptional(id);
         if (usuarioOpt.isEmpty()) {
             System.out.println("Usuário com ID " + id + " não encontrado para atualização.");
@@ -94,17 +88,13 @@ public class UsuarioCRUD {
 
         Usuario usuarioParaAtualizar = usuarioOpt.get();
         
-        // Atualiza os atributos do objeto Usuario em memória
         usuarioParaAtualizar.setNome(novoNome);
         usuarioParaAtualizar.setEndereco(novoEndereco);
         usuarioParaAtualizar.setEmail(novoEmail);
         usuarioParaAtualizar.setTelefone(novoTelefone);
-        // Note: O tipo não é atualizado aqui porque este método do CRUD não recebe o tipo.
-        // Se você quiser que o CRUD atualize o tipo, o parâmetro `novoTipo` precisaria ser adicionado aqui.
-        // No entanto, o `UsuarioService.atualizarUsuario` já atualiza o objeto diretamente, então está ok.
 
         System.out.println("Usuário com ID " + id + " atualizado em memória.");
-        fileHandler.save(usuarios); // Salva a lista (que contém o objeto atualizado)
+        fileHandler.save(usuarios);
         return true;
     }
 
@@ -113,7 +103,7 @@ public class UsuarioCRUD {
      * @return Uma nova lista contendo todos os usuários, para evitar modificações diretas na lista interna.
      */
     public List<Usuario> listarUsuarios() {
-        return new ArrayList<>(usuarios); // Retorna uma cópia para encapsulamento
+        return new ArrayList<>(usuarios);
     }
 
     /**
@@ -146,9 +136,6 @@ public class UsuarioCRUD {
         }
         return Optional.empty();
     }
-
-    
-    // NOVOS MÉTODOS DE BUSCA: Essenciais para o UsuarioService!
     
 
     /**

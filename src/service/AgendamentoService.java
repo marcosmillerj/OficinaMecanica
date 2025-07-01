@@ -26,8 +26,8 @@ import repository.VeiculoRepository;
 public class AgendamentoService {
 
     private AgendamentoRepository agendamentoRepository;
-    private ClienteRepository clienteRepository; // Para validar cliente
-    private VeiculoRepository veiculoRepository; // Para validar veículo
+    private ClienteRepository clienteRepository;
+    private VeiculoRepository veiculoRepository;
 
     public AgendamentoService(AgendamentoRepository agendamentoRepository,
                               ClienteRepository clienteRepository,
@@ -62,7 +62,6 @@ public class AgendamentoService {
         Optional<Veiculo> veiculoOpt = veiculoRepository.buscarVeiculoPorId(idVeiculo);
         if (veiculoOpt.isEmpty()) { throw new IllegalArgumentException("Veículo com ID " + idVeiculo + " não encontrado."); }
 
-        // Validação: Não permitir agendamentos para o mesmo veículo no mesmo horário (básico)
         boolean conflito = agendamentoRepository.listarAgendamentosPorVeiculo(idVeiculo).stream()
             .anyMatch(a -> a.getDataHora().equals(dataHora) &&
                            (a.getStatus() == StatusAgendamento.PENDENTE || a.getStatus() == StatusAgendamento.CONFIRMADO));
@@ -71,7 +70,7 @@ public class AgendamentoService {
         }
 
         Agendamento novoAgendamento = new Agendamento(dataHora, idCliente, idVeiculo, valor);
-        agendamentoRepository.adicionarAgendamento(novoAgendamento); // Persiste
+        agendamentoRepository.adicionarAgendamento(novoAgendamento);
         System.out.println("Agendamento criado: " + novoAgendamento.toString());
         return novoAgendamento;
     }
@@ -88,7 +87,7 @@ public class AgendamentoService {
         Agendamento agendamento = agendamentoOpt.get();
 
         boolean sucesso = agendamento.reagendar(novaDataHora);
-        if (sucesso) { agendamentoRepository.atualizarAgendamento(agendamento); } // Persiste
+        if (sucesso) { agendamentoRepository.atualizarAgendamento(agendamento); }
         return sucesso;
     }
 
@@ -99,11 +98,11 @@ public class AgendamentoService {
      */
     public BigDecimal cancelarAgendamento(int idAgendamento) {
         Optional<Agendamento> agendamentoOpt = agendamentoRepository.buscarAgendamentoPorId(idAgendamento);
-        if (agendamentoOpt.isEmpty()) { return null; } // Retorna null se não encontrado
+        if (agendamentoOpt.isEmpty()) { return null; }
         Agendamento agendamento = agendamentoOpt.get();
 
-        BigDecimal valorRetido = agendamento.cancelar(); // Método em Agendamento já lida com status
-        agendamentoRepository.atualizarAgendamento(agendamento); // Persiste
+        BigDecimal valorRetido = agendamento.cancelar(); 
+        agendamentoRepository.atualizarAgendamento(agendamento);
         return valorRetido;
     }
 
@@ -117,8 +116,8 @@ public class AgendamentoService {
         if (agendamentoOpt.isEmpty()) { return false; }
         Agendamento agendamento = agendamentoOpt.get();
 
-        agendamento.confirmar(); // Método em Agendamento já lida com status
-        agendamentoRepository.atualizarAgendamento(agendamento); // Persiste
+        agendamento.confirmar();
+        agendamentoRepository.atualizarAgendamento(agendamento);
         return true;
     }
     
@@ -128,35 +127,5 @@ public class AgendamentoService {
      */
     public List<Agendamento> listarTodosAgendamentos() {
         return agendamentoRepository.listarTodosAgendamentos();
-    }
-
-    // --- Métodos para Demonstração de Comparator (Requisito Específico) ---
-
-    /**
-     * Retorna um Comparator para ordenar Agendamentos por Data e Hora.
-     * @return Comparator<Agendamento>.
-     */
-    public static Comparator<Agendamento> getComparatorByDataHora() {
-        return Comparator.comparing(Agendamento::getDataHora);
-    }
-
-    /**
-     * Retorna um Comparator para ordenar Agendamentos por ID do Cliente.
-     * @return Comparator<Agendamento>.
-     */
-    public static Comparator<Agendamento> getComparatorByClienteId() {
-        return Comparator.comparingInt(Agendamento::getIdCliente);
-    }
-
-    /**
-     * Retorna uma lista de agendamentos ordenada por um Comparator específico.
-     * @param agendamentos Lista de agendamentos a ordenar.
-     * @param comparator O Comparator a ser usado para ordenação.
-     * @return Uma nova lista ordenada.
-     */
-    public List<Agendamento> ordenarAgendamentos(List<Agendamento> agendamentos, Comparator<Agendamento> comparator) {
-        return agendamentos.stream()
-                           .sorted(comparator)
-                           .collect(Collectors.toList());
     }
 }

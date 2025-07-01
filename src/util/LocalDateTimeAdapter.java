@@ -21,8 +21,6 @@ import java.time.format.DateTimeFormatter;
  */
 public class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
 
-    // Define o formato da data e hora para serialização/desserialização.
-    // ISO_LOCAL_DATE_TIME é um formato padrão como "yyyy-MM-ddTHH:mm:ss".
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**

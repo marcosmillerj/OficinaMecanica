@@ -19,10 +19,6 @@ import observers.ObservadorPagamento;
  * @author marcos_miller
  */
 
-/**
- * Representa um pagamento realizado na oficina.
- * Agora atua como um 'Subject' no padrão Observer, notificando interessados ao ser finalizado.
- */
 public class Pagamento {
 
     public static int proximoId = 1;
@@ -31,7 +27,7 @@ public class Pagamento {
     private LocalDateTime dataHora;
     private BigDecimal valor;
     private TipoPagamento tipo;
-    private Optional<Integer> idOrdemServico; // Referência por ID para OrdemServico (Optional)
+    private Optional<Integer> idOrdemServico;
     
     /**
      * Construtor principal para criar um novo pagamento.
@@ -40,9 +36,9 @@ public class Pagamento {
     public Pagamento(Optional<Integer> idOrdemServico) {
         this.id = proximoId++;
         this.idOrdemServico = Objects.requireNonNull(idOrdemServico, "ID da Ordem de Serviço não pode ser nulo (use Optional.empty()).");
-        this.dataHora = null; // Definido ao finalizar
-        this.valor = BigDecimal.ZERO; // Definido ao finalizar
-        this.tipo = null; // Definido ao finalizar
+        this.dataHora = null;
+        this.valor = BigDecimal.ZERO;
+        this.tipo = null;
     }
 
     /**
@@ -59,7 +55,6 @@ public class Pagamento {
         this.dataHora = dataHora;
         this.valor = valor;
         this.tipo = tipo;
-        // <<< CORREÇÃO AQUI: Garante que idOrdemServico não seja null, mesmo que o Gson passe null
         this.idOrdemServico = Objects.requireNonNullElse(idOrdemServico, Optional.empty()); 
     }
 
@@ -87,7 +82,7 @@ public class Pagamento {
      * @return Optional<Integer> do ID da OS, ou Optional.empty() se não houver OS.
      */
     public Optional<Integer> getIdOrdemServico() { 
-        return Objects.requireNonNullElse(idOrdemServico, Optional.empty()); // <<< CORREÇÃO AQUI!
+        return Objects.requireNonNullElse(idOrdemServico, Optional.empty());
     }
     public void setIdOrdemServico(Optional<Integer> idOrdemServico) {
         this.idOrdemServico = Objects.requireNonNull(idOrdemServico, "ID da Ordem de Serviço não pode ser nulo (use Optional.empty()).");
@@ -108,24 +103,12 @@ public class Pagamento {
                           " finalizado via " + tipoFinal.getPagamento() +
                           " em " + this.dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
                           ". ID: " + this.id +
-                          (this.getIdOrdemServico().isPresent() ? ", OS: " + this.getIdOrdemServico().get() : ""); // Usa o getter defensivo
+                          (this.getIdOrdemServico().isPresent() ? ", OS: " + this.getIdOrdemServico().get() : "");
 
         System.out.println(mensagem);
         return mensagem;
     }
 
-    /**
-     * Exibe os detalhes completos do pagamento.
-     */
-    public void exibirDetalhes() {
-        System.out.println("--- Detalhes do Pagamento ---");
-        System.out.println("ID: " + this.id);
-        System.out.println("Valor: R$" + String.format("%.2f", this.valor));
-        System.out.println("Data/Hora: " + (this.dataHora != null ? this.dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : "N/A"));
-        System.out.println("Forma: " + (this.tipo != null ? this.tipo.getPagamento() : "N/A"));
-        System.out.println("OS Relacionada: " + (this.getIdOrdemServico().isPresent() ? this.getIdOrdemServico().get() : "N/A")); // Usa o getter defensivo
-        System.out.println("-----------------------------");
-    }
 
     @Override
     public boolean equals(Object o) {

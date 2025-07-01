@@ -73,7 +73,6 @@ public class ItemEstoqueRepository {
         return Optional.empty();
     }
 
-    // NOVO MÉTODO: Buscar item por código
     public Optional<ItemEstoque> buscarItemPorCodigo(String codigo) {
         for (ItemEstoque item : itens) {
             if (item.getCodigo().equalsIgnoreCase(codigo)) {

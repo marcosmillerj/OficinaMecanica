@@ -18,30 +18,25 @@ import util.JsonFileHandler;
  */
 public class VeiculoRepository {
 
-    private List<Veiculo> veiculos; // A lista de todos os veículos em memória
-    private JsonFileHandler<Veiculo> fileHandler; // O handler para salvar/carregar JSON
+    private List<Veiculo> veiculos;
+    private JsonFileHandler<Veiculo> fileHandler;
 
     /**
      * Construtor do VeiculoRepository.
      * Ao ser instanciado, tenta carregar os veículos do arquivo JSON.
      */
     public VeiculoRepository() {
-        // Define o tipo para o JsonFileHandler: uma Lista de Veiculo
         Type typeOfListOfVeiculos = new TypeToken<List<Veiculo>>() {}.getType();
-        // Inicializa o fileHandler com o nome do arquivo específico para veículos
         this.fileHandler = new JsonFileHandler<>("veiculos.json", typeOfListOfVeiculos);
-
-        // Carrega os veículos ao iniciar o repositório
         this.veiculos = fileHandler.load();
 
-        // CRÍTICO: Ajustar o próximo ID para Veiculo após o carregamento
         int maxId = 0;
         for (Veiculo veiculo : this.veiculos) {
             if (veiculo.getId() > maxId) {
                 maxId = veiculo.getId();
             }
         }
-        Veiculo.proximoId = maxId + 1; // Ajusta o contador estático na classe Veiculo
+        Veiculo.proximoId = maxId + 1;
         System.out.println("Contador de ID de Veículo ajustado para: " + Veiculo.proximoId);
     }
 
@@ -52,7 +47,7 @@ public class VeiculoRepository {
     public void adicionarVeiculo(Veiculo veiculo) {
         veiculos.add(veiculo);
         System.out.println("Veículo '" + veiculo.getPlaca() + "' (ID: " + veiculo.getId() + ") adicionado ao repositório.");
-        fileHandler.save(veiculos); // Salva a lista atualizada no JSON
+        fileHandler.save(veiculos); 
     }
 
     /**
@@ -60,10 +55,8 @@ public class VeiculoRepository {
      * @param veiculoParaAtualizar O objeto Veiculo que foi modificado.
      */
     public void atualizarVeiculo(Veiculo veiculoParaAtualizar) {
-        // Como o objeto veiculoParaAtualizar já é uma referência da lista 'veiculos',
-        // basta salvar a lista inteira para persistir as alterações.
         System.out.println("Veículo '" + veiculoParaAtualizar.getPlaca() + "' (ID: " + veiculoParaAtualizar.getId() + ") atualizado no repositório.");
-        fileHandler.save(veiculos); // Salva a lista atualizada no JSON
+        fileHandler.save(veiculos);
     }
 
     /**
@@ -103,7 +96,7 @@ public class VeiculoRepository {
      */
     public Optional<Veiculo> buscarVeiculoPorPlaca(String placa) {
         for (Veiculo v : veiculos) {
-            if (v.getPlaca().equalsIgnoreCase(placa)) { // Comparação case-insensitive
+            if (v.getPlaca().equalsIgnoreCase(placa)) {
                 return Optional.of(v);
             }
         }
@@ -115,6 +108,6 @@ public class VeiculoRepository {
      * @return Uma lista (cópia) de todos os veículos.
      */
     public List<Veiculo> listarTodosVeiculos() {
-        return new ArrayList<>(veiculos); // Retorna uma nova lista para encapsulamento
+        return new ArrayList<>(veiculos);
     }
 }

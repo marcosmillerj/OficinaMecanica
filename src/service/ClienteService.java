@@ -21,7 +21,7 @@ import repository.VeiculoRepository;
 public class ClienteService {
 
     private ClienteRepository clienteRepository;
-    private VeiculoRepository veiculoRepository; // Dependência para associar veículos ao cliente
+    private VeiculoRepository veiculoRepository;
 
     public ClienteService(ClienteRepository clienteRepository, VeiculoRepository veiculoRepository) {
         this.clienteRepository = clienteRepository;
@@ -42,7 +42,6 @@ public class ClienteService {
         Objects.requireNonNull(telefone, "Telefone do cliente não pode ser nulo.");
         Objects.requireNonNull(email, "Email do cliente não pode ser nulo.");
 
-        // Validações de unicidade
         if (clienteRepository.buscarClientePorEmail(email).isPresent()) {
             throw new IllegalStateException("Erro: Email '" + email + "' já cadastrado.");
         }
@@ -51,7 +50,7 @@ public class ClienteService {
         }
 
         Cliente novoCliente = new Cliente(nome, telefone, email);
-        clienteRepository.adicionarCliente(novoCliente); // Delega ao repositório para adicionar e salvar
+        clienteRepository.adicionarCliente(novoCliente);
         return novoCliente;
     }
 
@@ -71,12 +70,11 @@ public class ClienteService {
 
         Optional<Cliente> clienteOpt = clienteRepository.buscarClientePorId(idCliente);
         if (clienteOpt.isEmpty()) {
-            return false; // Cliente não encontrado
+            return false;
         }
         Cliente clienteParaAtualizar = clienteOpt.get();
 
-        // Validação de unicidade para email/telefone se forem alterados e pertencerem a outro cliente
-        if (!clienteParaAtualizar.getEmail().equalsIgnoreCase(novoEmail)) { // Ignora case para email
+        if (!clienteParaAtualizar.getEmail().equalsIgnoreCase(novoEmail)) {
             Optional<Cliente> existentePorEmail = clienteRepository.buscarClientePorEmail(novoEmail);
             if (existentePorEmail.isPresent() && existentePorEmail.get().getId() != idCliente) {
                 throw new IllegalStateException("Erro: Novo email '" + novoEmail + "' já cadastrado para outro cliente.");
@@ -92,7 +90,7 @@ public class ClienteService {
         clienteParaAtualizar.setNome(novoNome);
         clienteParaAtualizar.setTelefone(novoTelefone);
         clienteParaAtualizar.setEmail(novoEmail);
-        clienteRepository.atualizarCliente(clienteParaAtualizar); // Delega ao repositório para atualizar e salvar
+        clienteRepository.atualizarCliente(clienteParaAtualizar);
         return true;
     }
 
@@ -115,8 +113,8 @@ public class ClienteService {
         }
 
         Cliente cliente = clienteOpt.get();
-        cliente.adicionarIdVeiculo(idVeiculo); // Adiciona o ID do veículo à lista interna do cliente
-        clienteRepository.atualizarCliente(cliente); // Delega ao repositório para atualizar e salvar
+        cliente.adicionarIdVeiculo(idVeiculo);
+        clienteRepository.atualizarCliente(cliente);
         return true;
     }
     

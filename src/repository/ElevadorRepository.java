@@ -21,34 +21,29 @@ public class ElevadorRepository {
     // A única instância da classe (privada e estática) para o padrão Singleton
     private static ElevadorRepository instance; 
 
-    private List<Elevador> elevadores; // A coleção de elevadores (não é mais 'final' no sentido de ser imutável no conteúdo)
-    private JsonFileHandler<Elevador> fileHandler; // Handler para persistência JSON
+    private List<Elevador> elevadores;
+    private JsonFileHandler<Elevador> fileHandler;
 
     /**
      * Construtor privado.
      * Tenta carregar os elevadores do arquivo JSON. Se não houver, inicializa com elevadores padrão.
      */
     private ElevadorRepository() {
-        // Inicializa o fileHandler para Elevador
         Type typeOfListOfElevadores = new TypeToken<List<Elevador>>() {}.getType();
         this.fileHandler = new JsonFileHandler<>("elevadores.json", typeOfListOfElevadores);
-
-        // Carrega os elevadores do arquivo JSON
         this.elevadores = fileHandler.load();
 
-        // Se a lista carregada estiver vazia, significa que é a primeira execução ou o arquivo foi apagado.
-        // Então, inicializa os elevadores padrão e os salva.
         if (this.elevadores.isEmpty()) {
             System.out.println("Nenhum elevador encontrado no arquivo. Inicializando com elevadores padrão...");
-            elevadores.add(new Elevador(1, false)); // Elevador 1: Geral
-            elevadores.add(new Elevador(2, false)); // Elevador 2: Geral
-            elevadores.add(new Elevador(3, true));  // Elevador 3: Capacidade de Alinhamento
-            fileHandler.save(elevadores); // Salva o estado inicial no JSON
+            elevadores.add(new Elevador(1, false));
+            elevadores.add(new Elevador(2, false));
+            elevadores.add(new Elevador(3, true));
+            fileHandler.save(elevadores);
             System.out.println("Elevadores padrão criados e salvos em 'elevadores.json'.");
         } else {
             System.out.println("Elevadores carregados do arquivo 'elevadores.json'.");
         }
-        elevadores.forEach(System.out::println); // Imprime o estado atual dos elevadores (útil para debug)
+        elevadores.forEach(System.out::println);
     }
 
     /**
@@ -95,7 +90,7 @@ public class ElevadorRepository {
      * @return Uma lista (cópia) de todos os elevadores.
      */
     public List<Elevador> listarTodosElevadores() {
-        return new ArrayList<>(elevadores); // Retorna uma cópia da lista interna
+        return new ArrayList<>(elevadores);
     }
 
     /**
