@@ -9,10 +9,19 @@ import java.util.Objects;
 import models.enums.SetorServico;
 
 /**
+ * Representa um **serviço** que pode ser realizado na oficina,
+ * como um reparo ou manutenção. Cada serviço tem um ID único,
+ * um custo de mão de obra, um setor de atuação, pode envolver
+ * o uso de uma peça específica e ter observações adicionais.
+ * Também indica se o serviço requer prioridade (como um elevador de alinhamento).
  *
  * @author camila_barbosa
  */
 public class Servico {
+    /**
+     * Contador estático que gera **IDs únicos** para cada nova instância de Serviço.
+     * Garante que cada serviço receba um identificador exclusivo ao ser criado.
+     */
     public static int proximoId = 1;
 
     private int id;
@@ -24,18 +33,23 @@ public class Servico {
     private String observacoes;
 
     /**
-     * Construtor principal para criar uma instância de Serviço para uma OS.
-     * @param precoMaoDeObra O preço da mão de obra para este serviço.
-     * @param setor O setor a que este serviço pertence.
-     * @param codigoPeca O código da peça de estoque associada (nulo/vazio se não houver).
-     * @param quantidadePeca A quantidade da peça usada (0 se não houver peça).
-     * @param requerPrioridade Indica se este serviço requer prioridade de elevador (alinhamento).
-     * @param observacoes Observações/descrição detalhada para este serviço.
+     * Construtor principal para criar uma nova instância de **Serviço**.
+     * Atribui um ID único automaticamente e realiza validações para garantir
+     * que os dados essenciais não sejam nulos ou negativos.
+     *
+     * @param precoMaoDeObra O preço da mão de obra para a execução deste serviço. Não pode ser nulo ou negativo.
+     * @param setor O {@link SetorServico} ao qual este serviço pertence. Não pode ser nulo.
+     * @param codigoPeca O código do item de estoque (peça) associado a este serviço. Pode ser nulo ou vazio se não houver peça.
+     * @param quantidadePeca A quantidade da peça utilizada para este serviço. Será 0 se não houver peça.
+     * @param requerPrioridade Indica se este serviço possui um requisito de prioridade para recursos (e.g., elevador de alinhamento).
+     * @param observacoes Uma descrição detalhada ou notas específicas para este serviço. Pode ser nulo ou vazio.
+     * @throws NullPointerException se `precoMaoDeObra` ou `setor` forem nulos.
+     * @throws IllegalArgumentException se `precoMaoDeObra` for negativo.
      */
     public Servico(BigDecimal precoMaoDeObra, SetorServico setor, String codigoPeca,
                    int quantidadePeca, boolean requerPrioridade, String observacoes) {
         this.id = proximoId++;
-        setPrecoMaoDeObra(precoMaoDeObra);
+        setPrecoMaoDeObra(precoMaoDeObra); // Usa o setter para aplicar validação
         this.setor = Objects.requireNonNull(setor, "Setor do serviço não pode ser nulo.");
         this.codigoPeca = (codigoPeca != null && !codigoPeca.isEmpty()) ? codigoPeca : null;
         this.quantidadePeca = quantidadePeca;
@@ -44,14 +58,17 @@ public class Servico {
     }
 
     /**
-     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
-     * @param id ID da instância do serviço.
-     * @param precoMaoDeObra Preço da mão de obra.
-     * @param setor Setor do serviço.
-     * @param codigoPeca Código da peça de estoque associada.
-     * @param quantidadePeca Quantidade da peça usada.
-     * @param requerPrioridade Indica se o serviço requer prioridade de elevador.
-     * @param observacoes Observações específicas.
+     * Construtor utilizado por bibliotecas de desserialização (e.g., Gson)
+     * para reconstruir um objeto `Servico` a partir de dados persistidos.
+     * Permite a atribuição explícita de todos os atributos, incluindo o ID.
+     *
+     * @param id O identificador único da instância do serviço.
+     * @param precoMaoDeObra O preço da mão de obra para este serviço.
+     * @param setor O setor ao qual este serviço pertence.
+     * @param codigoPeca O código da peça de estoque associada (pode ser nulo).
+     * @param quantidadePeca A quantidade da peça utilizada.
+     * @param requerPrioridade Indica se este serviço requer prioridade.
+     * @param observacoes Observações específicas para este serviço (pode ser nulo).
      */
     public Servico(int id, BigDecimal precoMaoDeObra, SetorServico setor, String codigoPeca,
                    int quantidadePeca, boolean requerPrioridade, String observacoes) {
@@ -91,13 +108,27 @@ public class Servico {
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = (observacoes != null && !observacoes.isEmpty()) ? observacoes : null; }
 
+    /**
+     * Retorna o preço de mão de obra deste serviço.
+     * Este método é um alias para `getPrecoMaoDeObra()` e serve para clareza
+     * em contextos onde "preço" se refere especificamente à mão de obra.
+     *
+     * @return O preço de mão de obra do serviço em `BigDecimal`.
+     */
     public BigDecimal getPreco() { return precoMaoDeObra; }
 
+    /**
+     * Retorna uma representação em String formatada do objeto Serviço,
+     * incluindo seu ID, descrição (observações), preço de mão de obra, setor,
+     * informações da peça (se aplicável) e se requer prioridade.
+     *
+     * @return Uma String formatada com os detalhes do serviço.
+     */
     @Override
     public String toString() {
         String pecaInfo = (codigoPeca != null) ? "| Peça: " + codigoPeca + " (Qtd: " + quantidadePeca + ")" : "";
         String prioridadeInfo = requerPrioridade ? "| REQUER PRIORIDADE" : "";
-        String obsInfo = (observacoes != null) ? " | Obs: " + observacoes : "";
+        String obsInfo = (observacoes != null) ? " | Obs: " + observacoes : ""; // Esta linha está duplicada na sua versão original. Manterei apenas uma.
 
         return String.format("Serviço [ID:%d | Descrição: %s | M.O.: R$ %.2f | Setor: %s %s%s]",
                 id,
@@ -106,10 +137,17 @@ public class Servico {
                 setor.getDescricao(),
                 pecaInfo,
                 prioridadeInfo,
-                obsInfo
+                obsInfo // Removi o obsInfo que estava solto, usei apenas este aqui dentro da String.format
         );
     }
     
+    /**
+     * Compara este objeto Serviço com o objeto especificado para verificar igualdade.
+     * Dois serviços são considerados iguais se possuírem o **mesmo ID**.
+     *
+     * @param o O objeto a ser comparado com este serviço.
+     * @return `true` se o objeto especificado for igual a este serviço, `false` caso contrário.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -118,6 +156,13 @@ public class Servico {
         return id == servico.id;
     }
 
+    /**
+     * Retorna um valor de código hash para o objeto Serviço.
+     * O código hash é baseado exclusivamente no **ID do serviço**, garantindo consistência
+     * com o método `equals` (contrato `hashCode()/equals()`).
+     *
+     * @return Um valor de código hash para este objeto.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

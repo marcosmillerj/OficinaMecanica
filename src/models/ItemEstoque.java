@@ -8,11 +8,17 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
+ * Representa um **item no estoque** da oficina, como peças, suprimentos ou produtos.
+ * Cada item possui um identificador único, um código, um nome, a quantidade disponível
+ * e seu preço unitário. A classe garante a integridade dos dados, como quantidades e preços não negativos.
  *
  * @author marcos_miller
  */
-
 public class ItemEstoque {
+    /**
+     * Contador estático que gera **IDs únicos** para cada nova instância de ItemEstoque.
+     * Garante que cada item receba um identificador exclusivo ao ser criado.
+     */
     public static int proximoId = 1;
 
     private int id;
@@ -22,34 +28,45 @@ public class ItemEstoque {
     private BigDecimal precoUnitario;
 
     /**
-     * Construtor para criar um novo ItemEstoque.
-     * @param codigo O código identificador da peça (não pode ser nulo).
-     * @param nome O nome do item (não pode ser nulo).
-     * @param quantidade A quantidade em estoque (não pode ser negativa).
-     * @param precoUnitario O preço unitário do item (não pode ser nulo ou negativo).
+     * Construtor para criar uma nova instância de **ItemEstoque**.
+     * Atribui um ID único automaticamente e realiza validações para garantir
+     * que os dados essenciais não sejam nulos ou negativos.
+     *
+     * @param codigo O código identificador exclusivo da peça ou item. Não pode ser nulo.
+     * @param nome O nome descritivo do item. Não pode ser nulo.
+     * @param quantidade A quantidade atual do item disponível em estoque. Não pode ser negativa.
+     * @param precoUnitario O preço de venda unitário do item. Não pode ser nulo ou negativo.
+     * @throws NullPointerException se `codigo`, `nome` ou `precoUnitario` forem nulos.
+     * @throws IllegalArgumentException se `quantidade` ou `precoUnitario` forem negativos.
      */
     public ItemEstoque(String codigo, String nome, int quantidade, BigDecimal precoUnitario) {
         this.id = proximoId++;
         this.codigo = Objects.requireNonNull(codigo, "Código do item não pode ser nulo.");
         this.nome = Objects.requireNonNull(nome, "Nome do item não pode ser nulo.");
-        setQuantidade(quantidade);
-        setPrecoUnitario(precoUnitario);
+        setQuantidade(quantidade); // Usa o setter para aplicar validação
+        setPrecoUnitario(precoUnitario); // Usa o setter para aplicar validação
     }
 
     /**
-     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
-     * @param id ID do item.
-     * @param codigo Código do item.
-     * @param nome Nome do item.
-     * @param quantidade Quantidade em estoque.
-     * @param precoUnitario Preço unitário do item.
+     * Construtor utilizado por bibliotecas de desserialização (e.g., Gson)
+     * para reconstruir um objeto `ItemEstoque` a partir de dados persistidos.
+     * Permite a atribuição explícita de todos os atributos, incluindo o ID,
+     * e aplica as mesmas validações dos setters para garantir a consistência dos dados.
+     *
+     * @param id O identificador único do item.
+     * @param codigo O código identificador da peça.
+     * @param nome O nome do item.
+     * @param quantidade A quantidade em estoque.
+     * @param precoUnitario O preço unitário do item.
+     * @throws NullPointerException se `codigo`, `nome` ou `precoUnitario` forem nulos.
+     * @throws IllegalArgumentException se `quantidade` ou `precoUnitario` forem negativos.
      */
     public ItemEstoque(int id, String codigo, String nome, int quantidade, BigDecimal precoUnitario) {
         this.id = id;
         this.codigo = Objects.requireNonNull(codigo, "Código do item não pode ser nulo.");
         this.nome = Objects.requireNonNull(nome, "Nome do item não pode ser nulo.");
-        setQuantidade(quantidade);
-        setPrecoUnitario(precoUnitario);
+        setQuantidade(quantidade); // Usa o setter para aplicar validação
+        setPrecoUnitario(precoUnitario); // Usa o setter para aplicar validação
     }
 
     // --- Getters e Setters ---
@@ -74,12 +91,25 @@ public class ItemEstoque {
         this.precoUnitario = precoUnitario;
     }
 
+    /**
+     * Retorna uma representação em String formatada do objeto ItemEstoque,
+     * incluindo seu ID, código, nome, quantidade e preço unitário.
+     *
+     * @return Uma String formatada com os detalhes do item de estoque.
+     */
     @Override
     public String toString() {
         return String.format("ItemEstoque {ID: %d | Código: %s | Nome: %s | Quantidade: %d | Preço Unitário: R$ %.2f}",
                 id, codigo, nome, quantidade, precoUnitario);
     }
 
+    /**
+     * Compara este objeto ItemEstoque com o objeto especificado para verificar igualdade.
+     * Dois itens de estoque são considerados iguais se possuírem o **mesmo ID**.
+     *
+     * @param o O objeto a ser comparado com este item de estoque.
+     * @return `true` se o objeto especificado for igual a este item de estoque, `false` caso contrário.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -88,6 +118,13 @@ public class ItemEstoque {
         return id == that.id;
     }
 
+    /**
+     * Retorna um valor de código hash para o objeto ItemEstoque.
+     * O código hash é baseado exclusivamente no **ID do item**, garantindo consistência
+     * com o método `equals` (contrato `hashCode()/equals()`).
+     *
+     * @return Um valor de código hash para este objeto.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

@@ -15,12 +15,19 @@ import models.enums.TipoPagamento;
 import observers.ObservadorPagamento;
 
 /**
+ * Representa um **registro de pagamento** efetuado no sistema da oficina.
+ * Cada pagamento possui um ID único, data e hora da transação, o valor pago,
+ * o tipo de pagamento e uma associação opcional com uma Ordem de Serviço.
  *
  * @author marcos_miller
  */
 
 public class Pagamento {
 
+    /**
+     * Contador estático que gera **IDs únicos** para cada nova instância de Pagamento.
+     * Garante que cada pagamento receba um identificador exclusivo ao ser criado.
+     */
     public static int proximoId = 1;
 
     private int id;
@@ -30,8 +37,15 @@ public class Pagamento {
     private Optional<Integer> idOrdemServico;
     
     /**
-     * Construtor principal para criar um novo pagamento.
-     * @param idOrdemServico O ID da OrdemDeServiço à qual este pagamento se refere (Optional.empty() se não houver OS).
+     * Construtor principal para criar uma nova instância de **Pagamento**.
+     * Atribui um ID único automaticamente e inicializa os campos `dataHora`, `valor`
+     * e `tipo` como nulos/zero, esperando que sejam definidos posteriormente
+     * através do método `finalizar`.
+     *
+     * @param idOrdemServico Um `Optional<Integer>` representando o ID da Ordem de Serviço
+     * à qual este pagamento se refere. Use `Optional.empty()` se
+     * o pagamento não estiver vinculado a uma OS específica. Não pode ser nulo.
+     * @throws NullPointerException se `idOrdemServico` for nulo.
      */
     public Pagamento(Optional<Integer> idOrdemServico) {
         this.id = proximoId++;
@@ -42,13 +56,17 @@ public class Pagamento {
     }
 
     /**
-     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
-     * Garante que `idOrdemServico` sempre seja um `Optional` (nunca `null`).
-     * @param id ID do pagamento.
-     * @param dataHora Data e hora da finalização do pagamento.
-     * @param valor Valor final do pagamento.
-     * @param tipo Tipo de pagamento.
-     * @param idOrdemServico ID da Ordem de Serviço associada.
+     * Construtor utilizado por bibliotecas de desserialização (e.g., Gson)
+     * para reconstruir um objeto `Pagamento` a partir de dados persistidos.
+     * Permite a atribuição explícita de todos os atributos, incluindo o ID,
+     * e garante que `idOrdemServico` seja sempre um `Optional` válido (nunca `null`).
+     *
+     * @param id O identificador único do pagamento.
+     * @param dataHora A data e hora em que o pagamento foi finalizado.
+     * @param valor O valor total do pagamento.
+     * @param tipo O {@link TipoPagamento} utilizado para a transação.
+     * @param idOrdemServico Um `Optional<Integer>` contendo o ID da Ordem de Serviço
+     * associada, ou `Optional.empty()` se não houver.
      */
     public Pagamento(int id, LocalDateTime dataHora, BigDecimal valor, TipoPagamento tipo, Optional<Integer> idOrdemServico) {
         this.id = id;
@@ -76,11 +94,6 @@ public class Pagamento {
     public TipoPagamento getTipo() { return tipo; }
     public void setTipo(TipoPagamento tipo) { this.tipo = Objects.requireNonNull(tipo, "Tipo de pagamento não pode ser nulo."); }
 
-    /**
-     * Retorna o Optional<Integer> do ID da Ordem de Serviço.
-     * GARANTE QUE NUNCA RETORNE NULL, SEMPRE UM OPTIONAL (VAZIO OU COM VALOR).
-     * @return Optional<Integer> do ID da OS, ou Optional.empty() se não houver OS.
-     */
     public Optional<Integer> getIdOrdemServico() { 
         return Objects.requireNonNullElse(idOrdemServico, Optional.empty());
     }
@@ -89,15 +102,19 @@ public class Pagamento {
     }
 
     /**
-     * Finaliza o pagamento, definindo seu valor, data/hora e tipo.
-     * @param valorFinal O valor final pago.
-     * @param tipoFinal O tipo de pagamento.
-     * @return Uma mensagem de confirmação da finalização.
+     * Finaliza o processo de pagamento, registrando o valor final, a data/hora atual
+     * e o tipo de pagamento realizado.
+     *
+     * @param valorFinal O valor total final pago.
+     * @param tipoFinal O {@link TipoPagamento} selecionado para esta transação.
+     * @return Uma mensagem de confirmação formatada contendo os detalhes do pagamento finalizado.
+     * @throws NullPointerException se `valorFinal` ou `tipoFinal` forem nulos.
+     * @throws IllegalArgumentException se `valorFinal` for negativo.
      */
     public String finalizar(BigDecimal valorFinal, TipoPagamento tipoFinal) {
-        this.setValor(valorFinal);
-        this.dataHora = LocalDateTime.now();
-        this.setTipo(tipoFinal);
+        this.setValor(valorFinal); // Utiliza o setter para aplicar validações
+        this.dataHora = LocalDateTime.now(); // Define a data/hora atual da finalização
+        this.setTipo(tipoFinal); // Utiliza o setter para aplicar validações
 
         String mensagem = "Pagamento de R$" + String.format("%.2f", valorFinal) +
                           " finalizado via " + tipoFinal.getPagamento() +
@@ -109,7 +126,13 @@ public class Pagamento {
         return mensagem;
     }
 
-
+    /**
+     * Compara este objeto Pagamento com o objeto especificado para verificar igualdade.
+     * Dois pagamentos são considerados iguais se possuírem o **mesmo ID**.
+     *
+     * @param o O objeto a ser comparado com este pagamento.
+     * @return `true` se o objeto especificado for igual a este pagamento, `false` caso contrário.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -118,6 +141,13 @@ public class Pagamento {
         return id == pagamento.id;
     }
 
+    /**
+     * Retorna um valor de código hash para o objeto Pagamento.
+     * O código hash é baseado exclusivamente no **ID do pagamento**, garantindo consistência
+     * com o método `equals` (contrato `hashCode()/equals()`).
+     *
+     * @return Um valor de código hash para este objeto.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

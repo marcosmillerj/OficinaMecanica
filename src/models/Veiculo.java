@@ -6,13 +6,20 @@
 package models;
 
 import java.util.Objects;
-import models.enums.StatusOrdem;
+import models.enums.StatusOrdem; // A importação de StatusOrdem não é utilizada nesta classe, mas será mantida como está no original.
 
 /**
- *Classe que representa veículo
+ * Representa um **veículo** na oficina, contendo suas informações básicas
+ * e uma associação com o cliente proprietário.
+ * Cada veículo possui um ID único, placa, modelo, cor e o identificador do seu dono.
+ *
  * @author camila_barbosa
  */
 public class Veiculo {
+    /**
+     * Contador estático que gera **IDs únicos** para cada nova instância de Veiculo.
+     * Garante que cada veículo receba um identificador exclusivo ao ser criado.
+     */
     public static int proximoId = 1; 
 
     private int id;
@@ -22,11 +29,15 @@ public class Veiculo {
     private int idCliente;
 
     /**
-     * Construtor para criar um novo veículo.
-     * @param placa A placa do veículo (não pode ser nula).
-     * @param modelo O modelo do veículo (não pode ser nulo).
-     * @param cor A cor do veículo (não pode ser nula).
-     * @param idCliente O ID do cliente proprietário do veículo.
+     * Construtor para criar uma nova instância de **Veiculo**.
+     * Atribui um ID único automaticamente e inicializa os dados essenciais do veículo.
+     * Valida que os parâmetros de string (placa, modelo, cor) não sejam nulos.
+     *
+     * @param placa A placa do veículo. Não pode ser nula.
+     * @param modelo O modelo do veículo (ex: "Fiat Palio", "VW Gol"). Não pode ser nulo.
+     * @param cor A cor predominante do veículo. Não pode ser nula.
+     * @param idCliente O identificador único do cliente proprietário deste veículo.
+     * @throws NullPointerException se `placa`, `modelo` ou `cor` forem nulos.
      */
     public Veiculo (String placa, String modelo, String cor, int idCliente){ 
         this.id = proximoId++;
@@ -37,12 +48,16 @@ public class Veiculo {
     }
 
     /**
-     * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
-     * @param id ID do veículo.
-     * @param placa Placa do veículo.
-     * @param modelo Modelo do veículo.
-     * @param cor Cor do veículo.
-     * @param idCliente ID do cliente proprietário.
+     * Construtor utilizado por bibliotecas de desserialização (e.g., Gson)
+     * para reconstruir um objeto `Veiculo` a partir de dados persistidos.
+     * Permite a atribuição explícita de todos os atributos, incluindo o ID.
+     *
+     * @param id O identificador único do veículo.
+     * @param placa A placa do veículo.
+     * @param modelo O modelo do veículo.
+     * @param cor A cor do veículo.
+     * @param idCliente O identificador do cliente proprietário.
+     * @throws NullPointerException se `placa`, `modelo` ou `cor` forem nulos.
      */
     public Veiculo(int id, String placa, String modelo, String cor, int idCliente) { 
         this.id = id;
@@ -85,6 +100,12 @@ public class Veiculo {
         this.idCliente = idCliente;
     }
     
+    /**
+     * Retorna uma representação em String do objeto Veiculo,
+     * incluindo seu ID, placa, modelo, cor e o ID do cliente proprietário.
+     *
+     * @return Uma String formatada com os detalhes do veículo.
+     */
     @Override
     public String toString() {
         return "Veiculo {" +
@@ -96,6 +117,13 @@ public class Veiculo {
                 '}';
     }
 
+    /**
+     * Compara este objeto Veiculo com o objeto especificado para verificar igualdade.
+     * Dois veículos são considerados iguais se possuírem o **mesmo ID**.
+     *
+     * @param o O objeto a ser comparado com este veículo.
+     * @return `true` se o objeto especificado for igual a este veículo, `false` caso contrário.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -104,6 +132,13 @@ public class Veiculo {
         return id == veiculo.id;
     }
 
+    /**
+     * Retorna um valor de código hash para o objeto Veiculo.
+     * O código hash é baseado exclusivamente no **ID do veículo**, garantindo consistência
+     * com o método `equals` (contrato `hashCode()/equals()`).
+     *
+     * @return Um valor de código hash para este objeto.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

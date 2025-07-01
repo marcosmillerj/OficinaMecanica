@@ -50,7 +50,13 @@ public class Principal {
     private static OrdemServicoService ordemServicoService;
     private static RelatorioService relatorioService;
 
-
+    /**
+     * O método principal que inicia a execução do sistema.
+     * Gerencia o processo de login do usuário, inicializa todos os serviços
+     * necessários e exibe o painel principal da aplicação com base no usuário logado.
+     *
+     * @param args Argumentos de linha de comando (não utilizados nesta aplicação).
+     */
     public static void main(String[] args) {
         System.out.println("==============================================");
         //
@@ -99,19 +105,19 @@ public class Principal {
             // --- INSTANCIA E INICIA O PAINEL PRINCIPAL ---
             // Passa TODOS os Services e o Scanner para o PainelPrincipal
             PainelPrincipal painelPrincipal = new PainelPrincipal(
-                usuarioCRUD,          // Para MenuGerente (compatibilidade)
-                pontoService,         // Para ComponentePonto
-                scanner,              // Para toda a View
-                ordemServicoService,  // Para CompGerenciarOS
-                clienteService,       // Para CompGerenciarOS e futuros menus de Cliente
-                veiculoService,       // Para CompGerenciarOS e futuros menus de Veiculo
-                usuarioService,       // Para MenuGerente, CompGerenciarOS
-                itemEstoqueService,   // Para CompGerenciarEstoque, CompGerenciarOS
-                servicoService,       // Para CompGerenciarOS, CompGerenciarServico
-                elevadorService,      // <<< AGORA PASSANDO ELEVADORSERVICE!
-                agendamentoService,   // Para MenuAtendente (Agendamento)
-                pagamentoService,     // Para MenuAtendente (Pagamento)
-                relatorioService      // Para CompGerarRelatorios
+                usuarioCRUD,        // Para MenuGerente (compatibilidade)
+                pontoService,       // Para ComponentePonto
+                scanner,            // Para toda a View
+                ordemServicoService, // Para CompGerenciarOS
+                clienteService,     // Para CompGerenciarOS e futuros menus de Cliente
+                veiculoService,     // Para CompGerenciarOS e futuros menus de Veiculo
+                usuarioService,     // Para MenuGerente, CompGerenciarOS
+                itemEstoqueService, // Para CompGerenciarEstoque, CompGerenciarOS
+                servicoService,     // Para CompGerenciarOS, CompGerenciarServico
+                elevadorService,    // <<< AGORA PASSANDO ELEVADORSERVICE!
+                agendamentoService, // Para MenuAtendente (Agendamento)
+                pagamentoService,   // Para MenuAtendente (Pagamento)
+                relatorioService    // Para CompGerarRelatorios
             );
             painelPrincipal.exibirPainel();
             
