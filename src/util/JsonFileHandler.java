@@ -65,7 +65,6 @@ public class JsonFileHandler<T> {
             if (writer != null) {
                 try {
                     writer.close();
-                    System.out.println("FileWriter para '" + filePath + "' fechado.");
                 } catch (IOException e) {
                     System.err.println("Erro ao fechar FileWriter para '" + filePath + "': " + e.getMessage());
                 }
@@ -88,7 +87,6 @@ public class JsonFileHandler<T> {
             if (dataList != null) {
                 System.out.println("Dados carregados com sucesso de '" + filePath + "'.");
             } else {
-                System.out.println("Arquivo '" + filePath + "' vazio ou sem dados válidos. Retornando lista vazia.");
                 dataList = new ArrayList<>();
             }
 
@@ -100,7 +98,6 @@ public class JsonFileHandler<T> {
             if (reader != null) {
                 try {
                     reader.close();
-                    System.out.println("FileReader para '" + filePath + "' fechado.");
                 } catch (IOException e) {
                     System.err.println("Erro ao fechar FileReader para '" + filePath + "': " + e.getMessage());
                 }

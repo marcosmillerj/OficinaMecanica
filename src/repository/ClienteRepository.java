@@ -37,7 +37,6 @@ public class ClienteRepository {
             }
         }
         Cliente.proximoId = maxId + 1;
-        System.out.println("Contador de ID de Cliente ajustado para: " + Cliente.proximoId);
     }
 
     /**

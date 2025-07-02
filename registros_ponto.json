@@ -3,5 +3,11 @@
     "id": 1,
     "idUsuario": 2,
     "dataHoraEntrada": "2025-06-30T15:33:14.354002857"
+  },
+  {
+    "id": 2,
+    "idUsuario": 4,
+    "dataHoraEntrada": "2025-07-02T00:08:45.658743912",
+    "dataHoraSaida": "2025-07-02T00:10:43.167064046"
   }
 ]

@@ -46,9 +46,6 @@ public class OrdemServicoRepository {
         }
         OrdemServico.proximoId = maxIdOrdemServico + 1;
         Servico.proximoId = maxIdServico + 1; 
-
-        System.out.println("Contador de ID de OrdemServico ajustado para: " + OrdemServico.proximoId);
-        System.out.println("Contador de ID de Servico ajustado para: " + Servico.proximoId);
     }
 
     /**

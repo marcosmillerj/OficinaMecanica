@@ -37,7 +37,6 @@ public class AgendamentoRepository {
             }
         }
         Agendamento.proximoId = maxId + 1;
-        System.out.println("Contador de ID de Agendamento ajustado para: " + Agendamento.proximoId);
     }
 
     /**

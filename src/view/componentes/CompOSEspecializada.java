@@ -58,59 +58,17 @@ public class CompOSEspecializada {
         this.usuarioLogado = util.UserSession.getInstance().getLoggedInUser();
     }
 
-
+    // chamado dentro de uma função para prezar o encapsulamento, senao teria q deixar o método publico.
     public void exibirMenu() {
-        int opcao;
-        exibirOrdens(); // Apenas uma vez, não dentro do loop
-
-        do {
-            System.out.println("\n--- Opções de Ordens de Serviço ---");
-            System.out.println("1. Atualizar Status de uma Ordem de Serviço");
-            System.out.println("0. Voltar ao Painel Principal");
-            System.out.print("Escolha uma opção: ");
-
-            try {
-                opcao = scanner.nextInt();
-                scanner.nextLine();
-            } catch (InputMismatchException e) {
-                System.err.println("Entrada inválida. Por favor, digite um número.");
-                scanner.nextLine();
-                opcao = -1;
-            }
-
-            processarOpcao(opcao);
-
-            // Mensagem para demonstrar a NÃO atualização automática (versão SEM Observer)
-            if (opcao != 0 && opcao != -1) {
-                System.out.println("\n(A lista acima NÃO foi atualizada automaticamente. Saia do menu e entre novamente para ver a mudança.)");
-            }
-
-        } while (opcao != 0);
-
-        // Não desregistra observadores, pois não os tem nesta versão.
+        exibirOrdens();
     }
-    
-    private void processarOpcao(int opcao) {
-        switch (opcao) {
-            case 1:
-                atualizarStatusOrdemServico();
-                break;
-            case 0:
-                System.out.println("Saindo da visualização de Ordens de Serviço.");
-                break;
-            default:
-                System.out.println("Opção inválida. Tente novamente.");
-                break;
-        }
-    }
-
 
     /**
      * Exibe a lista de Ordens de Serviço relevantes para o usuário logado, com detalhes completos.
      * Esta lista é filtrada com base no tipo de usuário.
      */
     private void exibirOrdens() {
-        System.out.println("\n--- LISTA DE ORDENS DE SERVIÇO ATRIBUÍDAS / EM ABERTO ---");
+        System.out.println("\n--- ORDENS DE SERVIÇO EM ABERTO ---");
 
         List<OrdemServico> ordensFiltradas = new ArrayList<>();
         TipoUsuario tipo = usuarioLogado.getTipo();
@@ -122,7 +80,8 @@ public class CompOSEspecializada {
                                    os.getStatus() == StatusOrdem.AGUARDANDO_PAGAMENTO ||
                                    os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO)
                     .collect(Collectors.toList());
-                System.out.println("Visão: Ordens aguardando sua ação (Atendente)");
+                System.out.println("Usuário: ATENDENTE");
+                System.out.println("INTERESSE: Aguardando Liberação, Pagamento e Diagnóstico");
                 break;
             case MECANICO:
                 ordensFiltradas = ordemServicoService.listarOrdensPorMecanico(usuarioLogado.getId()).stream()
@@ -130,11 +89,15 @@ public class CompOSEspecializada {
                                    os.getStatus() == StatusOrdem.EM_EXECUCAO ||
                                    os.getStatus() == StatusOrdem.AGUARDANDO_DIAGNOSTICO)
                     .collect(Collectors.toList());
-                System.out.println("Visão: Suas Ordens de Serviço em Diagnóstico/Execução (Mecânico)");
+                System.out.println("Usuário: MECÂNICO");
+                System.out.println("INTERESSE: Aguardando Diagnóstico, Em Diagnóstico, Execução");
+
                 break;
             case GERENTE:
                 ordensFiltradas = ordemServicoService.listarTodasOrdens();
-                System.out.println("Visão: Todas as Ordens de Serviço (Gerente)");
+                System.out.println("Usuário: GERENTE");
+                System.out.println("INTERESSE: Todas as OS");
+
                 break;
             default:
                 System.out.println("Nenhuma visão de Ordem de Serviço definida para este tipo de usuário.");
@@ -169,131 +132,7 @@ public class CompOSEspecializada {
             System.out.println("--------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         }
     }
-
-    /**
-     * Permite ao usuário atualizar o status de uma Ordem de Serviço.
-     * Esta é a funcionalidade que integra a escolha do elevador.
-     */
-    private void atualizarStatusOrdemServico() {
-        System.out.println("\n--- ATUALIZAR STATUS DE ORDEM DE SERVIÇO ---");
-        System.out.print("Digite o ID da Ordem de Serviço para alterar o status: ");
-        int idOs = -1;
-        try {
-            idOs = scanner.nextInt();
-            scanner.nextLine();
-        } catch (InputMismatchException e) {
-            System.err.println("Entrada inválida. Digite um número para o ID.");
-            scanner.nextLine();
-            return;
-        }
-
-        Optional<OrdemServico> osOpt = ordemServicoService.buscarOrdemServicoPorId(idOs);
-        if (osOpt.isEmpty()) {
-            System.out.println("Ordem de Serviço com ID " + idOs + " não encontrada.");
-            return;
-        }
-        OrdemServico os = osOpt.get();
-        System.out.println("OS Selecionada: " + os.getCodigo() + " - Status Atual: " + os.getStatus().getDescricao());
-
-        System.out.println("Selecione o novo status:");
-        StatusOrdem[] statuses = StatusOrdem.values();
-        for (int i = 0; i < statuses.length; i++) {
-            System.out.println((i + 1) + ". " + statuses[i].getDescricao());
-        }
-        System.out.print("Opção do Status: ");
-        int statusOpcao = -1;
-        try {
-            statusOpcao = scanner.nextInt();
-            scanner.nextLine();
-        } catch (InputMismatchException e) {
-            System.err.println("Entrada inválida. Digite um número para o status.");
-            scanner.nextLine();
-            return;
-        }
-
-        StatusOrdem novoStatus = null;
-        try {
-            novoStatus = statuses[statusOpcao - 1];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.err.println("Opção de status inválida.");
-            return;
-        }
-
-        // --- LÓGICA DE INTERAÇÃO COM ELEVADOR (PERTENCE AQUI NA VIEW) ---
-        Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
-
-        // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
-        if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) && 
-            !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
-            
-            System.out.println("\n[SISTEMA ELEVADOR] Alocação necessária para OS " + os.getCodigo() + "...");
-            
-            // 1. Verificar se a OS requer elevador de alinhamento
-            boolean osRequerAlinhamento = os.getServicos().stream()
-                                            .anyMatch(Servico::requerPrioridade);
-
-            List<Elevador> elevadoresDisponiveis = elevadorService.listarElevadoresDisponiveis();
-
-            if (elevadoresDisponiveis.isEmpty()) {
-                System.err.println("Nenhum elevador disponível no momento. Não será possível alocar.");
-                return; // Aborta a atualização de status se elevador é necessário mas não há
-            }
-
-            // --- DECLARAÇÃO DE elevadoresFiltrados FORA DO IF/ELSE ---
-            List<Elevador> elevadoresFiltrados;
-
-            if (osRequerAlinhamento) {
-                elevadoresFiltrados = elevadoresDisponiveis.stream()
-                                                            .filter(Elevador::temCapacidadeAlinhamento)
-                                                            .collect(Collectors.toList());
-                System.out.println("OS requer elevador de Alinhamento. Elevadores disponíveis para Alinhamento:");
-            } else { // OS NÃO requer alinhamento
-                elevadoresFiltrados = elevadoresDisponiveis.stream()
-                                                    .filter(e -> !e.temCapacidadeAlinhamento())
-                                                    .collect(Collectors.toList());
-                if(elevadoresFiltrados.isEmpty()){
-                    elevadoresFiltrados.addAll(elevadoresDisponiveis);
-                    System.out.println("Nenhum elevador geral disponível. Usando elevador de alinhamento se disponível.");
-                } else {
-                    System.out.println("OS não requer elevador de Alinhamento. Elevadores Gerais disponíveis:");
-                }
-            }
-            
-            // AQUI O USUÁRIO ESCOLHE O ELEVADOR
-            for (int i = 0; i < elevadoresFiltrados.size(); i++) { // <<< ERRO AQUI!
-                System.out.println((i + 1) + ". " + elevadoresFiltrados.get(i).toString());
-            }
-            int escolha = -1;
-            try {
-                escolha = scanner.nextInt();
-                scanner.nextLine();
-            } catch (InputMismatchException e) {
-                System.err.println("Entrada inválida. Abortando alocação.");
-                scanner.nextLine();
-                return;
-            }
-
-            if (escolha > 0 && escolha <= elevadoresFiltrados.size()) {
-                idElevadorParaAlocar = Optional.of(elevadoresFiltrados.get(escolha - 1).getId());
-            } else {
-                System.err.println("Opção de elevador inválida. Abortando alocação.");
-                return;
-            }
-        }
-        // NÃO HÁ else if para liberação aqui, pois o service cuida da liberação sem input do user
-        // A liberação acontece no OrdemServicoService, que é chamado abaixo.
-        // --- FIM DA LÓGICA DE INTERAÇÃO COM ELEVADOR NA VIEW ---
-
-        try {
-            // Agora, passa o Optional<Integer> idElevadorParaAlocar para o serviço
-            ordemServicoService.alterarStatusOrdemServico(os.getId(), novoStatus, idElevadorParaAlocar);
-            System.out.println("Status da OS " + os.getCodigo() + " atualizado para " + novoStatus.getDescricao() + " com sucesso!");
-
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            System.err.println("Erro ao atualizar status: " + e.getMessage());
-        }
-    }
-
+    
     // --- Métodos Auxiliares de Leitura de Input ---
     private int lerInteiroValido(String prompt) {
         while (true) {

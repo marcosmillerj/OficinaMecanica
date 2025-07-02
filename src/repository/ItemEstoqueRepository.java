@@ -35,7 +35,6 @@ public class ItemEstoqueRepository {
             }
         }
         ItemEstoque.proximoId = maxId + 1;
-        System.out.println("Contador de ID de ItemEstoque ajustado para: " + ItemEstoque.proximoId);
     }
 
     public void adicionarItem(ItemEstoque item) {

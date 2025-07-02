@@ -36,8 +36,7 @@ public class RelatorioRepository {
                 maxId = relatorio.getId();
             }
         }
-        Relatorio.proximoId = maxId + 1; 
-        System.out.println("Contador de ID de Relatorio ajustado para: " + Relatorio.proximoId);
+        Relatorio.proximoId = maxId + 1;
     }
 
     /**

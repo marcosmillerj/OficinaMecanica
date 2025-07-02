@@ -37,7 +37,6 @@ public class VeiculoRepository {
             }
         }
         Veiculo.proximoId = maxId + 1;
-        System.out.println("Contador de ID de Veículo ajustado para: " + Veiculo.proximoId);
     }
 
     /**

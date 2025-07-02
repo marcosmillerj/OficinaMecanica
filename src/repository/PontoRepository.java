@@ -37,7 +37,6 @@ public class PontoRepository {
             }
         }
         RegistroPonto.proximoId = maxId + 1;
-        System.out.println("Contador de ID de RegistroPonto ajustado para: " + RegistroPonto.proximoId);
     }
 
     /**
@@ -46,7 +45,6 @@ public class PontoRepository {
      */
     public void adicionarRegistro(RegistroPonto registro) {
         registros.add(registro);
-        System.out.println("Registro de Ponto ID " + registro.getId() + " adicionado para Usuário ID " + registro.getIdUsuario() + ".");
         fileHandler.save(registros);
     }
 
@@ -56,7 +54,6 @@ public class PontoRepository {
      * @param registroParaAtualizar O objeto RegistroPonto que foi modificado (referência já existente na lista).
      */
     public void atualizarRegistro(RegistroPonto registroParaAtualizar) {
-        System.out.println("Registro de Ponto ID " + registroParaAtualizar.getId() + " atualizado para Usuário ID " + registroParaAtualizar.getIdUsuario() + ".");
         fileHandler.save(registros);
     }
 

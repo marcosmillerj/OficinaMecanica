@@ -39,7 +39,6 @@ public class ElevadorRepository {
             elevadores.add(new Elevador(2, false));
             elevadores.add(new Elevador(3, true));
             fileHandler.save(elevadores);
-            System.out.println("Elevadores padrão criados e salvos em 'elevadores.json'.");
         } else {
             System.out.println("Elevadores carregados do arquivo 'elevadores.json'.");
         }

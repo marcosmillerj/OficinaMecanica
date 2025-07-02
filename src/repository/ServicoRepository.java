@@ -23,11 +23,15 @@ public class ServicoRepository {
 
     /**
      * Construtor do ServicoRepository.
-     *
+     * Ao ser instanciado, tenta carregar os serviços do arquivo JSON.
      */
     public ServicoRepository() {
+        // Define o tipo para o JsonFileHandler: uma Lista de Servico
         Type typeOfListOfServicos = new TypeToken<List<Servico>>() {}.getType();
+        // Inicializa o fileHandler com o nome do arquivo específico para serviços
         this.fileHandler = new JsonFileHandler<>("servicos.json", typeOfListOfServicos);
+
+        // Carrega os serviços ao iniciar o repositório
         this.servicos = fileHandler.load();
 
         int maxId = 0;
@@ -37,7 +41,6 @@ public class ServicoRepository {
             }
         }
         Servico.proximoId = maxId + 1;
-        System.out.println("Contador de ID de Servico ajustado para: " + Servico.proximoId);
     }
 
     /**
@@ -52,8 +55,7 @@ public class ServicoRepository {
 
     /**
      * Atualiza um serviço (instância) existente na coleção em memória e persiste as alterações.
-     * Utilizado quando um atributo do objeto Servico é modificado.
-     * @param servicoParaAtualizar O objeto Servico que foi modificado (referência já existente na lista).
+     * @param servicoParaAtualizar O objeto Servico que foi modificado.
      */
     public void atualizarServico(Servico servicoParaAtualizar) {
         System.out.println("Serviço ID " + servicoParaAtualizar.getId() + " ('" + servicoParaAtualizar.getObservacoes() + "') atualizado no repositório.");
@@ -95,6 +97,6 @@ public class ServicoRepository {
      * @return Uma lista (cópia) de todos os serviços.
      */
     public List<Servico> listarTodosServicos() {
-        return new ArrayList<>(servicos); 
+        return new ArrayList<>(servicos);
     }
 }

@@ -5,6 +5,7 @@
 package view.componentes;
 
 import java.time.format.DateTimeFormatter;
+import java.util.InputMismatchException;
 import java.util.Optional;
 import java.util.Scanner;
 import models.RegistroPonto;
@@ -18,10 +19,9 @@ import util.UserSession;
  */
 public class CompPonto {
 
-    private RegistroPontoService pontoService; // Dependência do serviço de ponto
-    private Scanner scanner;                   // Scanner injetado para entrada do usuário
+    private RegistroPontoService pontoService;
+    private Scanner scanner;
 
-    // Formatador para exibir a data e hora do ponto
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd/MM");
 
     /**
@@ -35,18 +35,23 @@ public class CompPonto {
     }
 
     /**
-     * Exibe o status atual do ponto para o usuário logado e as opções de registro.
-     * @return A opção numérica escolhida pelo usuário (8 para entrada, 9 para saída, ou outra para ignorar).
+     * Orquestra a exibição do status e a interação para marcar o ponto.
+     * Este é o método que PainelPrincipal deve chamar.
      */
-    public int exibirStatusEPedirAcao() {
-        Usuario usuarioLogado = UserSession.getInstance().getLoggedInUser(); // Obtém o usuário logado da sessão
+    public void exibirMenuPonto(Usuario usuarioLogado) {
+        exibirStatus(usuarioLogado);
+        
+        int opcaoPonto = solicitarAcaoPonto();
+        processarAcaoPonto(opcaoPonto, usuarioLogado);
+    }
 
-        if (usuarioLogado == null) {
-            System.err.println("Erro: Nenhum usuário logado na sessão para exibir o ponto.");
-            return -1; // Retorna um valor inválido
-        }
 
-        System.out.println("\n--- Status do Ponto de " + usuarioLogado.getNome() + " ---");
+    /**
+     * Exibe APENAS o status atual do ponto para o usuário logado.
+     * @param usuarioLogado O usuário atualmente logado.
+     */
+    private void exibirStatus(Usuario usuarioLogado) {
+        System.out.println("\n--- Registre o seu ponto " + usuarioLogado.getNome() + " ! " + " ---");
 
         Optional<RegistroPonto> pontoAbertoOpt = pontoService.obterStatusPontoAtual(usuarioLogado);
         String statusEntrada = "Não Registrado";
@@ -63,33 +68,41 @@ public class CompPonto {
         System.out.println("Entrada: " + statusEntrada);
         System.out.println("Saída: " + statusSaida);
         System.out.println("---------------------------");
+    }
 
+    /**
+     * Solicita a opção de ação de ponto ao usuário.
+     * @return A opção numérica escolhida pelo usuário (8 para entrada, 9 para saída, ou -1 para ignorar/inválida).
+     */
+    private int solicitarAcaoPonto() {
         System.out.println("Aperte 8 para Assinar a Entrada");
         System.out.println("Aperte 9 para Assinar a Saída");
         System.out.println("(Outra tecla para ignorar)");
         System.out.print("Escolha uma opção de ponto: ");
 
         try {
-            int opcaoPonto = scanner.nextInt();
-            scanner.nextLine(); // Consome a nova linha
-            return opcaoPonto;
+            int opcao = scanner.nextInt();
+            scanner.nextLine();
+            return opcao;
         } catch (java.util.InputMismatchException e) {
-            scanner.nextLine(); // Limpa o buffer em caso de entrada inválida
-            return -1; // Retorna um valor que indica que a opção não é de ponto
+            scanner.nextLine();
+            return -1;
         }
     }
 
     /**
-     * Processa a ação de ponto escolhida pelo usuário.
+     * NOVO MÉTODO: Processa a ação de ponto escolhida pelo usuário.
      * @param opcao A opção numérica (8 ou 9).
      * @param usuarioLogado O usuário logado para quem a ação de ponto será registrada.
      */
-    public void processarAcaoPonto(int opcao, Usuario usuarioLogado) {
+    private void processarAcaoPonto(int opcao, Usuario usuarioLogado) {
         try {
             if (opcao == 8) {
                 pontoService.registrarEntrada(usuarioLogado);
             } else if (opcao == 9) {
                 pontoService.registrarSaida(usuarioLogado);
+            } else {
+                System.out.println("Opção de ponto não reconhecida. Prosseguindo...");
             }
         } catch (IllegalStateException e) {
             System.err.println("Erro ao registrar ponto: " + e.getMessage());

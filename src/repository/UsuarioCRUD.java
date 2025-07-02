@@ -39,7 +39,6 @@ public class UsuarioCRUD {
             }
         }
         Usuario.proximoId = maxId + 1;
-        System.out.println("Contador de ID de Usuário ajustado para: " + Usuario.proximoId);
     }
 
     /**

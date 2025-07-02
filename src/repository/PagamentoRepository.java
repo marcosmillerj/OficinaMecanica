@@ -37,7 +37,6 @@ public class PagamentoRepository {
             }
         }
         Pagamento.proximoId = maxId + 1;
-        System.out.println("Contador de ID de Pagamento ajustado para: " + Pagamento.proximoId);
     }
 
     /**
