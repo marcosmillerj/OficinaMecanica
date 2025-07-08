@@ -1,13 +1,14 @@
 [
   {
     "id": 1,
-    "isDisponivel": true,
+    "isDisponivel": false,
     "capacidadeAlinhamento": false
   },
   {
     "id": 2,
-    "isDisponivel": true,
-    "capacidadeAlinhamento": false
+    "isDisponivel": false,
+    "capacidadeAlinhamento": false,
+    "idVeiculoAtual": 5
   },
   {
     "id": 3,
