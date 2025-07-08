@@ -40,5 +40,26 @@
     "modelo": "oggie",
     "cor": "preto",
     "idCliente": 7
+  },
+  {
+    "id": 7,
+    "placa": "jhy",
+    "modelo": "up",
+    "cor": "branco",
+    "idCliente": 1
+  },
+  {
+    "id": 8,
+    "placa": "iuhh33",
+    "modelo": "yaris",
+    "cor": "azul",
+    "idCliente": 2
+  },
+  {
+    "id": 9,
+    "placa": "tyr7899",
+    "modelo": "tcross",
+    "cor": "vermelho",
+    "idCliente": 4
   }
 ]

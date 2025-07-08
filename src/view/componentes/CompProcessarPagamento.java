@@ -36,7 +36,7 @@ public class CompProcessarPagamento {
         do {
             System.out.println("\n===== Processar Pagamentos =====");
             System.out.println("1. Iniciar Novo Pagamento");
-            System.out.println("2. Finalizar Pagamento Pendente"); // Para pagamentos que foram iniciados mas não finalizados
+            System.out.println("2. Finalizar Pagamento Pendente"); 
             System.out.println("3. Listar Todos os Pagamentos");
             System.out.println("0. Voltar ao Menu Anterior");
             System.out.print("Escolha uma opção: ");

@@ -117,14 +117,14 @@ public class PainelPrincipal {
                 MenuAtendente menuAtendente = new MenuAtendente(
                     clienteService, itemEstoqueService, ordemServicoService, pontoService,
                     servicoService, usuarioService, veiculoService, scanner,
-                    agendamentoService, pagamentoService
+                    agendamentoService, pagamentoService, elevadorService
                 );
                 menuAtendente.exibirMenu();
                 break;
             case MECANICO:
                 MenuMecanico menuMecanico = new MenuMecanico(
                     itemEstoqueService, ordemServicoService, servicoService, usuarioService, scanner,
-                    elevadorService
+                    elevadorService, clienteService, veiculoService
                 );
                 menuMecanico.exibirMenu();
                 break;

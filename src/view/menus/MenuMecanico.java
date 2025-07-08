@@ -7,13 +7,19 @@ package view.menus;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import models.Usuario;
+import service.ClienteService;
 import service.ElevadorService;
 import service.ItemEstoqueService;
 import service.OrdemServicoService;
 import service.ServicoService;
 import service.UsuarioService;
+import service.VeiculoService;
 import util.UserSession;
+import view.componentes.CompGerenciarCliente;
 import view.componentes.CompGerenciarEstoque;
+import view.componentes.CompGerenciarOS;
+import view.componentes.CompGerenciarRelatorio;
+import view.componentes.CompGerenciarVeiculo;
 import view.componentes.CompOSEspecializada;
 
 /**
@@ -29,6 +35,10 @@ public class MenuMecanico {
     private Scanner scanner;
     private Usuario mecanicoLogado;
     private ElevadorService elevadorService;
+    private ClienteService clienteService;
+    private VeiculoService veiculoService;
+    private CompGerenciarCliente compGerenciarCliente;
+    private CompGerenciarVeiculo compGerenciarVeiculo;
 
 
 
@@ -43,7 +53,8 @@ public class MenuMecanico {
      */
     public MenuMecanico(ItemEstoqueService itemEstoqueService, OrdemServicoService ordemServicoService,
                          ServicoService servicoService, UsuarioService usuarioService, Scanner scanner,
-                         ElevadorService elevadorService) {
+                         ElevadorService elevadorService, ClienteService clienteService,
+                         VeiculoService veiculoService) {
         this.itemEstoqueService = itemEstoqueService;
         this.ordemServicoService = ordemServicoService;
         this.servicoService = servicoService;
@@ -51,6 +62,10 @@ public class MenuMecanico {
         this.scanner = scanner;
         this.mecanicoLogado = UserSession.getInstance().getLoggedInUser();
         this.elevadorService = elevadorService;
+        this.clienteService = clienteService;
+        this.veiculoService = veiculoService;
+        this.compGerenciarCliente = new CompGerenciarCliente(clienteService, scanner, ordemServicoService, usuarioService, veiculoService);
+        this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
         
         if (this.mecanicoLogado == null || this.mecanicoLogado.getTipo() != models.enums.TipoUsuario.MECANICO) {
             System.err.println("Erro: Acesso não autorizado ao Menu Mecânico.");
@@ -67,6 +82,7 @@ public class MenuMecanico {
             System.out.println("\n===== Menu do Mecânico =====");
             System.out.println("1. Consultar Estoque");
             System.out.println("2. Informar Falta/Acabando Peça");
+            System.out.println("3. Gerenciar Ordens de Serviço");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -97,6 +113,16 @@ public class MenuMecanico {
                 break;
             case 2:
                 informarFaltaOuAcabandoPeca();
+                break;
+            case 3:
+                System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
+                CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
+                        this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
+                        this.servicoService, this.itemEstoqueService,
+                        this.scanner, this.elevadorService, this.compGerenciarCliente, this.compGerenciarVeiculo
+                );
+                compGerenciarOS.exibirMenu();
+                System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 0:
                 System.out.println("Voltando ao Painel Principal.");
