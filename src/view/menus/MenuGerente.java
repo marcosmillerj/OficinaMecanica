@@ -32,17 +32,14 @@ public class MenuGerente {
 
     private UsuarioService usuarioService;
     private OrdemServicoService ordemServicoService;
-    private ClienteService clienteService; // Mantém para passar aos componentes
-    private VeiculoService veiculoService; // Mantém para passar aos componentes
+    private ClienteService clienteService;
+    private VeiculoService veiculoService;
     private ItemEstoqueService itemEstoqueService;
     private ServicoService servicoService;
     private UsuarioCRUD usuarioCRUD;
     private Scanner scanner;
     private RelatorioService relatorioService;
     private ElevadorService elevadorService;
-
-    // INSTÂNCIAS DOS NOVOS COMPONENTES VISUAIS PARA GERENCIAR CLIENTES E VEÍCULOS
-    // Estes serão instanciados uma vez no construtor do MenuGerente
     private CompGerenciarCliente compGerenciarCliente;
     private CompGerenciarVeiculo compGerenciarVeiculo;
 
@@ -65,9 +62,6 @@ public class MenuGerente {
         this.servicoService = servicoService;
         this.relatorioService = relatorioService;
         this.elevadorService = elevadorService;
-
-        // Inicializa os componentes de gerenciamento de Cliente e Veículo
-        // Eles recebem os services e o scanner que o MenuGerente já possui.
         this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
         this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
     }
