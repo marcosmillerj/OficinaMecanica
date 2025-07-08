@@ -22,5 +22,13 @@
     "idVeiculo": 2,
     "valor": 40,
     "status": "PENDENTE"
+  },
+  {
+    "id": 4,
+    "dataHora": "2025-11-12T12:30:00",
+    "idCliente": 7,
+    "idVeiculo": 6,
+    "valor": 90,
+    "status": "PENDENTE"
   }
 ]

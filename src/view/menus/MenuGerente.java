@@ -1,16 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package view.menus;
 
 import comparator.ClienteComparatorPorEmail;
 import comparator.ClienteComparatorPorNome;
-import java.util.Comparator;
+import java.util.Comparator; // Apenas para compilação se houver métodos que ainda os usem temporariamente
 import java.util.InputMismatchException;
-import java.util.List;
+import java.util.List; // Apenas para compilação se houver métodos que ainda os usem temporariamente
 import java.util.Scanner;
-import models.Cliente;
+import models.Cliente; // Apenas para compilação se houver métodos que ainda os usem temporariamente
 import repository.UsuarioCRUD;
 import service.ClienteService;
 import service.ElevadorService;
@@ -20,10 +16,13 @@ import service.RelatorioService;
 import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
+import view.componentes.CompGerenciarCliente;
 import view.componentes.CompGerenciarEstoque;
 import view.componentes.CompGerenciarOS;
 import view.componentes.CompGerenciarRelatorio;
 import view.componentes.CompGerenciarUsuario;
+import view.componentes.CompGerenciarVeiculo;
+
 
 /**
  *
@@ -33,8 +32,8 @@ public class MenuGerente {
 
     private UsuarioService usuarioService;
     private OrdemServicoService ordemServicoService;
-    private ClienteService clienteService;
-    private VeiculoService veiculoService;
+    private ClienteService clienteService; // Mantém para passar aos componentes
+    private VeiculoService veiculoService; // Mantém para passar aos componentes
     private ItemEstoqueService itemEstoqueService;
     private ServicoService servicoService;
     private UsuarioCRUD usuarioCRUD;
@@ -42,19 +41,14 @@ public class MenuGerente {
     private RelatorioService relatorioService;
     private ElevadorService elevadorService;
 
+    // INSTÂNCIAS DOS NOVOS COMPONENTES VISUAIS PARA GERENCIAR CLIENTES E VEÍCULOS
+    // Estes serão instanciados uma vez no construtor do MenuGerente
+    private CompGerenciarCliente compGerenciarCliente;
+    private CompGerenciarVeiculo compGerenciarVeiculo;
+
     /**
      * Construtor do MenuGerente.
      * Recebe todas as dependências necessárias para suas operações.
-     *
-     * @param usuarioCRUD O CRUD de usuários.
-     * @param scanner O scanner para entrada do usuário.
-     * @param usuarioService O serviço de negócio para usuários.
-     * @param ordemServicoService O serviço de ordens de serviço.
-     * @param clienteService O serviço de clientes.
-     * @param veiculoService O serviço de veículos.
-     * @param itemEstoqueService O serviço de itens de estoque.
-     * @param servicoService O serviço de serviços.
-     * // REMOVIDO: @param elevadorService O serviço de elevadores.
      */
     public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
@@ -71,6 +65,11 @@ public class MenuGerente {
         this.servicoService = servicoService;
         this.relatorioService = relatorioService;
         this.elevadorService = elevadorService;
+
+        // Inicializa os componentes de gerenciamento de Cliente e Veículo
+        // Eles recebem os services e o scanner que o MenuGerente já possui.
+        this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
+        this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
     }
 
     /**
@@ -84,7 +83,7 @@ public class MenuGerente {
             System.out.println("2. Gerenciar Estoque");
             System.out.println("3. Acessar Relatórios Financeiros");
             System.out.println("4. Gerenciar Ordens de Serviço");
-            System.out.println("5. Gerenciar Clientes");
+            System.out.println("5. Gerenciar Clientes (Cadastro/Consulta)"); // Renomeado para refletir a nova responsabilidade
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -129,15 +128,18 @@ public class MenuGerente {
             case 4: // Gerenciar Ordens de Serviço
                 System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
                 CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
-                    this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
-                    this.servicoService, this.itemEstoqueService,
-                    this.scanner, this.elevadorService
+                        this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
+                        this.servicoService, this.itemEstoqueService,
+                        this.scanner, this.elevadorService, this.compGerenciarCliente, this.compGerenciarVeiculo
                 );
                 compGerenciarOS.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 5: // Gerenciar Clientes (TESTE COMPARATOR)
-                gerenciarClientes();
+            case 5: // Gerenciar Clientes (agora delega para o CompGerenciarCliente)
+                System.out.println("\n--- Abrindo Gerenciamento de Clientes ---");
+                // compGerenciarCliente já está instanciado no construtor
+                this.compGerenciarCliente.exibirMenuPrincipal(); // Você precisará criar este método no CompGerenciarCliente
+                System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 0:
                 System.out.println("Voltando ao Painel Principal.");
@@ -148,67 +150,7 @@ public class MenuGerente {
         }
     }
 
-    // --- MÉTODOS PARA GERENCIAR CLIENTES E DEMONSTRAR COMPARATOR (MANTIDOS) ---
-    private void gerenciarClientes() {
-        int opcao;
-        do {
-            System.out.println("\n===== Gerenciar Clientes =====");
-            System.out.println("1. Adicionar Novo Cliente");
-            System.out.println("2. Listar Todos os Clientes (Sem Ordenação)");
-            System.out.println("3. Listar Clientes por Nome (Ordenado)");
-            System.out.println("4. Listar Clientes por Email (Ordenado)");
-            System.out.println("0. Voltar ao Menu Anterior");
-            System.out.print("Escolha uma opção: ");
-
-            try {
-                opcao = scanner.nextInt();
-                scanner.nextLine();
-            } catch (InputMismatchException e) {
-                System.err.println("Entrada inválida. Por favor, digite um número.");
-                scanner.nextLine();
-                opcao = -1;
-            }
-
-            switch (opcao) {
-                case 1: adicionarCliente(); break;
-                case 2: listarClientes(null); break;
-                case 3: listarClientes(new ClienteComparatorPorNome()); break;
-                case 4: listarClientes(new ClienteComparatorPorEmail()); break;
-                case 0: System.out.println("Saindo do Gerenciamento de Clientes."); break;
-                default: System.out.println("Opção inválida. Tente novamente."); break;
-            }
-        } while (opcao != 0);
-    }
-
-    private void adicionarCliente() {
-        System.out.println("\n--- ADICIONAR NOVO CLIENTE ---");
-        System.out.print("Nome: "); String nome = scanner.nextLine();
-        System.out.print("Telefone: "); String telefone = scanner.nextLine();
-        System.out.print("Email: "); String email = scanner.nextLine();
-
-        try {
-            clienteService.adicionarCliente(nome, telefone, email);
-            System.out.println("Cliente adicionado com sucesso!");
-        } catch (IllegalStateException e) {
-            System.err.println("Erro ao adicionar cliente: " + e.getMessage());
-        }
-    }
-
-    private void listarClientes(Comparator<Cliente> comparator) {
-        System.out.println("\n--- LISTA DE CLIENTES ---");
-        List<Cliente> clientes;
-        if (comparator != null) {
-            clientes = clienteService.listarClientesOrdenados(comparator);
-            System.out.println("Lista ordenada.");
-        } else {
-            clientes = clienteService.listarTodosClientes();
-            System.out.println("Lista sem ordenação específica.");
-        }
-
-        if (clientes.isEmpty()) {
-            System.out.println("Nenhum cliente cadastrado.");
-        } else {
-            clientes.forEach(System.out::println);
-        }
-    }
+    // --- MÉTODOS REMOVIDOS ---
+    // Os métodos 'gerenciarClientes()', 'adicionarCliente()' e 'listarClientes()'
+    // foram movidos (ou sua lógica transferida) para 'CompGerenciarCliente'.
 }

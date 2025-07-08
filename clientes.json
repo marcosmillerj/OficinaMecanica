@@ -42,5 +42,21 @@
     "idVeiculos": [
       5
     ]
+  },
+  {
+    "id": 6,
+    "nome": "izinho",
+    "telefone": "4353",
+    "email": "ooo",
+    "idVeiculos": []
+  },
+  {
+    "id": 7,
+    "nome": "lico",
+    "telefone": "346w",
+    "email": "oooos",
+    "idVeiculos": [
+      6
+    ]
   }
 ]

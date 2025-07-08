@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package view.componentes;
 
 import java.math.BigDecimal;
@@ -28,24 +24,32 @@ import service.UsuarioService;
 import service.VeiculoService;
 
 /**
+ * Componente visual responsável por gerenciar Ordens de Serviço.
+ * Agora delega a seleção/criação de Cliente e Veículo para componentes específicos.
  *
  * @author marcos_miller
  */
 public class CompGerenciarOS {
 
     private OrdemServicoService ordemServicoService;
-    private ClienteService clienteService;
-    private VeiculoService veiculoService;
+    private ClienteService clienteService; // Mantido para verDetalhesOrdemServico
+    private VeiculoService veiculoService; // Mantido para verDetalhesOrdemServico
     private UsuarioService usuarioService;
-    private ServicoService servicoService;     // NOVO ATRIBUTO! Para passar ao CompGerenciarServico
-    private ItemEstoqueService itemEstoqueService; // NOVO ATRIBUTO! Para passar ao CompGerenciarServico e para ver detalhes
+    private ServicoService servicoService;
+    private ItemEstoqueService itemEstoqueService;
     private Scanner scanner;
     private ElevadorService elevadorService;
 
+    // Dependências dos novos componentes para seleção/criação de Cliente e Veículo
+    private CompGerenciarCliente compGerenciarCliente;
+    private CompGerenciarVeiculo compGerenciarVeiculo;
+
     public CompGerenciarOS(OrdemServicoService ordemServicoService, ClienteService clienteService,
-                           VeiculoService veiculoService, UsuarioService usuarioService,
-                           ServicoService servicoService, ItemEstoqueService itemEstoqueService,
-                           Scanner scanner, ElevadorService elevadorService) {
+                            VeiculoService veiculoService, UsuarioService usuarioService,
+                            ServicoService servicoService, ItemEstoqueService itemEstoqueService,
+                            Scanner scanner, ElevadorService elevadorService,
+                            CompGerenciarCliente compGerenciarCliente, // Adicionado na refatoração anterior
+                            CompGerenciarVeiculo compGerenciarVeiculo) { // Adicionado na refatoração anterior
         this.ordemServicoService = ordemServicoService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
@@ -54,6 +58,8 @@ public class CompGerenciarOS {
         this.itemEstoqueService = itemEstoqueService;
         this.scanner = scanner;
         this.elevadorService = elevadorService;
+        this.compGerenciarCliente = compGerenciarCliente; // Atribuição
+        this.compGerenciarVeiculo = compGerenciarVeiculo; // Atribuição
     }
 
     /**
@@ -85,22 +91,35 @@ public class CompGerenciarOS {
         } while (opcao != 0);
     }
 
-
     private void processarOpcao(int opcao) {
         switch (opcao) {
-            case 1: criarNovaOrdemServicoIntegrada(); break;
-            case 2: listarTodasOrdensDeServico(); break;
-            case 3: atualizarStatusOrdemServico(); break;
-            case 4: gerenciarServicosDeOrdem(); break;
-            case 5: verDetalhesOrdemServico(); break;
-            case 0: System.out.println("Saindo do Gerenciamento de Ordens de Serviço."); break;
-            default: System.out.println("Opção inválida. Tente novamente."); break;
+            case 1:
+                criarNovaOrdemServicoIntegrada();
+                break;
+            case 2:
+                listarTodasOrdensDeServico();
+                break;
+            case 3:
+                atualizarStatusOrdemServico();
+                break;
+            case 4:
+                gerenciarServicosDeOrdem();
+                break;
+            case 5:
+                verDetalhesOrdemServico();
+                break;
+            case 0:
+                System.out.println("Saindo do Gerenciamento de Ordens de Serviço.");
+                break;
+            default:
+                System.out.println("Opção inválida. Tente novamente.");
+                break;
         }
     }
 
     /**
-     * Implementa o fluxo de criação de Ordem de Serviço, com cadastro de cliente e veículo on-demand.
-     * (Este método permanece aqui, pois é uma funcionalidade central do CompGerenciarOS)
+     * Implementa o fluxo de criação de Ordem de Serviço, utilizando os componentes
+     * de gerenciamento de Cliente e Veículo para a seleção.
      */
     private void criarNovaOrdemServicoIntegrada() {
         System.out.println("\n--- CRIAR NOVA ORDEM DE SERVIÇO ---");
@@ -108,55 +127,27 @@ public class CompGerenciarOS {
         Veiculo veiculo = null;
         Usuario mecanicoResponsavel = null;
 
-        // --- 1. Seleção/Criação do Cliente ---
-        System.out.print("Cliente já cadastrado no sistema? (S/N): ");
-        String respCliente = scanner.nextLine().trim().toUpperCase();
-        if (respCliente.equals("S")) {
-            Optional<Cliente> clienteOpt = solicitarClienteExistente();
-            if (clienteOpt.isPresent()) {
-                cliente = clienteOpt.get();
-            } else {
-                System.out.println("Cliente não encontrado. Por favor, tente novamente ou cadastre um novo cliente.");
-                return;
-            }
-        } else if (respCliente.equals("N")) {
-            Optional<Cliente> novoClienteOpt = solicitarDadosNovoCliente();
-            if (novoClienteOpt.isPresent()) {
-                cliente = novoClienteOpt.get();
-            } else {
-                System.out.println("Cadastro de cliente falhou. Abortando criação da OS.");
-                return;
-            }
+        // --- 1. Seleção/Criação do Cliente (DELEGADO AO CompGerenciarCliente) ---
+        // Agora usa o método selecionarOuCriarCliente do componente
+        Optional<Cliente> clienteOpt = compGerenciarCliente.selecionarOuCriarCliente();
+        if (clienteOpt.isPresent()) {
+            cliente = clienteOpt.get();
         } else {
-            System.out.println("Resposta inválida. Abortando criação da OS.");
+            System.out.println("Seleção/Criação de cliente falhou ou foi cancelada. Abortando criação da OS.");
             return;
         }
 
-        // --- 2. Seleção/Criação do Veículo ---
-        System.out.print("Veículo já cadastrado no sistema? (S/N): ");
-        String respVeiculo = scanner.nextLine().trim().toUpperCase();
-        if (respVeiculo.equals("S")) {
-            Optional<Veiculo> veiculoOpt = solicitarVeiculoExistente();
-            if (veiculoOpt.isPresent()) {
-                veiculo = veiculoOpt.get();
-            } else {
-                System.out.println("Veículo não encontrado. Por favor, tente novamente ou cadastre um novo veículo.");
-                return;
-            }
-        } else if (respVeiculo.equals("N")) {
-            Optional<Veiculo> novoVeiculoOpt = solicitarDadosNovoVeiculo(cliente.getId());
-            if (novoVeiculoOpt.isPresent()) {
-                veiculo = novoVeiculoOpt.get();
-            } else {
-                System.out.println("Cadastro de veículo falhou. Abortando criação da OS.");
-                return;
-            }
+        // --- 2. Seleção/Criação do Veículo (DELEGADO AO CompGerenciarVeiculo) ---
+        // Agora usa o método selecionarOuCriarVeiculo do componente
+        Optional<Veiculo> veiculoOpt = compGerenciarVeiculo.selecionarOuCriarVeiculo(cliente.getId());
+        if (veiculoOpt.isPresent()) {
+            veiculo = veiculoOpt.get();
         } else {
-            System.out.println("Resposta inválida. Abortando criação da OS.");
+            System.out.println("Seleção/Criação de veículo falhou ou foi cancelada. Abortando criação da OS.");
             return;
         }
 
-        // --- 3. Seleção do Mecânico Responsável ---
+        // --- 3. Seleção do Mecânico Responsável --- (MANTIDO AQUI, POIS É ESPECÍFICO DA OS)
         Optional<Usuario> mecanicoOpt = solicitarMecanicoResponsavel();
         if (mecanicoOpt.isPresent()) {
             mecanicoResponsavel = mecanicoOpt.get();
@@ -168,9 +159,9 @@ public class CompGerenciarOS {
         // --- Tentar Criar a Ordem de Serviço ---
         try {
             OrdemServico novaOS = ordemServicoService.criarNovaOrdemServico(
-                cliente.getId(),
-                veiculo.getId(),
-                mecanicoResponsavel.getId()
+                    cliente.getId(),
+                    veiculo.getId(),
+                    mecanicoResponsavel.getId()
             );
             System.out.println("Ordem de Serviço " + novaOS.getCodigo() + " criada com sucesso!");
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -179,58 +170,21 @@ public class CompGerenciarOS {
     }
 
     // --- Métodos Auxiliares para Coleta/Busca de Cliente ---
-    private Optional<Cliente> solicitarClienteExistente() {
-        System.out.print("Digite o Email do Cliente: ");
-        String email = scanner.nextLine();
-        return clienteService.buscarClientePorEmail(email);
-    }
-
-    private Optional<Cliente> solicitarDadosNovoCliente() {
-        System.out.println("--- NOVO CADASTRO DE CLIENTE ---");
-        System.out.print("Nome do Cliente: "); String nome = scanner.nextLine();
-        System.out.print("Telefone do Cliente: "); String telefone = scanner.nextLine();
-        System.out.print("Email do Cliente: "); String email = scanner.nextLine();
-
-        try {
-            Cliente novoCliente = clienteService.adicionarCliente(nome, telefone, email);
-            System.out.println("Cliente '" + novoCliente.getNome() + "' cadastrado com sucesso!");
-            return Optional.of(novoCliente);
-        } catch (IllegalStateException e) {
-            System.err.println("Erro ao cadastrar cliente: " + e.getMessage());
-            return Optional.empty();
-        }
-    }
+    // ESTES MÉTODOS FORAM REMOVIDOS E SUA LÓGICA AGORA ESTÁ EM CompGerenciarCliente
+    // private Optional<Cliente> solicitarClienteExistente() { ... }
+    // private Optional<Cliente> solicitarDadosNovoCliente() { ... }
 
     // --- Métodos Auxiliares para Coleta/Busca de Veículo ---
-    private Optional<Veiculo> solicitarVeiculoExistente() {
-        System.out.print("Digite a Placa do Veículo: ");
-        String placa = scanner.nextLine();
-        return veiculoService.buscarVeiculoPorPlaca(placa);
-    }
+    // ESTES MÉTODOS FORAM REMOVIDOS E SUA LÓGICA AGORA ESTÁ EM CompGerenciarVeiculo
+    // private Optional<Veiculo> solicitarVeiculoExistente() { ... }
+    // private Optional<Veiculo> solicitarDadosNovoVeiculo(int idClienteProprietario) { ... }
 
-    private Optional<Veiculo> solicitarDadosNovoVeiculo(int idClienteProprietario) {
-        System.out.println("--- NOVO CADASTRO DE VEÍCULO ---");
-        System.out.print("Placa do Veículo: "); String placa = scanner.nextLine();
-        System.out.print("Modelo do Veículo: "); String modelo = scanner.nextLine();
-        System.out.print("Cor do Veículo: "); String cor = scanner.nextLine();
-
-        try {
-            Veiculo novoVeiculo = veiculoService.adicionarVeiculo(placa, modelo, cor, idClienteProprietario);
-            clienteService.adicionarVeiculoAoCliente(idClienteProprietario, novoVeiculo.getId());
-            System.out.println("Veículo '" + novoVeiculo.getPlaca() + "' cadastrado e associado ao cliente com sucesso!");
-            return Optional.of(novoVeiculo);
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            System.err.println("Erro ao cadastrar veículo: " + e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    // --- Métodos Auxiliares para Seleção de Mecânico ---
+    // --- Métodos Auxiliares para Seleção de Mecânico --- (MANTIDO AQUI)
     private Optional<Usuario> solicitarMecanicoResponsavel() {
         System.out.println("\n--- SELECIONAR MECÂNICO RESPONSÁVEL ---");
         List<Usuario> mecanicos = usuarioService.listarUsuarios().stream()
-                                    .filter(u -> u.getTipo() == TipoUsuario.MECANICO)
-                                    .collect(java.util.stream.Collectors.toList());
+                .filter(u -> u.getTipo() == TipoUsuario.MECANICO)
+                .collect(java.util.stream.Collectors.toList());
 
         if (mecanicos.isEmpty()) {
             System.out.println("Nenhum mecânico cadastrado no sistema.");
@@ -321,14 +275,14 @@ public class CompGerenciarOS {
         Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
 
         // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
-        if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) && 
-            !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
-            
+        if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) &&
+                !(os.getStatus() == StatusOrdem.EM_DIAGNOSTICO || os.getStatus() == StatusOrdem.EM_EXECUCAO)) {
+
             System.out.println("\n[SISTEMA ELEVADOR] Alocação necessária para OS " + os.getCodigo() + "...");
-            
+
             // 1. Verificar se a OS requer elevador de alinhamento
             boolean osRequerAlinhamento = os.getServicos().stream()
-                                            .anyMatch(Servico::requerPrioridade);
+                    .anyMatch(Servico::requerPrioridade);
 
             List<Elevador> elevadoresDisponiveis = elevadorService.listarElevadoresDisponiveis();
 
@@ -342,23 +296,23 @@ public class CompGerenciarOS {
 
             if (osRequerAlinhamento) {
                 elevadoresFiltrados = elevadoresDisponiveis.stream()
-                                                            .filter(Elevador::temCapacidadeAlinhamento)
-                                                            .collect(Collectors.toList());
+                        .filter(Elevador::temCapacidadeAlinhamento)
+                        .collect(Collectors.toList());
                 System.out.println("OS requer elevador de Alinhamento. Elevadores disponíveis para Alinhamento:");
             } else { // OS NÃO requer alinhamento
                 elevadoresFiltrados = elevadoresDisponiveis.stream()
-                                                    .filter(e -> !e.temCapacidadeAlinhamento())
-                                                    .collect(Collectors.toList());
-                if(elevadoresFiltrados.isEmpty()){
+                        .filter(e -> !e.temCapacidadeAlinhamento())
+                        .collect(Collectors.toList());
+                if (elevadoresFiltrados.isEmpty()) {
                     elevadoresFiltrados.addAll(elevadoresDisponiveis);
                     System.out.println("Nenhum elevador geral disponível. Usando elevador de alinhamento se disponível.");
                 } else {
                     System.out.println("OS não requer elevador de Alinhamento. Elevadores Gerais disponíveis:");
                 }
             }
-            
+
             // AQUI O USUÁRIO ESCOLHE O ELEVADOR
-            for (int i = 0; i < elevadoresFiltrados.size(); i++) { // <<< ERRO AQUI!
+            for (int i = 0; i < elevadoresFiltrados.size(); i++) {
                 System.out.println((i + 1) + ". " + elevadoresFiltrados.get(i).toString());
             }
             int escolha = -1;
@@ -391,7 +345,7 @@ public class CompGerenciarOS {
             System.err.println("Erro ao atualizar status: " + e.getMessage());
         }
     }
-    // --- NOVO MÉTODO PARA DELEGAR PARA CompGerenciarServico ---
+
     private void gerenciarServicosDeOrdem() {
         System.out.println("\n--- GERENCIAR SERVIÇOS DE UMA ORDEM DE SERVIÇO ESPECÍFICA ---");
         System.out.print("Digite o ID da Ordem de Serviço para gerenciar seus serviços: ");
@@ -415,19 +369,16 @@ public class CompGerenciarOS {
 
         // CHAMA O CompGerenciarServico, passando a OS e os Services necessários
         CompGerenciarServico compGerenciarServico = new CompGerenciarServico(
-            osSelecionada,       // A Ordem de Serviço de contexto
-            servicoService,      // Para gerenciar serviços do sistema
-            itemEstoqueService,  // Para seleção de peças
-            ordemServicoService, // Para adicionar/remover/atualizar na OS
-            scanner              // Scanner
+                osSelecionada,       // A Ordem de Serviço de contexto
+                servicoService,      // Para gerenciar serviços do sistema
+                itemEstoqueService,  // Para seleção de peças
+                ordemServicoService, // Para adicionar/remover/atualizar na OS
+                scanner              // Scanner
         );
         compGerenciarServico.exibirMenu(); // Entra no menu de gerenciamento de serviços daquela OS
         System.out.println("\n--- Retornando ao Gerenciamento de Ordens de Serviço ---");
     }
 
-    // --- O MÉTODO verDetalhesOrdemServico() (EXISTENTE) ---
-    // Este método exibe os detalhes completos de uma OS (incluindo seus serviços e referências)
-    // Ele será mantido aqui no CompGerenciarOS.
     private void verDetalhesOrdemServico() {
         System.out.println("\n--- DETALHES DA ORDEM DE SERVIÇO ---");
         System.out.print("Digite o ID da Ordem de Serviço: ");
@@ -466,16 +417,13 @@ public class CompGerenciarOS {
             System.out.println("  Serviços Detalhados:");
             for (Servico servico : servicosNaOS) {
                 String pecaInfo = "Sem peça";
-                // Corrigido: servico.getIdItemEstoquePeca() não existe mais, usar servico.getCodigoPeca()
-                if (servico.getCodigoPeca() != null && !servico.getCodigoPeca().isEmpty()) { // Usar .isEmpty() para String
-                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca()); // Busca por CÓDIGO
+                if (servico.getCodigoPeca() != null && !servico.getCodigoPeca().isEmpty()) {
+                    Optional<ItemEstoque> pecaOpt = itemEstoqueService.buscarItemPorCodigo(servico.getCodigoPeca());
                     pecaInfo = pecaOpt.isPresent() ? pecaOpt.get().getNome() : "Peça Desconhecida";
                 }
-                // Corrigido: servico.getDescricao() não existe mais, usar servico.getObservacoes()
-                // Corrigido: servico.getPreco() retorna precoMaoDeObra, usar getPrecoMaoDeObra()
                 System.out.printf("    - [Serviço ID:%d] %s (Setor: %s) - R$ %.2f - Requer Prioridade: %b - Peça: %s%n",
-                                servico.getId(), servico.getObservacoes(), servico.getSetor().getDescricao(),
-                                servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo); // Usar getObservacoes e requerPrioridade
+                        servico.getId(), servico.getObservacoes(), servico.getSetor().getDescricao(),
+                        servico.getPrecoMaoDeObra(), servico.requerPrioridade(), pecaInfo);
             }
         }
         System.out.println("---------------------------------------------");
@@ -502,9 +450,8 @@ public class CompGerenciarOS {
                 return new BigDecimal(input);
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
+                scanner.nextLine();
             }
         }
     }
-    // Removidos todos os métodos auxiliares de serviço que foram movidos para CompGerenciarServico
-    // (solicitarServicoExistenteDoSistema, solicitarDadosNovoServicoParaSistema, solicitarSetorServico)
 }

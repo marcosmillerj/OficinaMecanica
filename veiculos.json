@@ -33,5 +33,12 @@
     "modelo": "mustang",
     "cor": "azul",
     "idCliente": 5
+  },
+  {
+    "id": 6,
+    "placa": "erd",
+    "modelo": "oggie",
+    "cor": "preto",
+    "idCliente": 7
   }
 ]

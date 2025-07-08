@@ -29,22 +29,28 @@ import service.VeiculoService;
 public class CompGerenciarAgendamento {
 
     private AgendamentoService agendamentoService;
-    private ClienteService clienteService;
-    private VeiculoService veiculoService;
-    // Removidos atributos que não são mais necessários para a criação simples:
-    // private UsuarioService usuarioService;
-    // private ServicoService servicoService;
+    private ClienteService clienteService; // Ainda pode ser útil para buscar detalhes do cliente para exibição
+    private VeiculoService veiculoService; // Ainda pode ser útil para buscar detalhes do veículo para exibição
     private Scanner scanner;
 
-    // Construtor simplificado
+    // NOVAS DEPENDÊNCIAS PARA DELEGAR A LÓGICA DE SELEÇÃO/CRIAÇÃO ON-DEMAND
+    private CompGerenciarCliente compGerenciarCliente;
+    private CompGerenciarVeiculo compGerenciarVeiculo;
+
+
+    // Construtor atualizado
     public CompGerenciarAgendamento(AgendamentoService agendamentoService,
                                     ClienteService clienteService,
                                     VeiculoService veiculoService,
-                                    Scanner scanner) {
+                                    Scanner scanner,
+                                    CompGerenciarCliente compGerenciarCliente, // <<< NOVO PARÂMETRO
+                                    CompGerenciarVeiculo compGerenciarVeiculo) { // <<< NOVO PARÂMETRO
         this.agendamentoService = agendamentoService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.scanner = scanner;
+        this.compGerenciarCliente = compGerenciarCliente; // <<< ATRIBUIÇÃO
+        this.compGerenciarVeiculo = compGerenciarVeiculo; // <<< ATRIBUIÇÃO
     }
 
     public void exibirMenu() {
@@ -81,7 +87,7 @@ public class CompGerenciarAgendamento {
                 listarTodosAgendamentos();
                 break;
             case 3:
-                reagendarAgendamento(); 
+                reagendarAgendamento();
                 break;
             case 4:
                 cancelarAgendamento();
@@ -98,28 +104,42 @@ public class CompGerenciarAgendamento {
     private void agendarNovoServico() {
         System.out.println("\n--- AGENDAR NOVO SERVIÇO ---");
 
-        // 1. Selecionar Cliente
-        Cliente clienteSelecionado = solicitarClienteExistente(); // Método auxiliar já existe no CompGerenciarOS, vamos replicar ou buscar
-        if (clienteSelecionado == null) return;
+        // 1. Selecionar ou Criar Cliente usando CompGerenciarCliente
+        Optional<Cliente> clienteOpt = compGerenciarCliente.selecionarOuCriarCliente();
+        if (clienteOpt.isEmpty()) {
+            System.out.println("Agendamento cancelado: Cliente não selecionado ou criado.");
+            return;
+        }
+        Cliente clienteSelecionado = clienteOpt.get();
 
-        // 2. Selecionar Veículo do Cliente
-        Veiculo veiculoSelecionado = solicitarVeiculoExistente(clienteSelecionado.getId()); // Passa ID do cliente
-        if (veiculoSelecionado == null) return;
+        // 2. Selecionar ou Criar Veículo do Cliente usando CompGerenciarVeiculo
+        Optional<Veiculo> veiculoOpt = compGerenciarVeiculo.selecionarOuCriarVeiculo(clienteSelecionado.getId());
+        if (veiculoOpt.isEmpty()) {
+            System.out.println("Agendamento cancelado: Veículo não selecionado ou criado.");
+            return;
+        }
+        Veiculo veiculoSelecionado = veiculoOpt.get();
 
         // 3. Inserir Data e Hora
         LocalDateTime dataHoraAgendamento = solicitarDataHora();
-        if (dataHoraAgendamento == null) return;
+        if (dataHoraAgendamento == null) {
+            System.out.println("Agendamento cancelado: Data e hora inválidas.");
+            return;
+        }
 
         // 4. Inserir Valor do Agendamento (Valor Fixo / Taxa)
         BigDecimal valorAgendamento = lerBigDecimalValido("Digite o valor do agendamento (taxa/estimado): ");
-        if (valorAgendamento == null) return; // Se a leitura falhar
+        if (valorAgendamento == null) { // Se a leitura falhar
+            System.out.println("Agendamento cancelado: Valor inválido.");
+            return;
+        }
 
         try {
             agendamentoService.criarAgendamento(
-                dataHoraAgendamento,
-                clienteSelecionado.getId(),
-                veiculoSelecionado.getId(),
-                valorAgendamento
+                    dataHoraAgendamento,
+                    clienteSelecionado.getId(),
+                    veiculoSelecionado.getId(),
+                    valorAgendamento
             );
             System.out.println("Agendamento realizado com sucesso!");
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -134,7 +154,22 @@ public class CompGerenciarAgendamento {
         if (agendamentos.isEmpty()) {
             System.out.println("Nenhum agendamento cadastrado.");
         } else {
-            agendamentos.forEach(System.out::println);
+            // Para uma exibição mais completa, você pode buscar os nomes de cliente e placa do veículo
+            for (Agendamento agendamento : agendamentos) {
+                Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(agendamento.getIdCliente());
+                Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorId(agendamento.getIdVeiculo());
+
+                String clienteNome = clienteOpt.map(Cliente::getNome).orElse("Desconhecido");
+                String veiculoPlaca = veiculoOpt.map(Veiculo::getPlaca).orElse("Desconhecido");
+
+                System.out.printf("ID: %d | Data/Hora: %s | Cliente: %s | Veículo: %s | Status: %s%n",
+                        agendamento.getId(),
+                        agendamento.getDataHora().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                        clienteNome,
+                        veiculoPlaca,
+                        
+                        agendamento.getStatus().getDescricao());
+            }
         }
     }
 
@@ -175,7 +210,7 @@ public class CompGerenciarAgendamento {
         }
     }
 
-    // --- Métodos Auxiliares de Leitura e Seleção (Replicados/Adaptados do CompGerenciarOS) ---
+    // --- Métodos Auxiliares de Leitura e Seleção (MANTIDOS SE FOREM GERAIS OU REMOVIDOS SE ESPECÍFICOS) ---
 
     private int lerInteiroValido() {
         while (true) {
@@ -202,42 +237,19 @@ public class CompGerenciarAgendamento {
         }
     }
 
-    private Cliente solicitarClienteExistente() {
-        System.out.print("Digite o Email do Cliente: ");
-        String email = scanner.nextLine();
-        Optional<Cliente> clienteOpt = clienteService.buscarClientePorEmail(email);
-        if (clienteOpt.isEmpty()) {
-            System.out.println("Cliente não encontrado. Você precisa cadastrar um novo cliente primeiro.");
-            // Poderíamos oferecer para cadastrar o cliente aqui, mas por simplicidade, apenas avisa.
-            return null;
-        }
-        return clienteOpt.get();
-    }
-
-    private Veiculo solicitarVeiculoExistente(int idClienteProprietario) {
-        System.out.print("Digite a Placa do Veículo: ");
-        String placa = scanner.nextLine();
-        Optional<Veiculo> veiculoOpt = veiculoService.buscarVeiculoPorPlaca(placa);
-        if (veiculoOpt.isEmpty()) {
-            System.out.println("Veículo não encontrado. Você precisa cadastrar um novo veículo primeiro.");
-            return null;
-        }
-        Veiculo veiculo = veiculoOpt.get();
-        if (veiculo.getIdCliente() != idClienteProprietario) {
-            System.out.println("Este veículo não pertence ao cliente selecionado.");
-            return null;
-        }
-        return veiculo;
-    }
-
     private LocalDateTime solicitarDataHora() {
-        System.out.print("Digite a data e hora do agendamento (formato yyyy-MM-dd HH:mm): ");
+        System.out.print("Digite a data e hora do agendamento (formato YYYY-MM-dd HH:mm): ");
         String dataHoraStr = scanner.nextLine();
         try {
+            // Adicionado :00 para segundos para corresponder ao formato completo
             return LocalDateTime.parse(dataHoraStr + ":00", java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } catch (DateTimeParseException e) {
-            System.err.println("Formato de data e hora inválido. Use yyyy-MM-dd HH:mm.");
+            System.err.println("Formato de data e hora inválido. Use YYYY-MM-dd HH:mm.");
             return null;
         }
     }
+
+    // --- MÉTODOS REMOVIDOS: solicitarClienteExistente() e solicitarVeiculoExistente() ---
+    // A lógica desses métodos foi movida para CompGerenciarCliente e CompGerenciarVeiculo.
+    // CompGerenciarAgendamento agora os utiliza através das instâncias injetadas.
 }

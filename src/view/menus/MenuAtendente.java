@@ -17,7 +17,9 @@ import service.ServicoService;
 import service.UsuarioService;
 import service.VeiculoService;
 import view.componentes.CompGerenciarAgendamento;
+import view.componentes.CompGerenciarCliente;
 import view.componentes.CompGerenciarEstoque;
+import view.componentes.CompGerenciarVeiculo;
 import view.componentes.CompProcessarPagamento;
 
 /**
@@ -37,6 +39,8 @@ public class MenuAtendente {
     private PagamentoService pagamentoService; // NOVO ATRIBUTO!
     private Scanner scanner;
     private Usuario atendenteLogado;
+    private CompGerenciarCliente compGerenciarCliente;
+    private CompGerenciarVeiculo compGerenciarVeiculo;
 
     /**
      * Construtor do MenuAtendente.
@@ -74,6 +78,9 @@ public class MenuAtendente {
             System.err.println("Erro: Acesso não autorizado ao Menu Atendente.");
             System.exit(1);
         }
+        
+        this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
+        this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
     }
 
     /**
@@ -117,7 +124,7 @@ public class MenuAtendente {
             case 2:
                 System.out.println("\n--- Criando Agendamento ---");
                 CompGerenciarAgendamento compGerenciarAgendamento = new CompGerenciarAgendamento(
-                    agendamentoService, clienteService, veiculoService, scanner
+                    agendamentoService, clienteService, veiculoService, scanner, compGerenciarCliente, compGerenciarVeiculo
                 );
                 compGerenciarAgendamento.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Atendente ---");
