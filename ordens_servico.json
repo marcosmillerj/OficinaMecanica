@@ -3,7 +3,7 @@
     "id": 1,
     "codigo": "OS-250708013305-ee49",
     "dataAbertura": "2025-07-08T01:33:05.212381877",
-    "precoTotal": 322,
+    "precoTotal": 67,
     "idVeiculo": 5,
     "idCliente": 5,
     "idMecanicoResponsavel": 5,
@@ -11,11 +11,19 @@
     "servicos": [
       {
         "id": 1,
-        "precoMaoDeObra": 322,
+        "precoMaoDeObra": 34,
         "setor": "MOTOR",
         "quantidadePeca": 0,
         "requerPrioridade": false,
-        "observacoes": "alternador"
+        "observacoes": "filtros"
+      },
+      {
+        "id": 1,
+        "precoMaoDeObra": 33,
+        "setor": "MOTOR",
+        "quantidadePeca": 0,
+        "requerPrioridade": false,
+        "observacoes": "filtro"
       }
     ],
     "observadores": []

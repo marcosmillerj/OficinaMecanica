@@ -30,18 +30,19 @@ import view.componentes.CompGerenciarVeiculo;
  */
 public class MenuGerente {
 
-    private UsuarioService usuarioService;
-    private OrdemServicoService ordemServicoService;
-    private ClienteService clienteService;
-    private VeiculoService veiculoService;
-    private ItemEstoqueService itemEstoqueService;
-    private ServicoService servicoService;
-    private UsuarioCRUD usuarioCRUD;
-    private Scanner scanner;
-    private RelatorioService relatorioService;
-    private ElevadorService elevadorService;
-    private CompGerenciarCliente compGerenciarCliente;
-    private CompGerenciarVeiculo compGerenciarVeiculo;
+    private final UsuarioService usuarioService;
+    private final OrdemServicoService ordemServicoService;
+    private final ClienteService clienteService;
+    private final VeiculoService veiculoService;
+    private final ItemEstoqueService itemEstoqueService;
+    private final ServicoService servicoService;
+    private final UsuarioCRUD usuarioCRUD;
+    private final Scanner scanner;
+    private final RelatorioService relatorioService;
+    private final ElevadorService elevadorService;
+
+    private final CompGerenciarCliente compGerenciarCliente;
+    private final CompGerenciarVeiculo compGerenciarVeiculo;
 
     /**
      * Construtor do MenuGerente.
@@ -62,8 +63,21 @@ public class MenuGerente {
         this.servicoService = servicoService;
         this.relatorioService = relatorioService;
         this.elevadorService = elevadorService;
-        this.compGerenciarCliente = new CompGerenciarCliente(clienteService, scanner, ordemServicoService, usuarioService, veiculoService);
-        this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
+
+        // Instanciação de CompGerenciarCliente com todas as dependências necessárias
+        this.compGerenciarCliente = new CompGerenciarCliente(
+            this.clienteService,
+            this.scanner,
+            this.ordemServicoService,
+            this.usuarioService,
+            this.veiculoService
+        );
+        // Instanciação de CompGerenciarVeiculo com suas dependências
+        this.compGerenciarVeiculo = new CompGerenciarVeiculo(
+            this.veiculoService,
+            this.clienteService,
+            this.scanner
+        );
     }
 
     /**
@@ -77,7 +91,8 @@ public class MenuGerente {
             System.out.println("2. Gerenciar Estoque");
             System.out.println("3. Acessar Relatórios Financeiros");
             System.out.println("4. Gerenciar Ordens de Serviço");
-            System.out.println("5. Gerenciar Clientes (Cadastro/Consulta)"); // Renomeado para refletir a nova responsabilidade
+            System.out.println("5. Gerenciar Clientes (Cadastro/Consulta)");
+            System.out.println("6. Gerenciar Veículos (Cadastro/Consulta)");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -129,10 +144,14 @@ public class MenuGerente {
                 compGerenciarOS.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
-            case 5: // Gerenciar Clientes (agora delega para o CompGerenciarCliente)
+            case 5: // Gerenciar Clientes
                 System.out.println("\n--- Abrindo Gerenciamento de Clientes ---");
-                // compGerenciarCliente já está instanciado no construtor
-                this.compGerenciarCliente.exibirMenuPrincipal(); // Você precisará criar este método no CompGerenciarCliente
+                this.compGerenciarCliente.exibirMenuPrincipal();
+                System.out.println("\n--- Retornando ao Menu do Gerente ---");
+                break;
+            case 6: // Gerenciar Veículos (Nova opção)
+                System.out.println("\n--- Abrindo Gerenciamento de Veículos ---");
+                this.compGerenciarVeiculo.exibirMenuPrincipal();
                 System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 0:
@@ -143,8 +162,4 @@ public class MenuGerente {
                 break;
         }
     }
-
-    // --- MÉTODOS REMOVIDOS ---
-    // Os métodos 'gerenciarClientes()', 'adicionarCliente()' e 'listarClientes()'
-    // foram movidos (ou sua lógica transferida) para 'CompGerenciarCliente'.
 }

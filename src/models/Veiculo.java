@@ -1,19 +1,20 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 package models;
 
 import java.util.Objects;
-import models.enums.StatusOrdem;
 
 /**
- *Classe que representa veículo
- * @author camila_barbosa
+ * Classe que representa veículo
+ * @author barbo
  */
 public class Veiculo {
-    public static int proximoId = 1; 
+    public static int proximoId = 1;
+
+    // --- VARIÁVEIS PARA CONTAR INSTÂNCIAS (REQUISITO) ---
+    // Estratégia 1: Encapsulamento (private static com getters)
+    private static int contadorInstanciasEncapsulado = 0;
+
+    // Estratégia 2: Controle de acesso "protected"
+    protected static int contadorInstanciasProtegido = 0;
 
     private int id;
     private String placa;
@@ -23,68 +24,63 @@ public class Veiculo {
 
     /**
      * Construtor para criar um novo veículo.
-     * @param placa A placa do veículo (não pode ser nula).
-     * @param modelo O modelo do veículo (não pode ser nulo).
-     * @param cor A cor do veículo (não pode ser nula).
-     * @param idCliente O ID do cliente proprietário do veículo.
+     * Incrementa os contadores de instâncias.
      */
-    public Veiculo (String placa, String modelo, String cor, int idCliente){ 
+    public Veiculo (String placa, String modelo, String cor, int idCliente){
         this.id = proximoId++;
         this.placa = Objects.requireNonNull(placa, "Placa não pode ser nula.");
         this.modelo = Objects.requireNonNull(modelo, "Modelo não pode ser nulo.");
         this.cor = Objects.requireNonNull(cor, "Cor não pode ser nula.");
         this.idCliente = idCliente;
+
+        // Incrementa os contadores ao criar uma nova instância
+        contadorInstanciasEncapsulado++;
+        contadorInstanciasProtegido++;
     }
 
     /**
      * Construtor para uso pelo Gson ao desserializar (reconstruir o objeto do JSON).
-     * @param id ID do veículo.
-     * @param placa Placa do veículo.
-     * @param modelo Modelo do veículo.
-     * @param cor Cor do veículo.
-     * @param idCliente ID do cliente proprietário.
+     * Não incrementa contadores, pois não é uma nova criação.
      */
-    public Veiculo(int id, String placa, String modelo, String cor, int idCliente) { 
+    public Veiculo(int id, String placa, String modelo, String cor, int idCliente) {
         this.id = id;
         this.placa = Objects.requireNonNull(placa, "Placa não pode ser nula.");
         this.modelo = Objects.requireNonNull(modelo, "Modelo não pode ser nulo.");
         this.cor = Objects.requireNonNull(cor, "Cor não pode ser nula.");
         this.idCliente = idCliente;
+        // Não incrementa os contadores aqui pq n vamos persisitr no gson
     }
 
     // --- Getters e Setters ---
-    public int getId() {
-        return id;
+    public int getId() { return id; }
+    public String getPlaca(){ return placa; }
+    public void setPlaca(String placa){ this.placa = Objects.requireNonNull(placa, "Placa não pode ser nula."); }
+    public String getModelo(){ return modelo; }
+    public void setModelo(String modelo){ this.modelo = Objects.requireNonNull(modelo, "Modelo não pode ser nulo."); }
+    public String getCor(){ return cor; }
+    public void setCor(String cor){ this.cor = Objects.requireNonNull(cor, "Cor não pode ser nula."); }
+    public int getIdCliente(){ return idCliente; }
+    public void setIdCliente(int idCliente){ this.idCliente = idCliente; }
+
+    // --- MÉTODOS PARA ACESSAR OS CONTADORES (REQUISITO) ---
+    /**
+     * Retorna o número total de instâncias de Veículo criadas.
+     * (Estratégia: private static com getter - Encapsulamento)
+     * @return O número de veículos criados.
+     */
+    public static int getTotalVeiculosCriadosEncapsulado() {
+        return contadorInstanciasEncapsulado;
     }
-    
-    public String getPlaca(){
-        return placa;
+
+    /**
+     * Retorna o número total de instâncias de Veículo criadas.
+     * (Estratégia: protected static - acessível por subclasses e classes do mesmo pacote)
+     * @return O número de veículos criados.
+     */
+    public static int getTotalVeiculosCriadosProtegido() {
+        return contadorInstanciasProtegido;
     }
-    public void setPlaca(String placa){
-        this.placa = Objects.requireNonNull(placa, "Placa não pode ser nula.");
-    }
-    
-    public String getModelo(){
-        return modelo;
-    }
-    public void setModelo(String modelo){
-        this.modelo = Objects.requireNonNull(modelo, "Modelo não pode ser nulo.");
-    }
-    public String getCor(){
-        return cor;
-    }
-    public void setCor(String cor){
-        this.cor = Objects.requireNonNull(cor, "Cor não pode ser nula.");
-    }
-    
-    public int getIdCliente(){
-        return idCliente;
-    }
-    
-    public void setIdCliente(int idCliente){
-        this.idCliente = idCliente;
-    }
-    
+
     @Override
     public String toString() {
         return "Veiculo {" +
@@ -92,7 +88,7 @@ public class Veiculo {
                 ", placa='" + placa + '\'' +
                 ", modelo='" + modelo + '\'' +
                 ", cor='" + cor + '\'' +
-                ", clienteID=" + idCliente + 
+                ", clienteID=" + idCliente +
                 '}';
     }
 

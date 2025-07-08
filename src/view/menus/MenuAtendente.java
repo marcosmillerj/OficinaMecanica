@@ -86,6 +86,7 @@ public class MenuAtendente {
             System.out.println("3. Gerenciar Agendamentos");
             System.out.println("4. Consultar Estoque");
             System.out.println("5. Realizar Pagamento");
+            System.out.println("6. Gerenciar Veículos (Cadastro/Consulta)");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -144,6 +145,11 @@ public class MenuAtendente {
                 );
                 compProcessarPagamento.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Atendente ---");
+                break;
+            case 6: // Gerenciar Veículos (Nova opção)
+                System.out.println("\n--- Abrindo Gerenciamento de Veículos ---");
+                this.compGerenciarVeiculo.exibirMenuPrincipal();
+                System.out.println("\n--- Retornando ao Menu do Gerente ---");
                 break;
             case 0:
                 System.out.println("Voltando ao Painel Principal.");
