@@ -59,7 +59,8 @@ public class MenuGerente {
     public MenuGerente(UsuarioCRUD usuarioCRUD, Scanner scanner, UsuarioService usuarioService,
                        OrdemServicoService ordemServicoService, ClienteService clienteService,
                        VeiculoService veiculoService, ItemEstoqueService itemEstoqueService,
-                       ServicoService servicoService, RelatorioService relatorioService) { // <<< CONSTRUTOR SEM ElevadorService
+                       ServicoService servicoService, RelatorioService relatorioService,
+                       ElevadorService elevadorService) {
         this.usuarioCRUD = usuarioCRUD;
         this.scanner = scanner;
         this.usuarioService = usuarioService;
@@ -69,6 +70,7 @@ public class MenuGerente {
         this.itemEstoqueService = itemEstoqueService;
         this.servicoService = servicoService;
         this.relatorioService = relatorioService;
+        this.elevadorService = elevadorService;
     }
 
     /**

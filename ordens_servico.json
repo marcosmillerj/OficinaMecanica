@@ -1,15 +1,23 @@
 [
   {
     "id": 1,
-    "codigo": "OS-20250707235334-a8a5",
-    "dataAbertura": "2025-07-07T23:53:34.523956902",
-    "precoTotal": 0,
-    "idVeiculo": 6,
-    "idCliente": 6,
+    "codigo": "OS-250708013305-ee49",
+    "dataAbertura": "2025-07-08T01:33:05.212381877",
+    "precoTotal": 322,
+    "idVeiculo": 5,
+    "idCliente": 5,
     "idMecanicoResponsavel": 5,
-    "status": "AGUARDANDO_DIAGNOSTICO",
-    "hasElevador": false,
-    "servicos": [],
+    "status": "AGUARDANDO_LIBERACAO",
+    "servicos": [
+      {
+        "id": 1,
+        "precoMaoDeObra": 322,
+        "setor": "MOTOR",
+        "quantidadePeca": 0,
+        "requerPrioridade": false,
+        "observacoes": "alternador"
+      }
+    ],
     "observadores": []
   }
 ]

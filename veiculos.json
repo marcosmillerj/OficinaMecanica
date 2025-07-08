@@ -26,5 +26,12 @@
     "modelo": "ka",
     "cor": "azul",
     "idCliente": 3
+  },
+  {
+    "id": 5,
+    "placa": "uhg7964",
+    "modelo": "mustang",
+    "cor": "azul",
+    "idCliente": 5
   }
 ]

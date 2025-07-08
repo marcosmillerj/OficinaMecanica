@@ -131,7 +131,7 @@ public class PainelPrincipal {
             case GERENTE:
                 MenuGerente menuGerente = new MenuGerente(
                     usuarioCRUD, scanner, usuarioService, ordemServicoService, clienteService, veiculoService,
-                    itemEstoqueService, servicoService, relatorioService
+                    itemEstoqueService, servicoService, relatorioService, this.elevadorService
                 );
                 menuGerente.exibirMenu();
                 break;
