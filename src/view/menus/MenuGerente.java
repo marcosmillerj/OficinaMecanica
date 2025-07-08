@@ -2,11 +2,11 @@ package view.menus;
 
 import comparator.ClienteComparatorPorEmail;
 import comparator.ClienteComparatorPorNome;
-import java.util.Comparator; // Apenas para compilação se houver métodos que ainda os usem temporariamente
+import java.util.Comparator;
 import java.util.InputMismatchException;
-import java.util.List; // Apenas para compilação se houver métodos que ainda os usem temporariamente
+import java.util.List;
 import java.util.Scanner;
-import models.Cliente; // Apenas para compilação se houver métodos que ainda os usem temporariamente
+import models.Cliente;
 import repository.UsuarioCRUD;
 import service.ClienteService;
 import service.ElevadorService;

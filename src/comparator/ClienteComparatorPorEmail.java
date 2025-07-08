@@ -15,8 +15,6 @@ public class ClienteComparatorPorEmail implements Comparator<Cliente> {
 
     @Override
     public int compare(Cliente c1, Cliente c2) {
-        // Compara os clientes pelo atributo 'email' de forma case-insensitive
-        // Útil para ordenar por um identificador secundário.
         return c1.getEmail().compareToIgnoreCase(c2.getEmail());
     }
 }

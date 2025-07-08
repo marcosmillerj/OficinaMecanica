@@ -32,7 +32,7 @@ public class CompGerenciarRelatorio {
             System.out.println("\n===== Gerenciar Relatórios =====");
             System.out.println("1. Gerar Relatório Diário (e Salvar)");
             System.out.println("2. Gerar Relatório Mensal (e Salvar)");
-            // System.out.println("3. Gerar Relatório Semanal (e Salvar) - Futuro");
+            // System.out.println("3. Gerar Relatório Semanal (e Salvar)");
             System.out.println("4. Listar Relatórios Salvos");
             System.out.println("5. Ver Detalhes de um Relatório Salvo");
             System.out.println("0. Voltar ao Menu Anterior");
@@ -56,7 +56,7 @@ public class CompGerenciarRelatorio {
         switch (opcao) {
             case 1: gerarRelatorioDiario(); break;
             case 2: gerarRelatorioMensal(); break;
-            // case 3: gerarRelatorioSemanal(); break; // Futuro
+            // case 3: gerarRelatorioSemanal(); break;
             case 4: listarRelatoriosSalvos(); break;
             case 5: verDetalhesRelatorioSalvo(); break;
             case 0: System.out.println("Saindo do Gerenciamento de Relatórios."); break;
@@ -67,17 +67,14 @@ public class CompGerenciarRelatorio {
     private void gerarRelatorioDiario() {
         System.out.println("\n--- GERAR RELATÓRIO DIÁRIO ---");
         try {
-            // O usuarioGeradorId viria do UserSession.getInstance().getLoggedInUser().getId();
-            // Por simplicidade, vamos usar um ID fixo ou pegar do usuário logado se ele for Gerente.
             int usuarioGeradorId = util.UserSession.getInstance().getLoggedInUser().getId();
             
             Relatorio relatorio = relatorioService.gerarESalvarRelatorioDiario(usuarioGeradorId);
             System.out.println("Relatório diário gerado e salvo com sucesso! ID: " + relatorio.getId());
-            // Imprime o conteúdo do relatório no console
             System.out.println("\n--- CONTEÚDO DO RELATÓRIO ---");
             System.out.println(relatorio.getConteudo());
             System.out.println("-----------------------------");
-        } catch (Exception e) { // Captura exceções gerais para o relatório
+        } catch (Exception e) {
             System.err.println("Erro ao gerar relatório diário: " + e.getMessage());
         }
     }

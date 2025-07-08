@@ -3,8 +3,8 @@ package service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors; // Adicionado para o método listarVeiculosPorCliente
-import models.Cliente; // Necessário para gerenciar a associação com o cliente
+import java.util.stream.Collectors;
+import models.Cliente;
 import models.Veiculo;
 import repository.ClienteRepository;
 import repository.VeiculoRepository;
@@ -54,8 +54,6 @@ public class VeiculoService {
 
         Veiculo novoVeiculo = new Veiculo(placa, modelo, cor, idCliente);
         veiculoRepository.adicionarVeiculo(novoVeiculo);
-        // A associação com o cliente (adicionar idVeiculo ao Cliente) será feita na camada de View/Componente
-        // para manter a responsabilidade dividida, conforme a sua estrutura atual.
         return novoVeiculo;
     }
     
@@ -81,11 +79,11 @@ public class VeiculoService {
 
         Optional<Veiculo> veiculoOpt = veiculoRepository.buscarVeiculoPorId(idVeiculo);
         if (veiculoOpt.isEmpty()) {
-            return false; // Veículo não encontrado
+            return false;
         }
         Veiculo veiculoParaAtualizar = veiculoOpt.get();
 
-        // Validação de unicidade para placa (se a placa foi alterada)
+        // Validação de unicidade para placa
         if (!veiculoParaAtualizar.getPlaca().equalsIgnoreCase(novaPlaca)) {
             Optional<Veiculo> existentePorPlaca = veiculoRepository.buscarVeiculoPorPlaca(novaPlaca);
             if (existentePorPlaca.isPresent() && existentePorPlaca.get().getId() != idVeiculo) {
@@ -93,31 +91,31 @@ public class VeiculoService {
             }
         }
         
-        // Verifica se o novo cliente proprietário existe (NOVA VALIDAÇÃO)
+        // Verifica se o novo cliente proprietário existe
         Optional<Cliente> novoClienteOpt = clienteRepository.buscarClientePorId(novoIdCliente);
         if (novoClienteOpt.isEmpty()) {
             throw new IllegalArgumentException("Erro: Novo cliente proprietário com ID " + novoIdCliente + " não encontrado.");
         }
 
-        // Lógica para atualizar a lista de veículos nos clientes se o proprietário mudou (NOVA LÓGICA)
+        // Lógica para atualizar a lista de veículos nos clientes se o proprietário mudou
         if (veiculoParaAtualizar.getIdCliente() != novoIdCliente) {
-            // Remove o veículo do cliente antigo
+            
             clienteRepository.buscarClientePorId(veiculoParaAtualizar.getIdCliente())
                              .ifPresent(clienteAntigo -> clienteAntigo.removerIdVeiculo(idVeiculo));
             
-            // Adiciona o veículo ao novo cliente
+            
             novoClienteOpt.get().adicionarIdVeiculo(idVeiculo);
         }
 
         veiculoParaAtualizar.setPlaca(novaPlaca);
         veiculoParaAtualizar.setModelo(novoModelo);
         veiculoParaAtualizar.setCor(novaCor);
-        veiculoParaAtualizar.setIdCliente(novoIdCliente); // Atualiza o ID do cliente no Veículo
+        veiculoParaAtualizar.setIdCliente(novoIdCliente); 
         veiculoRepository.atualizarVeiculo(veiculoParaAtualizar);
         return true;
     }
 
-    // Métodos de busca e listagem (mantidos como estão)
+    // Métodos de busca e listagem
     public Optional<Veiculo> buscarVeiculoPorId(int id) {
         return veiculoRepository.buscarVeiculoPorId(id);
     }
@@ -135,7 +133,7 @@ public class VeiculoService {
     }
 
     /**
-     * Remove um veículo do sistema e também da lista de veículos do cliente proprietário. (LÓGICA ATUALIZADA)
+     * Remove um veículo do sistema e também da lista de veículos do cliente proprietário.
      * @param id ID do veículo a ser removido.
      * @return true se removido, false se não encontrado.
      */
@@ -146,7 +144,6 @@ public class VeiculoService {
         }
         
         Veiculo veiculoParaRemover = veiculoOpt.get();
-        // Remove o ID do veículo da lista do cliente proprietário
         clienteRepository.buscarClientePorId(veiculoParaRemover.getIdCliente())
                          .ifPresent(cliente -> cliente.removerIdVeiculo(id));
 
@@ -154,7 +151,7 @@ public class VeiculoService {
     }
 
     /**
-     * Lista veículos de um cliente específico. (MÉTODO ADICIONAL ÚTIL)
+     * Lista veículos de um cliente específico.
      * @param idCliente ID do cliente.
      * @return Lista de veículos do cliente.
      */

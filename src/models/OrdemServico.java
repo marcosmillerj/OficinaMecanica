@@ -68,7 +68,7 @@ public class OrdemServico implements IObservavelOrdemServico {
         this.idCliente = idCliente;
         this.idMecanicoResponsavel = idMecanicoResponsavel;
         this.status = status;
-        this.idElevadorAtual = idElevadorAtual; // <<--- INICIALIZA AQUI!
+        this.idElevadorAtual = idElevadorAtual;
         this.servicos = (servicos != null) ? new ArrayList<>(servicos) : new ArrayList<>();
         this.observadores = new ArrayList<>();
     }

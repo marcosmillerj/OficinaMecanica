@@ -22,7 +22,7 @@ import service.PagamentoService;
 public class CompProcessarPagamento {
 
     private PagamentoService pagamentoService;
-    private OrdemServicoService ordemServicoService; // Para buscar a OS e o valor
+    private OrdemServicoService ordemServicoService;
     private Scanner scanner;
 
     public CompProcessarPagamento(PagamentoService pagamentoService, OrdemServicoService ordemServicoService, Scanner scanner) {
@@ -86,7 +86,7 @@ public class CompProcessarPagamento {
                 return;
             }
             OrdemServico os = osOpt.get();
-            BigDecimal valorTotalOS = ordemServicoService.calcularPrecoTotalFinalOS(os); // Calcula o valor total real da OS
+            BigDecimal valorTotalOS = ordemServicoService.calcularPrecoTotalFinalOS(os);
 
             System.out.println("OS " + os.getCodigo() + " - Status: " + os.getStatus().getDescricao());
             System.out.println("Valor total da OS: R$ " + String.format("%.2f", valorTotalOS));
@@ -119,7 +119,7 @@ public class CompProcessarPagamento {
         }
         Pagamento pagamento = pagamentoOpt.get();
         
-        if (pagamento.getDataHora() != null) { // Já foi finalizado
+        if (pagamento.getDataHora() != null) {
             System.out.println("Pagamento ID " + idPagamento + " já foi finalizado em " + pagamento.getDataHora().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + ".");
             return;
         }
@@ -215,7 +215,6 @@ public class CompProcessarPagamento {
                 return new BigDecimal(input);
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número decimal válido (ex: 12.50).");
-                // NÃO CHAME scanner.nextLine() AQUI! O input já foi lido no prompt.
             }
         }
     }

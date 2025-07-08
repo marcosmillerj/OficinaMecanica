@@ -32,15 +32,13 @@ import service.VeiculoService;
 public class CompGerenciarOS {
 
     private OrdemServicoService ordemServicoService;
-    private ClienteService clienteService; // Mantido para verDetalhesOrdemServico
-    private VeiculoService veiculoService; // Mantido para verDetalhesOrdemServico
+    private ClienteService clienteService; 
+    private VeiculoService veiculoService;
     private UsuarioService usuarioService;
     private ServicoService servicoService;
     private ItemEstoqueService itemEstoqueService;
     private Scanner scanner;
     private ElevadorService elevadorService;
-
-    // Dependências dos novos componentes para seleção/criação de Cliente e Veículo
     private CompGerenciarCliente compGerenciarCliente;
     private CompGerenciarVeiculo compGerenciarVeiculo;
 
@@ -48,8 +46,8 @@ public class CompGerenciarOS {
                             VeiculoService veiculoService, UsuarioService usuarioService,
                             ServicoService servicoService, ItemEstoqueService itemEstoqueService,
                             Scanner scanner, ElevadorService elevadorService,
-                            CompGerenciarCliente compGerenciarCliente, // Adicionado na refatoração anterior
-                            CompGerenciarVeiculo compGerenciarVeiculo) { // Adicionado na refatoração anterior
+                            CompGerenciarCliente compGerenciarCliente,
+                            CompGerenciarVeiculo compGerenciarVeiculo) {
         this.ordemServicoService = ordemServicoService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
@@ -58,8 +56,8 @@ public class CompGerenciarOS {
         this.itemEstoqueService = itemEstoqueService;
         this.scanner = scanner;
         this.elevadorService = elevadorService;
-        this.compGerenciarCliente = compGerenciarCliente; // Atribuição
-        this.compGerenciarVeiculo = compGerenciarVeiculo; // Atribuição
+        this.compGerenciarCliente = compGerenciarCliente; 
+        this.compGerenciarVeiculo = compGerenciarVeiculo;
     }
 
     /**
@@ -128,7 +126,6 @@ public class CompGerenciarOS {
         Usuario mecanicoResponsavel = null;
 
         // --- 1. Seleção/Criação do Cliente (DELEGADO AO CompGerenciarCliente) ---
-        // Agora usa o método selecionarOuCriarCliente do componente
         Optional<Cliente> clienteOpt = compGerenciarCliente.selecionarOuCriarCliente();
         if (clienteOpt.isPresent()) {
             cliente = clienteOpt.get();
@@ -138,7 +135,6 @@ public class CompGerenciarOS {
         }
 
         // --- 2. Seleção/Criação do Veículo (DELEGADO AO CompGerenciarVeiculo) ---
-        // Agora usa o método selecionarOuCriarVeiculo do componente
         Optional<Veiculo> veiculoOpt = compGerenciarVeiculo.selecionarOuCriarVeiculo(cliente.getId());
         if (veiculoOpt.isPresent()) {
             veiculo = veiculoOpt.get();
@@ -147,7 +143,7 @@ public class CompGerenciarOS {
             return;
         }
 
-        // --- 3. Seleção do Mecânico Responsável --- (MANTIDO AQUI, POIS É ESPECÍFICO DA OS)
+        // --- 3. Seleção do Mecânico Responsável ---
         Optional<Usuario> mecanicoOpt = solicitarMecanicoResponsavel();
         if (mecanicoOpt.isPresent()) {
             mecanicoResponsavel = mecanicoOpt.get();
@@ -169,17 +165,7 @@ public class CompGerenciarOS {
         }
     }
 
-    // --- Métodos Auxiliares para Coleta/Busca de Cliente ---
-    // ESTES MÉTODOS FORAM REMOVIDOS E SUA LÓGICA AGORA ESTÁ EM CompGerenciarCliente
-    // private Optional<Cliente> solicitarClienteExistente() { ... }
-    // private Optional<Cliente> solicitarDadosNovoCliente() { ... }
-
-    // --- Métodos Auxiliares para Coleta/Busca de Veículo ---
-    // ESTES MÉTODOS FORAM REMOVIDOS E SUA LÓGICA AGORA ESTÁ EM CompGerenciarVeiculo
-    // private Optional<Veiculo> solicitarVeiculoExistente() { ... }
-    // private Optional<Veiculo> solicitarDadosNovoVeiculo(int idClienteProprietario) { ... }
-
-    // --- Métodos Auxiliares para Seleção de Mecânico --- (MANTIDO AQUI)
+    // --- Métodos Auxiliares para Seleção de Mecânico ---
     private Optional<Usuario> solicitarMecanicoResponsavel() {
         System.out.println("\n--- SELECIONAR MECÂNICO RESPONSÁVEL ---");
         List<Usuario> mecanicos = usuarioService.listarUsuarios().stream()
@@ -272,7 +258,7 @@ public class CompGerenciarOS {
         }
 
         // --- LÓGICA DE INTERAÇÃO COM ELEVADOR (PERTENCE AQUI NA VIEW) ---
-        Optional<Integer> idElevadorParaAlocar = Optional.empty(); // Inicializa como vazio
+        Optional<Integer> idElevadorParaAlocar = Optional.empty();
 
         // Se o status está mudando PARA EM_DIAGNOSTICO ou EM_EXECUCAO
         if ((novoStatus == StatusOrdem.EM_DIAGNOSTICO || novoStatus == StatusOrdem.EM_EXECUCAO) &&
@@ -288,7 +274,7 @@ public class CompGerenciarOS {
 
             if (elevadoresDisponiveis.isEmpty()) {
                 System.err.println("Nenhum elevador disponível no momento. Não será possível alocar.");
-                return; // Aborta a atualização de status se elevador é necessário mas não há
+                return;
             }
 
             // --- DECLARAÇÃO DE elevadoresFiltrados FORA DO IF/ELSE ---
@@ -332,9 +318,6 @@ public class CompGerenciarOS {
                 return;
             }
         }
-        // NÃO HÁ else if para liberação aqui, pois o service cuida da liberação sem input do user
-        // A liberação acontece no OrdemServicoService, que é chamado abaixo.
-        // --- FIM DA LÓGICA DE INTERAÇÃO COM ELEVADOR NA VIEW ---
 
         try {
             // Agora, passa o Optional<Integer> idElevadorParaAlocar para o serviço
@@ -369,13 +352,13 @@ public class CompGerenciarOS {
 
         // CHAMA O CompGerenciarServico, passando a OS e os Services necessários
         CompGerenciarServico compGerenciarServico = new CompGerenciarServico(
-                osSelecionada,       // A Ordem de Serviço de contexto
-                servicoService,      // Para gerenciar serviços do sistema
-                itemEstoqueService,  // Para seleção de peças
-                ordemServicoService, // Para adicionar/remover/atualizar na OS
-                scanner              // Scanner
+                osSelecionada,
+                servicoService,
+                itemEstoqueService, 
+                ordemServicoService, 
+                scanner              
         );
-        compGerenciarServico.exibirMenu(); // Entra no menu de gerenciamento de serviços daquela OS
+        compGerenciarServico.exibirMenu();
         System.out.println("\n--- Retornando ao Gerenciamento de Ordens de Serviço ---");
     }
 
@@ -398,7 +381,7 @@ public class CompGerenciarOS {
             return;
         }
         OrdemServico os = osOpt.get();
-        System.out.println("\n" + os.toString()); // Exibe o toString básico da OS
+        System.out.println("\n" + os.toString());
 
         // Detalhes adicionais (requer buscar Cliente, Veiculo, Mecanico)
         Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(os.getIdCliente());

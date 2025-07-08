@@ -26,8 +26,8 @@ public class CompGerenciarCliente {
 
     private final ClienteService clienteService;
     private final OrdemServicoService ordemServicoService;
-    private final UsuarioService usuarioService; // <<<< ADICIONADO AQUI
-    private final VeiculoService veiculoService; // <<<< ADICIONADO AQUI
+    private final UsuarioService usuarioService; 
+    private final VeiculoService veiculoService;
     private final Scanner scanner;
 
     public CompGerenciarCliente(ClienteService clienteService, Scanner scanner,

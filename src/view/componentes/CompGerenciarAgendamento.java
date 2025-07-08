@@ -49,8 +49,8 @@ public class CompGerenciarAgendamento {
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
         this.scanner = scanner;
-        this.compGerenciarCliente = compGerenciarCliente; // <<< ATRIBUIÇÃO
-        this.compGerenciarVeiculo = compGerenciarVeiculo; // <<< ATRIBUIÇÃO
+        this.compGerenciarCliente = compGerenciarCliente;
+        this.compGerenciarVeiculo = compGerenciarVeiculo;
     }
 
     public void exibirMenu() {

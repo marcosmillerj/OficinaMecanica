@@ -91,7 +91,7 @@ public class CompGerenciarUsuario {
         System.out.print("Senha: ");
         String senha = scanner.nextLine();
 
-        // NOVO: Seleção do Tipo de Usuário (usando o enum TipoUsuario)
+        // Seleção do Tipo de Usuário (usando o enum TipoUsuario)
         System.out.println("Selecione o Tipo de Usuário:");
         TipoUsuario[] tipos = TipoUsuario.values();
         for (int i = 0; i < tipos.length; i++) {
@@ -130,12 +130,12 @@ public class CompGerenciarUsuario {
     // Método para listar todos os usuários (chama o Service)
     private void listarUsuarios() {
         System.out.println("\n--- Lista de Usuários ---");
-        List<Usuario> usuarios = usuarioService.listarUsuarios(); // Chama o service
+        List<Usuario> usuarios = usuarioService.listarUsuarios();
         if (usuarios.isEmpty()) {
             System.out.println("Nenhum usuário cadastrado.");
         } else {
             for (Usuario u : usuarios) {
-                System.out.println(u.toString()); // Usa o toString() que já inclui o tipo
+                System.out.println(u.toString());
             }
         }
     }
@@ -146,12 +146,12 @@ public class CompGerenciarUsuario {
         System.out.print("Digite o CPF do usuário a ser atualizado: ");
         String cpfBusca = scanner.nextLine();
 
-        Optional<Usuario> usuarioExistenteOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca); // Chama o Service
+        Optional<Usuario> usuarioExistenteOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca);
         if (usuarioExistenteOpt.isEmpty()) {
             System.out.println("Usuário com CPF " + cpfBusca + " não encontrado.");
             return;
         }
-        Usuario usuarioExistente = usuarioExistenteOpt.get(); // Obtém o objeto Usuario
+        Usuario usuarioExistente = usuarioExistenteOpt.get();
 
         System.out.println("Usuário encontrado: " + usuarioExistente.getNome() + " (Tipo: " + usuarioExistente.getTipo().getDescricao() + ")");
         System.out.println("Deixe em branco para manter o valor atual.");
@@ -209,7 +209,7 @@ public class CompGerenciarUsuario {
             }
         } catch (IllegalStateException e) {
             System.err.println("Erro ao atualizar usuário: " + e.getMessage()); 
-        } catch (IllegalArgumentException e) { // Captura erros de formato (se houver, do model)
+        } catch (IllegalArgumentException e) {
             System.err.println("Erro de formato ao atualizar usuário: " + e.getMessage());
         }
     }
@@ -220,7 +220,7 @@ public class CompGerenciarUsuario {
         System.out.print("Digite o CPF do usuário a ser removido: ");
         String cpfBusca = scanner.nextLine();
 
-        Optional<Usuario> usuarioParaRemoverOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca); // Chama o Service
+        Optional<Usuario> usuarioParaRemoverOpt = usuarioService.buscarUsuarioPorCpf(cpfBusca);
         if (usuarioParaRemoverOpt.isEmpty()) {
             System.out.println("Usuário com CPF " + cpfBusca + " não encontrado.");
             return;

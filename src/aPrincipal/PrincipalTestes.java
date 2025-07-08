@@ -25,7 +25,6 @@ import service.*;
  */
 public class PrincipalTestes {
 
-    // Atributos de serviço (não estáticos aqui, pois serão passados ao método rodar)
     private static UsuarioCRUD usuarioCRUD;
     private static ClienteRepository clienteRepository;
     private static VeiculoRepository veiculoRepository;
@@ -203,7 +202,7 @@ public class PrincipalTestes {
 
         System.out.print("Digite o nome do cliente a buscar (ex: Ana Beatriz): ");
         String nomeBusca = scannerInstancia.nextLine();
-        Optional<Cliente> encontrado = findClientePorNome(clientesOrdenadosPorNome, nomeBusca); // Nosso find personalizado
+        Optional<Cliente> encontrado = findClientePorNome(clientesOrdenadosPorNome, nomeBusca);
         if (encontrado.isPresent()) {
             System.out.println("Cliente '" + nomeBusca + "' encontrado com 'findClientePorNome': " + encontrado.get());
         } else {

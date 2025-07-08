@@ -13,9 +13,9 @@ import java.util.Optional;
  */
 public class Elevador {
     
-    private int id; // ID único do elevador (definido no ElevadorRepository)
-    private boolean isDisponivel; // Indica se o elevador está livre ou ocupado
-    private boolean capacidadeAlinhamento; // Atributo renomeado
+    private int id; 
+    private boolean isDisponivel;
+    private boolean capacidadeAlinhamento;
     
     // ID do veículo atualmente no elevador (Optional.empty() se livre).
     // O estado do elevador (quem o ocupa) AGORA SERÁ PERSISTIDO em JSON.
@@ -46,7 +46,6 @@ public class Elevador {
         this.id = id;
         this.isDisponivel = isDisponivel;
         this.capacidadeAlinhamento = capacidadeAlinhamento;
-        // <<< CORREÇÃO AQUI: Garante que idVeiculoAtual não seja null, mesmo que o Gson passe null
         this.idVeiculoAtual = Objects.requireNonNullElse(idVeiculoAtual, Optional.empty()); 
     }
 
@@ -58,12 +57,12 @@ public class Elevador {
     
     /**
      * Retorna o Optional<Integer> do ID do veículo atual.
-     * GARANTE QUE NUNCA RETORNE NULL, SEMPRE UM OPTIONAL (VAZIO OU COM VALOR).
+     * 
      * Isso evita NullPointerExceptions em cadeia.
      * @return Optional<Integer> do ID do veículo, ou Optional.empty() se não houver veículo.
      */
     public Optional<Integer> getIdVeiculoAtual() { 
-        return Objects.requireNonNullElse(idVeiculoAtual, Optional.empty()); // <<< CORREÇÃO AQUI!
+        return Objects.requireNonNullElse(idVeiculoAtual, Optional.empty());
     }
 
     /**
@@ -88,7 +87,6 @@ public class Elevador {
      */
     public boolean liberar() {
         if (!isDisponivel) {
-            // Usa o getter defensivo para evitar NPE se por algum motivo idVeiculoAtual interno for null
             System.out.println("[Elevador ID " + id + "] Liberado. Veículo ID " + getIdVeiculoAtual().orElse(-1) + " saiu."); 
             this.isDisponivel = true;
             this.idVeiculoAtual = Optional.empty();
@@ -100,7 +98,6 @@ public class Elevador {
 
     @Override
     public String toString() {
-        // Usa o getter defensivo para evitar NPE
         String status = isDisponivel ? "Disponível" : "Ocupado com Veículo ID " + getIdVeiculoAtual().orElse(-1); 
         String capacidade = temCapacidadeAlinhamento() ? " (Alinhamento)" : " (Geral)";
         return "Elevador {ID: " + id + " | Status: " + status + capacidade + "}";

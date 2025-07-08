@@ -72,7 +72,7 @@ public class CompGerenciarEstoque {
 
     private void adicionarItem() {
         System.out.println("\n--- Adicionar Novo Item ao Estoque ---");
-        System.out.print("Código do Item (Ex: VELA-001): "); // NOVO: Solicitar o código
+        System.out.print("Código do Item (Ex: VELA-001): ");
         String codigo = scanner.nextLine();
         System.out.print("Nome do Item: "); String nome = scanner.nextLine();
         System.out.print("Quantidade Inicial: "); int quantidade = lerInteiroValido();
@@ -111,7 +111,7 @@ public class CompGerenciarEstoque {
 
         System.out.println("Deixe em branco para manter o valor atual.");
 
-        System.out.print("Novo Código (" + itemExistente.getCodigo() + "): "); // NOVO: Pedir novo código
+        System.out.print("Novo Código (" + itemExistente.getCodigo() + "): ");
         String novoCodigo = scanner.nextLine();
         if (novoCodigo.isEmpty()) { novoCodigo = itemExistente.getCodigo(); }
 
