@@ -8,27 +8,43 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 import models.Cliente;
+import models.OrdemServico;
+import models.Usuario; // Importar Usuario
+import models.Veiculo; // Importar Veiculo
 import service.ClienteService;
+import service.OrdemServicoService;
+import service.UsuarioService; // Importar UsuarioService
+import service.VeiculoService; // Importar VeiculoService
 
 /**
  * Componente visual responsável por gerenciar operações de Cliente.
- * Inclui criar, listar, editar e excluir clientes, além de funcionalidades de seleção on-demand.
+ * Inclui criar, listar, editar e excluir clientes, além de funcionalidades de seleção on-demand e consulta de OS.
  *
  * @author marcos_miller
  */
 public class CompGerenciarCliente {
 
     private final ClienteService clienteService;
+    private final OrdemServicoService ordemServicoService;
+    private final UsuarioService usuarioService; // <<<< ADICIONADO AQUI
+    private final VeiculoService veiculoService; // <<<< ADICIONADO AQUI
     private final Scanner scanner;
 
-    public CompGerenciarCliente(ClienteService clienteService, Scanner scanner) {
+    public CompGerenciarCliente(ClienteService clienteService, Scanner scanner,
+                                OrdemServicoService ordemServicoService,
+                                UsuarioService usuarioService, // <<<< ADICIONADO AQUI
+                                VeiculoService veiculoService) { // <<<< ADICIONADO AQUI
         this.clienteService = clienteService;
         this.scanner = scanner;
+        this.ordemServicoService = ordemServicoService;
+        this.usuarioService = usuarioService; // <<<< INICIALIZADO AQUI
+        this.veiculoService = veiculoService; // <<<< INICIALIZADO AQUI
     }
 
     /**
      * Exibe o menu principal para o gerenciamento de clientes,
-     * permitindo adicionar, listar, editar, excluir e ordenar clientes.
+     * permitindo adicionar, listar, editar, excluir e ordenar clientes,
+     * além de consultar suas Ordens de Serviço.
      */
     public void exibirMenuPrincipal() {
         int opcao;
@@ -40,16 +56,17 @@ public class CompGerenciarCliente {
             System.out.println("4. Listar Clientes por Email (Ordenado)");
             System.out.println("5. Editar Cliente Existente");
             System.out.println("6. Excluir Cliente");
+            System.out.println("7. Ver Ordens de Serviço do Cliente");
             System.out.println("0. Voltar ao Menu Anterior");
             System.out.print("Escolha uma opção: ");
 
             try {
                 opcao = scanner.nextInt();
-                scanner.nextLine();
+                scanner.nextLine(); // Consome a quebra de linha
             } catch (InputMismatchException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número.");
-                scanner.nextLine();
-                opcao = -1;
+                scanner.nextLine(); // Consome a entrada inválida
+                opcao = -1; // Garante que o loop continue
             }
 
             switch (opcao) {
@@ -70,6 +87,9 @@ public class CompGerenciarCliente {
                     break;
                 case 6:
                     excluirCliente();
+                    break;
+                case 7:
+                    verOrdensServicoDoCliente();
                     break;
                 case 0:
                     System.out.println("Saindo do Gerenciamento de Clientes.");
@@ -195,6 +215,48 @@ public class CompGerenciarCliente {
             }
         } else {
             System.out.println("Exclusão de cliente cancelada.");
+        }
+    }
+
+    /**
+     * Permite ao usuário ver todas as Ordens de Serviço associadas a um cliente.
+     */
+    private void verOrdensServicoDoCliente() {
+        System.out.println("\n--- VER ORDENS DE SERVIÇO DO CLIENTE ---");
+        System.out.print("Digite o ID do cliente para ver as Ordens de Serviço: ");
+        int idCliente = lerInteiroValido();
+
+        Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(idCliente);
+        if (clienteOpt.isEmpty()) {
+            System.out.println("Cliente com ID " + idCliente + " não encontrado.");
+            return;
+        }
+
+        Cliente clienteSelecionado = clienteOpt.get();
+        System.out.println("Listando Ordens de Serviço para o cliente: " + clienteSelecionado.getNome() + " (ID: " + clienteSelecionado.getId() + ")");
+
+        // Busca as Ordens de Serviço pelo ID do cliente
+        List<OrdemServico> ordensDoCliente = ordemServicoService.listarOrdensPorCliente(idCliente);
+
+        if (ordensDoCliente.isEmpty()) {
+            System.out.println("Nenhuma Ordem de Serviço encontrada para este cliente.");
+        } else {
+            System.out.println("ID    | CÓDIGO           | STATUS                 | MECÂNICO            | VEÍCULO (PLACA)");
+            System.out.println("----------------------------------------------------------------------------------");
+            for (OrdemServico os : ordensDoCliente) {
+                // Agora usamos usuarioService e veiculoService injetados no CompGerenciarCliente
+                String mecanicoNome = usuarioService.buscarUsuarioPorId(os.getIdMecanicoResponsavel())
+                                                  .map(Usuario::getNome)
+                                                  .orElse("Desconhecido");
+                String veiculoPlaca = veiculoService.buscarVeiculoPorId(os.getIdVeiculo())
+                                                 .map(Veiculo::getPlaca)
+                                                 .orElse("N/A");
+
+                System.out.printf("%-5d | %-16s | %-22s | %-19s | %s%n",
+                                  os.getId(), os.getCodigo(), os.getStatus().getDescricao(),
+                                  mecanicoNome, veiculoPlaca);
+            }
+            System.out.println("----------------------------------------------------------------------------------");
         }
     }
 

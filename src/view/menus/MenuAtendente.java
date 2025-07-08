@@ -70,7 +70,7 @@ public class MenuAtendente {
             System.exit(1);
         }
 
-        this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
+        this.compGerenciarCliente = new CompGerenciarCliente(clienteService, scanner, ordemServicoService, usuarioService, veiculoService);
         this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
     }
 

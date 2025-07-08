@@ -62,7 +62,7 @@ public class MenuGerente {
         this.servicoService = servicoService;
         this.relatorioService = relatorioService;
         this.elevadorService = elevadorService;
-        this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
+        this.compGerenciarCliente = new CompGerenciarCliente(clienteService, scanner, ordemServicoService, usuarioService, veiculoService);
         this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
     }
 

@@ -64,7 +64,7 @@ public class MenuMecanico {
         this.elevadorService = elevadorService;
         this.clienteService = clienteService;
         this.veiculoService = veiculoService;
-        this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
+        this.compGerenciarCliente = new CompGerenciarCliente(clienteService, scanner, ordemServicoService, usuarioService, veiculoService);
         this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
         
         if (this.mecanicoLogado == null || this.mecanicoLogado.getTipo() != models.enums.TipoUsuario.MECANICO) {
