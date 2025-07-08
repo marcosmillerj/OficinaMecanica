@@ -20,7 +20,7 @@
   },
   {
     "id": 3,
-    "nome": "isa",
+    "nome": "isa miller",
     "telefone": "333",
     "email": "qww",
     "idVeiculos": [
@@ -49,14 +49,5 @@
     "telefone": "4353",
     "email": "ooo",
     "idVeiculos": []
-  },
-  {
-    "id": 7,
-    "nome": "lico",
-    "telefone": "346w",
-    "email": "oooos",
-    "idVeiculos": [
-      6
-    ]
   }
 ]

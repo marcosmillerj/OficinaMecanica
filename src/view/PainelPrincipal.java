@@ -117,7 +117,7 @@ public class PainelPrincipal {
                 MenuAtendente menuAtendente = new MenuAtendente(
                     clienteService, itemEstoqueService, ordemServicoService, pontoService,
                     servicoService, usuarioService, veiculoService, scanner,
-                    agendamentoService, pagamentoService
+                    agendamentoService, pagamentoService, elevadorService
                 );
                 menuAtendente.exibirMenu();
                 break;

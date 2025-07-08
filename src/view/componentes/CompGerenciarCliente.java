@@ -12,14 +12,14 @@ import service.ClienteService;
 
 /**
  * Componente visual responsável por gerenciar operações de Cliente.
- * Isso inclui solicitar clientes existentes, cadastrar novos, listar e ordenar.
+ * Inclui criar, listar, editar e excluir clientes, além de funcionalidades de seleção on-demand.
  *
  * @author marcos_miller
  */
 public class CompGerenciarCliente {
 
-    private ClienteService clienteService;
-    private Scanner scanner;
+    private final ClienteService clienteService;
+    private final Scanner scanner;
 
     public CompGerenciarCliente(ClienteService clienteService, Scanner scanner) {
         this.clienteService = clienteService;
@@ -28,7 +28,7 @@ public class CompGerenciarCliente {
 
     /**
      * Exibe o menu principal para o gerenciamento de clientes,
-     * permitindo adicionar, listar e ordenar clientes.
+     * permitindo adicionar, listar, editar, excluir e ordenar clientes.
      */
     public void exibirMenuPrincipal() {
         int opcao;
@@ -38,16 +38,18 @@ public class CompGerenciarCliente {
             System.out.println("2. Listar Todos os Clientes (Sem Ordenação)");
             System.out.println("3. Listar Clientes por Nome (Ordenado)");
             System.out.println("4. Listar Clientes por Email (Ordenado)");
+            System.out.println("5. Editar Cliente Existente");
+            System.out.println("6. Excluir Cliente");
             System.out.println("0. Voltar ao Menu Anterior");
             System.out.print("Escolha uma opção: ");
 
             try {
                 opcao = scanner.nextInt();
-                scanner.nextLine(); // Consome a quebra de linha
+                scanner.nextLine();
             } catch (InputMismatchException e) {
                 System.err.println("Entrada inválida. Por favor, digite um número.");
-                scanner.nextLine(); // Consome a entrada inválida
-                opcao = -1; // Garante que o loop continue
+                scanner.nextLine();
+                opcao = -1;
             }
 
             switch (opcao) {
@@ -62,6 +64,12 @@ public class CompGerenciarCliente {
                     break;
                 case 4:
                     listarClientesInterno(new ClienteComparatorPorEmail());
+                    break;
+                case 5:
+                    editarCliente();
+                    break;
+                case 6:
+                    excluirCliente();
                     break;
                 case 0:
                     System.out.println("Saindo do Gerenciamento de Clientes.");
@@ -95,23 +103,98 @@ public class CompGerenciarCliente {
 
     /**
      * Lista todos os clientes, opcionalmente utilizando um Comparator para ordenação.
+     *
      * @param comparator O Comparator a ser usado para ordenar, ou null para sem ordenação.
      */
     private void listarClientesInterno(Comparator<Cliente> comparator) {
         System.out.println("\n--- LISTA DE CLIENTES ---");
-        List<Cliente> clientes;
-        if (comparator != null) {
-            clientes = clienteService.listarClientesOrdenados(comparator);
-            System.out.println("Lista ordenada.");
-        } else {
-            clientes = clienteService.listarTodosClientes();
-            System.out.println("Lista sem ordenação específica.");
-        }
+        List<Cliente> clientes = (comparator != null) ?
+                                 clienteService.listarClientesOrdenados(comparator) :
+                                 clienteService.listarTodosClientes();
 
         if (clientes.isEmpty()) {
             System.out.println("Nenhum cliente cadastrado.");
         } else {
-            clientes.forEach(System.out::println);
+            System.out.println("ID    | Nome                   | Telefone         | Email");
+            System.out.println("------------------------------------------------------------------");
+            for (Cliente cliente : clientes) {
+                System.out.printf("%-5d | %-22s | %-16s | %s%n",
+                                  cliente.getId(), cliente.getNome(), cliente.getTelefone(), cliente.getEmail());
+            }
+            System.out.println("------------------------------------------------------------------");
+        }
+    }
+
+    /**
+     * Permite ao usuário editar os dados de um cliente existente.
+     */
+    private void editarCliente() {
+        System.out.println("\n--- EDITAR CLIENTE ---");
+        System.out.print("Digite o ID do cliente a ser editado: ");
+        int idCliente = lerInteiroValido();
+
+        Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(idCliente);
+        if (clienteOpt.isEmpty()) {
+            System.out.println("Cliente com ID " + idCliente + " não encontrado.");
+            return;
+        }
+
+        Cliente clienteAtual = clienteOpt.get();
+        System.out.println("Cliente selecionado: " + clienteAtual.getNome() + " (ID: " + clienteAtual.getId() + ")");
+
+        System.out.print("Novo nome (deixe em branco para manter '" + clienteAtual.getNome() + "'): ");
+        String novoNome = scanner.nextLine();
+        if (novoNome.isEmpty()) {
+            novoNome = clienteAtual.getNome();
+        }
+
+        System.out.print("Novo telefone (deixe em branco para manter '" + clienteAtual.getTelefone() + "'): ");
+        String novoTelefone = scanner.nextLine();
+        if (novoTelefone.isEmpty()) {
+            novoTelefone = clienteAtual.getTelefone();
+        }
+
+        System.out.print("Novo email (deixe em branco para manter '" + clienteAtual.getEmail() + "'): ");
+        String novoEmail = scanner.nextLine();
+        if (novoEmail.isEmpty()) {
+            novoEmail = clienteAtual.getEmail();
+        }
+
+        try {
+            clienteService.atualizarCliente(idCliente, novoNome, novoTelefone, novoEmail);
+            System.out.println("Cliente atualizado com sucesso!");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.err.println("Erro ao atualizar cliente: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Permite ao usuário excluir um cliente existente.
+     */
+    private void excluirCliente() {
+        System.out.println("\n--- EXCLUIR CLIENTE ---");
+        System.out.print("Digite o ID do cliente a ser excluído: ");
+        int idCliente = lerInteiroValido();
+
+        Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(idCliente);
+        if (clienteOpt.isEmpty()) {
+            System.out.println("Cliente com ID " + idCliente + " não encontrado.");
+            return;
+        }
+
+        Cliente clienteParaExcluir = clienteOpt.get();
+        System.out.println("Tem certeza que deseja excluir o cliente: " + clienteParaExcluir.getNome() + " (ID: " + clienteParaExcluir.getId() + ")? (S/N)");
+        String confirmacao = scanner.nextLine().trim().toUpperCase();
+
+        if (confirmacao.equals("S")) {
+            try {
+                clienteService.removerCliente(idCliente);
+                System.out.println("Cliente excluído com sucesso!");
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                System.err.println("Erro ao excluir cliente: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Exclusão de cliente cancelada.");
         }
     }
 
@@ -179,6 +262,20 @@ public class CompGerenciarCliente {
         } else {
             System.out.println("Resposta inválida. Operação de seleção/criação de cliente abortada.");
             return Optional.empty();
+        }
+    }
+
+    // --- Métodos Auxiliares de Leitura de Input ---
+    private int lerInteiroValido() {
+        while (true) {
+            try {
+                int valor = scanner.nextInt();
+                scanner.nextLine();
+                return valor;
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número inteiro.");
+                scanner.nextLine();
+            }
         }
     }
 }

@@ -1,12 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package view.menus;
 
-import java.util.InputMismatchException;
-import java.util.Scanner;
-import models.Usuario;
 import service.AgendamentoService;
 import service.ClienteService;
 import service.ItemEstoqueService;
@@ -19,49 +12,47 @@ import service.VeiculoService;
 import view.componentes.CompGerenciarAgendamento;
 import view.componentes.CompGerenciarCliente;
 import view.componentes.CompGerenciarEstoque;
+import view.componentes.CompGerenciarOS;
 import view.componentes.CompGerenciarVeiculo;
 import view.componentes.CompProcessarPagamento;
+import util.UserSession;
+
+import java.util.InputMismatchException;
+import java.util.Scanner;
+import service.ElevadorService;
 
 /**
+ * Menu do Atendente.
+ * Oferece funcionalidades específicas para o perfil de atendente.
  *
  * @author marcos_miller
  */
 public class MenuAtendente {
 
-    private ClienteService clienteService;
-    private ItemEstoqueService itemEstoqueService;
-    private OrdemServicoService ordemServicoService;
-    private RegistroPontoService pontoService;
-    private ServicoService servicoService;
-    private UsuarioService usuarioService;
-    private VeiculoService veiculoService;
-    private AgendamentoService agendamentoService;
-    private PagamentoService pagamentoService; // NOVO ATRIBUTO!
-    private Scanner scanner;
-    private Usuario atendenteLogado;
-    private CompGerenciarCliente compGerenciarCliente;
-    private CompGerenciarVeiculo compGerenciarVeiculo;
+    private final ClienteService clienteService;
+    private final ItemEstoqueService itemEstoqueService;
+    private final OrdemServicoService ordemServicoService;
+    private final RegistroPontoService pontoService;
+    private final ServicoService servicoService;
+    private final UsuarioService usuarioService;
+    private final VeiculoService veiculoService;
+    private final AgendamentoService agendamentoService;
+    private final PagamentoService pagamentoService;
+    private final Scanner scanner;
+    private final CompGerenciarCliente compGerenciarCliente;
+    private final CompGerenciarVeiculo compGerenciarVeiculo;
+    private final ElevadorService elevadorService; 
 
     /**
      * Construtor do MenuAtendente.
      * Recebe as dependências necessárias para suas operações.
-     * @param clienteService O serviço de clientes.
-     * @param itemEstoqueService O serviço de itens de estoque.
-     * @param ordemServicoService O serviço de ordens de serviço.
-     * @param pontoService O serviço de registro de ponto.
-     * @param servicoService O serviço de serviços.
-     * @param usuarioService O serviço de usuários.
-     * @param veiculoService O serviço de veículos.
-     * @param scanner O scanner para entrada do usuário.
-     * @param agendamentoService O serviço de agendamentos.
-     * @param pagamentoService O serviço de pagamentos. // NOVO PARÂMETRO DOC
      */
     public MenuAtendente(ClienteService clienteService, ItemEstoqueService itemEstoqueService,
                          OrdemServicoService ordemServicoService, RegistroPontoService pontoService,
                          ServicoService servicoService, UsuarioService usuarioService,
                          VeiculoService veiculoService, Scanner scanner,
-                         AgendamentoService agendamentoService,
-                         PagamentoService pagamentoService) { // NOVO PARÂMETRO!
+                         AgendamentoService agendamentoService, PagamentoService pagamentoService,
+                         ElevadorService elevadorService) { 
         this.clienteService = clienteService;
         this.itemEstoqueService = itemEstoqueService;
         this.ordemServicoService = ordemServicoService;
@@ -71,14 +62,14 @@ public class MenuAtendente {
         this.veiculoService = veiculoService;
         this.scanner = scanner;
         this.agendamentoService = agendamentoService;
-        this.pagamentoService = pagamentoService; // Inicializa o PagamentoService
-        this.atendenteLogado = util.UserSession.getInstance().getLoggedInUser();
+        this.pagamentoService = pagamentoService;
+        this.elevadorService = elevadorService;
 
-        if (this.atendenteLogado == null || this.atendenteLogado.getTipo() != models.enums.TipoUsuario.ATENDENTE) {
-            System.err.println("Erro: Acesso não autorizado ao Menu Atendente.");
+        if (UserSession.getInstance().getLoggedInUser() == null || UserSession.getInstance().getLoggedInUser().getTipo() != models.enums.TipoUsuario.ATENDENTE) {
+            System.err.println("Erro: Acesso não autorizado ao Menu Atendente. Nenhum usuário logado ou tipo incorreto.");
             System.exit(1);
         }
-        
+
         this.compGerenciarCliente = new CompGerenciarCliente(this.clienteService, this.scanner);
         this.compGerenciarVeiculo = new CompGerenciarVeiculo(this.veiculoService, this.clienteService, this.scanner);
     }
@@ -90,9 +81,11 @@ public class MenuAtendente {
         int opcao;
         do {
             System.out.println("\n===== Menu do Atendente =====");
-            System.out.println("1. Consultar Estoque");
-            System.out.println("2. Criar Agendamento");
-            System.out.println("3. Realizar Pagamento"); // AGORA FUNCIONAL
+            System.out.println("1. Gerenciar Clientes");
+            System.out.println("2. Gerenciar Ordens de Serviço");
+            System.out.println("3. Gerenciar Agendamentos");
+            System.out.println("4. Consultar Estoque");
+            System.out.println("5. Realizar Pagamento");
             System.out.println("0. Voltar ao Painel Principal");
             System.out.print("Escolha uma opção: ");
 
@@ -115,26 +108,41 @@ public class MenuAtendente {
      */
     private void processarOpcao(int opcao) {
         switch (opcao) {
-            case 1:
+            case 1: // Gerenciar Clientes
+                System.out.println("\n--- Abrindo Gerenciamento de Clientes ---");
+                this.compGerenciarCliente.exibirMenuPrincipal();
+                System.out.println("\n--- Retornando ao Menu do Atendente ---");
+                break;
+            case 2: // Gerenciar Ordens de Serviço
+                System.out.println("\n--- Abrindo Gerenciamento de Ordens de Serviço ---");
+                CompGerenciarOS compGerenciarOS = new CompGerenciarOS(
+                        this.ordemServicoService, this.clienteService, this.veiculoService, this.usuarioService,
+                        this.servicoService, this.itemEstoqueService,
+                        this.scanner, this.elevadorService, this.compGerenciarCliente, this.compGerenciarVeiculo
+                );
+                compGerenciarOS.exibirMenu();
+                System.out.println("\n--- Retornando ao Menu do Atendente ---");
+                break;
+            case 3: // Gerenciar Agendamentos
+                System.out.println("\n--- Abrindo Gerenciamento de Agendamentos ---");
+                CompGerenciarAgendamento compGerenciarAgendamento = new CompGerenciarAgendamento(
+                        agendamentoService, clienteService, veiculoService, scanner, compGerenciarCliente, compGerenciarVeiculo
+                );
+                compGerenciarAgendamento.exibirMenu();
+                System.out.println("\n--- Retornando ao Menu do Atendente ---");
+                break;
+            case 4: // Consultar Estoque
                 System.out.println("\n--- Consultando Estoque ---");
                 CompGerenciarEstoque compGerenciarEstoque = new CompGerenciarEstoque(itemEstoqueService, scanner);
                 compGerenciarEstoque.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Atendente ---");
                 break;
-            case 2:
-                System.out.println("\n--- Criando Agendamento ---");
-                CompGerenciarAgendamento compGerenciarAgendamento = new CompGerenciarAgendamento(
-                    agendamentoService, clienteService, veiculoService, scanner, compGerenciarCliente, compGerenciarVeiculo
-                );
-                compGerenciarAgendamento.exibirMenu();
-                System.out.println("\n--- Retornando ao Menu do Atendente ---");
-                break;
-            case 3:
+            case 5: // Realizar Pagamento
                 System.out.println("\n--- Realizando Pagamento ---");
                 CompProcessarPagamento compProcessarPagamento = new CompProcessarPagamento(
-                    pagamentoService, ordemServicoService, scanner // Passa dependências para o componente de pagamento
+                        pagamentoService, ordemServicoService, scanner
                 );
-                compProcessarPagamento.exibirMenu(); // Abre o menu de processamento de pagamento
+                compProcessarPagamento.exibirMenu();
                 System.out.println("\n--- Retornando ao Menu do Atendente ---");
                 break;
             case 0:
